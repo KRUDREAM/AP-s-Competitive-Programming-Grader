@@ -1,0 +1,6 @@
+{
+  "name": "CP Grader - C/C++ Competitive Programming & Community Hub",
+  "description": "ระบบ Competitive Programming Grader สำหรับภาษา C และ C++ พร้อม Real-time Ranking, ระบบสร้างและตรวจโจทย์โดย Admin, ภารกิจรายสัปดาห์ เควส และกระดานถามตอบสำหรับนักเรียน",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

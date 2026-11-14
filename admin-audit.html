@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Audit Log ประวัติทั้งหมดในระบบ | ST8 CP-Grader Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    html, body { max-width: 100%; overflow-x: hidden; }
+    body { font-family: 'Kanit', sans-serif; background-color: #030712; color: #f3f4f6; }
+    .tech-glass { background: rgba(10, 15, 30, 0.78); backdrop-filter: blur(20px); border: 1px solid rgba(56, 189, 248, 0.16); }
+    .tech-modal { background: rgba(6, 11, 25, 0.96); backdrop-filter: blur(28px); border: 1px solid rgba(56, 189, 248, 0.28); }
+    .cyber-grid { background-image: linear-gradient(to right, rgba(56, 189, 248, 0.03) 1px, transparent 1px), linear-gradient(to bottom, rgba(56, 189, 248, 0.03) 1px, transparent 1px); background-size: 32px 32px; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col relative overflow-x-hidden cyber-grid">
+
+  <div id="systemToast" class="fixed top-5 right-5 z-[80] transform translate-x-[120%] transition-all duration-300 tech-glass px-5 py-3.5 rounded-2xl border border-cyan-500/40 shadow-2xl flex items-center gap-3">
+    <i id="toastIcon" class="fa-solid fa-circle-check text-cyan-400 text-lg"></i>
+    <div><h4 id="toastTitle" class="text-xs font-bold text-white"></h4><p id="toastDesc" class="text-xs text-gray-300"></p></div>
+  </div>
+
+  <div id="adminHeaderMount"></div>
+
+  <div class="flex-1 flex flex-col lg:flex-row relative z-10 w-full min-w-0">
+    <div id="adminSidebarMount"></div>
+
+    <main class="flex-1 min-w-0 px-4 md:px-6 py-6 space-y-5">
+      <!-- HEADER -->
+      <div class="bg-gradient-to-r from-rose-950/35 via-cyan-950/35 to-blue-950/25 p-5 rounded-2xl border border-cyan-500/25 flex flex-wrap justify-between items-center gap-3">
+        <div>
+          <h2 class="text-lg md:text-xl font-bold text-white"><i class="fa-solid fa-clock-rotate-left text-cyan-400 mr-2"></i> System Audit Log (ประวัติการกระทำทั้งหมดในระบบ)</h2>
+          <p class="text-xs text-gray-400">บันทึกทุกความเคลื่อนไหวแบบเรียลไทม์ ทั้งฝั่ง Admin (สร้าง/แก้/ลบโจทย์, อนุมัติ, เปลี่ยนสิทธิ์) และฝั่ง User (ส่งโค้ด, เสนอโจทย์)</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="loadAllAuditLogs()" class="tech-glass hover:bg-cyan-500/15 text-cyan-300 border border-cyan-500/35 px-3.5 py-2 rounded-xl text-xs font-semibold transition cursor-pointer">
+            <i class="fa-solid fa-rotate mr-1"></i> รีเฟรช
+          </button>
+          <button type="button" onclick="exportAuditCsv()" class="tech-glass hover:bg-emerald-500/15 text-emerald-300 border border-emerald-500/35 px-3.5 py-2 rounded-xl text-xs font-semibold transition cursor-pointer">
+            <i class="fa-solid fa-file-csv mr-1"></i> Export CSV
+          </button>
+        </div>
+      </div>
+
+      <!-- SUMMARY PILLS -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div class="tech-glass p-3.5 rounded-2xl border border-cyan-500/20">
+          <span class="text-[11px] text-gray-400">บันทึกทั้งหมด</span>
+          <div id="statTotalLogs" class="text-xl font-bold text-white mt-0.5">0</div>
+        </div>
+        <div class="tech-glass p-3.5 rounded-2xl border border-cyan-500/20">
+          <span class="text-[11px] text-gray-400">จัดการโจทย์ (Problems)</span>
+          <div id="statProblemLogs" class="text-xl font-bold text-cyan-300 mt-0.5">0</div>
+        </div>
+        <div class="tech-glass p-3.5 rounded-2xl border border-emerald-500/20">
+          <span class="text-[11px] text-gray-400">ส่งโค้ด (Submissions)</span>
+          <div id="statSubLogs" class="text-xl font-bold text-emerald-400 mt-0.5">0</div>
+        </div>
+        <div class="tech-glass p-3.5 rounded-2xl border border-rose-500/25">
+          <span class="text-[11px] text-gray-400">รายการสำคัญ / ลบข้อมูล</span>
+          <div id="statCriticalLogs" class="text-xl font-bold text-rose-400 mt-0.5">0</div>
+        </div>
+      </div>
+
+      <!-- FILTER & SEARCH BAR -->
+      <div class="tech-glass p-4 rounded-2xl border border-cyan-500/20 space-y-3">
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-2.5">
+          <div class="md:col-span-5 relative">
+            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-cyan-400 text-xs"></i>
+            <input type="text" id="auditSearchInput" oninput="renderAuditTable()" placeholder="ค้นหาผู้กระทำ, Action, รหัสโจทย์ หรือรายละเอียด..." class="w-full bg-black/60 border border-cyan-500/25 focus:border-cyan-400 focus:outline-none rounded-xl pl-9 pr-4 py-2 text-sm text-white">
+          </div>
+
+          <div class="md:col-span-4">
+            <select id="auditCategoryFilter" onchange="renderAuditTable()" class="w-full bg-black/60 border border-cyan-500/25 focus:border-cyan-400 focus:outline-none rounded-xl px-3.5 py-2 text-sm text-white cursor-pointer">
+              <option value="ALL">หมวดหมู่: ทั้งหมดในระบบ</option>
+              <option value="PROBLEM">จัดการโจทย์ (PROBLEM)</option>
+              <option value="SUBMISSION">การส่งโค้ด (SUBMISSION)</option>
+              <option value="USER">ผู้ใช้และสิทธิ์ (USER)</option>
+              <option value="CONTEST">การแข่งขัน (CONTEST)</option>
+              <option value="AUTH">เข้า-ออกระบบ (AUTH)</option>
+            </select>
+          </div>
+
+          <div class="md:col-span-3">
+            <select id="auditSeverityFilter" onchange="renderAuditTable()" class="w-full bg-black/60 border border-cyan-500/25 focus:border-cyan-400 focus:outline-none rounded-xl px-3.5 py-2 text-sm text-white cursor-pointer">
+              <option value="ALL">ระดับ: ทั้งหมด</option>
+              <option value="INFO">ปกติ (INFO)</option>
+              <option value="WARNING">แจ้งเตือน (WARNING)</option>
+              <option value="CRITICAL">วิกฤต / ลบข้อมูล (CRITICAL)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- AUDIT LOG TABLE -->
+      <div class="tech-glass rounded-2xl overflow-x-auto border border-cyan-500/20">
+        <table class="w-full text-left text-sm">
+          <thead class="bg-cyan-950/50 text-cyan-300 border-b border-cyan-500/20 text-xs uppercase">
+            <tr>
+              <th class="px-4 py-3.5 whitespace-nowrap">วัน-เวลา</th>
+              <th class="px-4 py-3.5 whitespace-nowrap">ผู้กระทำ (Actor)</th>
+              <th class="px-4 py-3.5 whitespace-nowrap">หมวดหมู่</th>
+              <th class="px-4 py-3.5 whitespace-nowrap">การกระทำ (Action)</th>
+              <th class="px-4 py-3.5 min-w-[220px]">เป้าหมาย / รายละเอียด</th>
+              <th class="px-4 py-3.5 text-center whitespace-nowrap">ระดับ</th>
+              <th class="px-4 py-3.5 text-right whitespace-nowrap">ข้อมูลดิบ</th>
+            </tr>
+          </thead>
+          <tbody id="auditLogsTableBody" class="divide-y divide-cyan-500/10">
+            <tr><td colspan="7" class="p-6 text-center text-gray-400">กำลังโหลดประวัติการกระทำทั้งหมดในระบบ...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <!-- DETAIL INSPECTOR MODAL -->
+  <div id="auditDetailModal" onclick="if(event.target === this) closeAuditDetailModal()" class="fixed inset-0 z-50 hidden items-center justify-center px-4 bg-black/85 backdrop-blur-md">
+    <div class="tech-modal rounded-3xl p-6 max-w-lg w-full relative space-y-4">
+      <button type="button" onclick="closeAuditDetailModal()" class="absolute top-5 right-5 text-gray-400 hover:text-white w-8 h-8 rounded-full bg-white/10 flex items-center justify-center cursor-pointer"><i class="fa-solid fa-xmark text-xs"></i></button>
+      <h3 class="text-base font-bold text-cyan-300"><i class="fa-solid fa-magnifying-glass-chart mr-1.5"></i> รายละเอียดเชิงลึก (Audit Payload)</h3>
+      <div id="auditDetailMeta" class="text-xs text-gray-300 space-y-1 bg-black/50 p-3.5 rounded-xl border border-white/10"></div>
+      <div>
+        <span class="text-xs text-gray-400 block mb-1">Metadata / JSON Details:</span>
+        <pre id="auditDetailJson" class="bg-black/80 border border-cyan-500/25 rounded-xl p-3.5 text-xs text-emerald-300 font-mono overflow-x-auto max-h-60"></pre>
+      </div>
+    </div>
+  </div>
+
+  <script src="admin-common.js"></script>
+  <script>
+    renderAdminShell('audit');
+    let mergedAuditLogs = [];
+
+    const ACTION_LABELS = {
+      CREATE_PROBLEM: 'สร้างโจทย์ใหม่',
+      PROPOSE_PROBLEM: 'เสนอโจทย์จากทางบ้าน',
+      UPDATE_PROBLEM: 'แก้ไขข้อมูลโจทย์',
+      APPROVE_PROBLEM: 'อนุมัติโจทย์ขึ้นระบบ',
+      DELETE_PROBLEM: 'ลบโจทย์ออกจากระบบ',
+      SUBMIT_CODE: 'ส่งโค้ดตรวจ (Submission)',
+      REGISTER_USER: 'สมัครสมาชิกใหม่',
+      CHANGE_USER_ROLE: 'เปลี่ยนสิทธิ์ผู้ใช้',
+      CREATE_CONTEST: 'สร้าง Contest ใหม่',
+      DELETE_CONTEST: 'ลบ Contest',
+      ADMIN_LOGOUT: 'แอดมินออกจากระบบ'
+    };
+
+    async function loadAllAuditLogs() {
+      const tbody = document.getElementById('auditLogsTableBody');
+      tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-gray-400">กำลังรวบรวมข้อมูลประวัติทั้งหมด...</td></tr>`;
+
+      const [logsRes, profilesRes, probsRes, subsRes] = await Promise.all([
+        supabaseClient.from('audit_logs').select('*').order('created_at', { ascending: false }).limit(500),
+        supabaseClient.from('profiles').select('id, username, full_name, email, role'),
+        supabaseClient.from('problems').select('id, problem_code, title, author, source, is_verified, created_at'),
+        supabaseClient.from('submissions').select('id, user_id, problem_id, language, status, created_at').order('created_at', { ascending: false }).limit(200)
+      ]);
+
+      const userMap = {};
+      (profilesRes.data || []).forEach(u => {
+        userMap[u.id] = u.username || u.full_name || u.email || String(u.id).slice(0, 8);
+      });
+
+      const probMap = {};
+      (probsRes.data || []).forEach(p => {
+        probMap[p.id] = `${p.problem_code || 'P' + p.id} : ${p.title}`;
+      });
+
+      let logs = [];
+
+      // 1. ดึงจากตาราง audit_logs หลัก (ถ้าสร้างตารางแล้ว)
+      if (!logsRes.error && Array.isArray(logsRes.data)) {
+        logs = logsRes.data.map(row => ({
+          id: `log_${row.id}`,
+          created_at: row.created_at,
+          actor_name: (row.actor_id && userMap[row.actor_id]) ? userMap[row.actor_id] : (row.actor_name || 'System'),
+          actor_role: row.actor_role || 'system',
+          category: row.category || 'SYSTEM',
+          action: row.action || 'EVENT',
+          target_label: row.target_label || '-',
+          severity: row.severity || 'INFO',
+          details: row.details || {}
+        }));
+      }
+
+      // 2. Fallback / Backfill ประวัติเก่าจากตาราง problems & submissions เพื่อให้เห็นครบย้อนหลังด้วย
+      if (logs.length === 0) {
+        (probsRes.data || []).forEach(p => {
+          logs.push({
+            id: `hist_p_${p.id}`,
+            created_at: p.created_at || new Date().toISOString(),
+            actor_name: p.author || 'Admin',
+            actor_role: p.source === 'community' ? 'user' : 'admin',
+            category: 'PROBLEM',
+            action: p.is_verified ? 'CREATE_PROBLEM' : 'PROPOSE_PROBLEM',
+            target_label: `${p.problem_code || 'P' + p.id} : ${p.title}`,
+            severity: 'INFO',
+            details: { problem_id: p.id, source: p.source }
+          });
+        });
+
+        (subsRes.data || []).forEach(s => {
+          logs.push({
+            id: `hist_s_${s.id}`,
+            created_at: s.created_at || new Date().toISOString(),
+            actor_name: userMap[s.user_id] || `User-${String(s.user_id || 'guest').slice(0, 6)}`,
+            actor_role: 'user',
+            category: 'SUBMISSION',
+            action: 'SUBMIT_CODE',
+            target_label: `${probMap[s.problem_id] || 'Problem #' + s.problem_id} [${s.language || 'C++'} → ${s.status}]`,
+            severity: 'INFO',
+            details: { submission_id: s.id, status: s.status, language: s.language }
+          });
+        });
+      }
+
+      logs.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+      mergedAuditLogs = logs;
+
+      // Update Summary Cards
+      document.getElementById('statTotalLogs').textContent = logs.length;
+      document.getElementById('statProblemLogs').textContent = logs.filter(l => l.category === 'PROBLEM').length;
+      document.getElementById('statSubLogs').textContent = logs.filter(l => l.category === 'SUBMISSION').length;
+      document.getElementById('statCriticalLogs').textContent = logs.filter(l => l.severity === 'CRITICAL' || l.severity === 'WARNING').length;
+
+      renderAuditTable();
+    }
+
+    function renderAuditTable() {
+      const tbody = document.getElementById('auditLogsTableBody');
+      const query = (document.getElementById('auditSearchInput').value || '').trim().toLowerCase();
+      const catFilter = document.getElementById('auditCategoryFilter').value;
+      const sevFilter = document.getElementById('auditSeverityFilter').value;
+
+      const filtered = mergedAuditLogs.filter(item => {
+        if (catFilter !== 'ALL' && item.category !== catFilter) return false;
+        if (sevFilter !== 'ALL' && item.severity !== sevFilter) return false;
+        if (query) {
+          const actionThai = ACTION_LABELS[item.action] || item.action;
+          const hay = `${item.actor_name} ${item.category} ${item.action} ${actionThai} ${item.target_label}`.toLowerCase();
+          if (!hay.includes(query)) return false;
+        }
+        return true;
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-gray-400">ไม่พบบันทึกประวัติที่ตรงกับเงื่อนไข</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map((item, idx) => {
+        const timeStr = item.created_at
+          ? new Date(item.created_at).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'medium' })
+          : '-';
+
+        const roleBadge = item.actor_role === 'admin'
+          ? `<span class="text-[10px] px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30 ml-1">ADMIN</span>`
+          : `<span class="text-[10px] px-1.5 py-0.5 rounded bg-cyan-500/15 text-cyan-300 border border-cyan-500/25 ml-1">USER</span>`;
+
+        const catColors = {
+          PROBLEM: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
+          SUBMISSION: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
+          USER: 'bg-purple-500/20 text-purple-300 border-purple-500/30',
+          CONTEST: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
+          AUTH: 'bg-gray-500/20 text-gray-300 border-gray-500/30'
+        };
+        const catCls = catColors[item.category] || 'bg-white/10 text-gray-300 border-white/15';
+
+        const sevBadge = item.severity === 'CRITICAL'
+          ? `<span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-rose-500/25 text-rose-300 border border-rose-500/40">CRITICAL</span>`
+          : item.severity === 'WARNING'
+          ? `<span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-500/25 text-amber-300 border border-amber-500/40">WARNING</span>`
+          : `<span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">INFO</span>`;
+
+        const actionLabel = ACTION_LABELS[item.action] || item.action;
+
+        return `
+          <tr class="hover:bg-cyan-500/5 transition">
+            <td class="px-4 py-3 text-xs text-gray-400 whitespace-nowrap">${timeStr}</td>
+            <td class="px-4 py-3 whitespace-nowrap">
+              <span class="font-semibold text-white text-xs">${item.actor_name}</span>
+              ${roleBadge}
+            </td>
+            <td class="px-4 py-3 whitespace-nowrap">
+              <span class="text-[11px] font-semibold px-2 py-0.5 rounded-md border ${catCls}">${item.category}</span>
+            </td>
+            <td class="px-4 py-3 whitespace-nowrap">
+              <div class="text-xs font-semibold text-gray-200">${actionLabel}</div>
+              <div class="text-[10px] text-gray-500 font-mono">${item.action}</div>
+            </td>
+            <td class="px-4 py-3 text-xs text-gray-300">${item.target_label}</td>
+            <td class="px-4 py-3 text-center whitespace-nowrap">${sevBadge}</td>
+            <td class="px-4 py-3 text-right whitespace-nowrap">
+              <button type="button" onclick="openAuditDetailModal(${idx})" class="bg-white/5 hover:bg-cyan-500/20 text-cyan-300 border border-cyan-500/25 px-2.5 py-1 rounded-lg text-xs transition cursor-pointer">
+                <i class="fa-solid fa-code"></i> ดู JSON
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      window._currentFilteredLogs = filtered;
+    }
+
+    function openAuditDetailModal(idx) {
+      const item = (window._currentFilteredLogs || [])[idx];
+      if (!item) return;
+
+      document.getElementById('auditDetailMeta').innerHTML = `
+        <div><b>เวลา:</b> ${new Date(item.created_at).toLocaleString('th-TH')}</div>
+        <div><b>ผู้กระทำ:</b> ${item.actor_name} (${item.actor_role})</div>
+        <div><b>การกระทำ:</b> ${ACTION_LABELS[item.action] || item.action} (${item.action})</div>
+        <div><b>เป้าหมาย:</b> ${item.target_label}</div>
+      `;
+      document.getElementById('auditDetailJson').textContent = JSON.stringify(item.details || {}, null, 2);
+
+      const modal = document.getElementById('auditDetailModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeAuditDetailModal() {
+      const modal = document.getElementById('auditDetailModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function exportAuditCsv() {
+      const list = window._currentFilteredLogs || mergedAuditLogs;
+      if (!list.length) return;
+      const rows = [['Timestamp', 'Actor', 'Role', 'Category', 'Action', 'Target', 'Severity']];
+      list.forEach(l => rows.push([
+        `"${l.created_at}"`,
+        `"${l.actor_name}"`,
+        l.actor_role,
+        l.category,
+        l.action,
+        `"${String(l.target_label).replace(/"/g, '""')}"`,
+        l.severity
+      ]));
+      const csv = rows.map(r => r.join(',')).join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `st8_audit_log_${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('Export สำเร็จ', 'ดาวน์โหลดไฟล์ CSV ประวัติระบบเรียบร้อยแล้ว');
+    }
+
+    ensureAdminSession(loadAllAuditLogs);
+  </script>
+</body>
+</html>

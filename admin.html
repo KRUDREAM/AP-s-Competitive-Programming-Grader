@@ -137,7 +137,6 @@
       </div>
 
       <form id="adminProblemForm" class="space-y-5">
-        <!-- Row 1: Code, Title, Difficulty, Score -->
         <div class="grid grid-cols-1 md:grid-cols-5 gap-3">
           <div>
             <label class="block text-xs font-medium text-cyan-300 mb-1">รหัสโจทย์ (Code) *</label>
@@ -161,7 +160,6 @@
           </div>
         </div>
 
-        <!-- Tags & Author -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
           <div>
             <label class="block text-xs font-medium text-cyan-300 mb-1">ผู้แต่งโจทย์ (Author)</label>
@@ -179,7 +177,6 @@
           </div>
         </div>
 
-        <!-- Limits -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-medium text-cyan-300 mb-1">Time Limit (วินาที)</label>
@@ -191,7 +188,6 @@
           </div>
         </div>
 
-        <!-- TEST CASES (COLLAPSIBLE) -->
         <div class="tech-glass rounded-2xl p-4 border border-cyan-500/20 space-y-3">
           <div class="flex justify-between items-center">
             <div class="flex items-center gap-2">
@@ -209,7 +205,6 @@
           <div id="formTestCasesList" class="space-y-2 max-h-56 overflow-y-auto pr-1"></div>
         </div>
 
-        <!-- Subtask System -->
         <div class="tech-glass rounded-2xl p-4 border border-cyan-500/20 space-y-3">
           <div class="flex items-center justify-between">
             <label class="text-xs font-bold text-cyan-300"><i class="fa-solid fa-layer-group mr-1"></i> ระบบ Subtask (TOI / IOI Style)</label>
@@ -236,7 +231,6 @@
           </div>
         </div>
 
-        <!-- Statement -->
         <div class="tech-glass rounded-2xl p-4 border border-cyan-500/20 space-y-3">
           <label class="block text-xs font-bold text-cyan-300"><i class="fa-solid fa-file-pdf mr-1"></i> Statement โจทย์ (พิมพ์รายละเอียดไม่จำกัด หรืออัปโหลด PDF)</label>
           <div class="mb-2">
@@ -347,6 +341,7 @@
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     let activeTags = [];
+    let allLoadedProblems = []; // เก็บข้อมูลโจทย์ทั้งหมดสำหรับ Index-based Modal
     let customTagsList = JSON.parse(localStorage.getItem('st8_custom_tags')) || ["Graph", "Dynamic Programming", "Sorting", "Math", "Greedy"];
 
     function showToast(title, desc, isError = false) {
@@ -363,14 +358,17 @@
     function openUploadProblemModal() { document.getElementById('uploadProbModal').classList.remove('opacity-0', 'pointer-events-none'); }
     function closeUploadProblemModal() { document.getElementById('uploadProbModal').classList.add('opacity-0', 'pointer-events-none'); }
 
-    function openEditProblemModal(id, code, title, difficulty, maxScore, statement) {
-      document.getElementById('editProbId').value = id;
-      document.getElementById('editCode').value = code || '';
-      document.getElementById('editTitle').value = title || '';
-      document.getElementById('editDifficulty').value = difficulty || 'Medium';
-      document.getElementById('editMaxScore').value = maxScore || 100;
-      document.getElementById('editStatementText').value = statement || '';
-      document.getElementById('editProbSubTitle').textContent = `แก้ไขข้อมูลโจทย์รหัส: ${code || '#PROB-' + id}`;
+    function openEditProblemModalByIndex(index) {
+      const p = allLoadedProblems[index];
+      if (!p) return;
+
+      document.getElementById('editProbId').value = p.id;
+      document.getElementById('editCode').value = p.problem_code || '';
+      document.getElementById('editTitle').value = p.title || '';
+      document.getElementById('editDifficulty').value = p.difficulty || 'Medium';
+      document.getElementById('editMaxScore').value = p.max_score || 100;
+      document.getElementById('editStatementText').value = p.statement || '';
+      document.getElementById('editProbSubTitle').textContent = `แก้ไขข้อมูลโจทย์รหัส: ${p.problem_code || '#PROB-' + p.id}`;
       document.getElementById('editProbModal').classList.remove('opacity-0', 'pointer-events-none');
     }
     function closeEditProblemModal() { document.getElementById('editProbModal').classList.add('opacity-0', 'pointer-events-none'); }
@@ -591,11 +589,15 @@
     async function fetchAllAdminProblems() {
       const { data: list, error } = await supabaseClient.from('problems').select('*').order('id', { ascending: false });
       const container = document.getElementById('allAdminProblemsContainer');
+      
       if (error || !list || list.length === 0) {
         container.innerHTML = `<div class="tech-glass p-6 rounded-2xl text-center text-gray-400 text-xs">ยังไม่มีโจทย์ในระบบ</div>`;
         return;
       }
-      container.innerHTML = list.map(p => `
+
+      allLoadedProblems = list; // บันทึกลงตัวแปรกลางเพื่อใช้อ้างอิงตอนกดแก้ไข
+
+      container.innerHTML = list.map((p, index) => `
         <div class="tech-glass p-5 rounded-2xl border border-cyan-500/20 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:border-cyan-500/40 transition">
           <div class="space-y-1">
             <div class="flex items-center gap-2">
@@ -616,7 +618,7 @@
             </div>
 
             <div class="flex items-center gap-1.5">
-              <button onclick="openEditProblemModal(${p.id}, '${p.problem_code || ''}', '${p.title.replace(/'/g, "\\'")}', '${p.difficulty}', ${p.max_score || 100}, \`${(p.statement || '').replace(/`/g, '\\`')}\`)" class="tech-glass hover:bg-cyan-500/10 text-cyan-300 border border-cyan-500/30 px-3 py-1.5 rounded-xl transition text-xs font-semibold">
+              <button onclick="openEditProblemModalByIndex(${index})" class="tech-glass hover:bg-cyan-500/10 text-cyan-300 border border-cyan-500/30 px-3 py-1.5 rounded-xl transition text-xs font-semibold">
                 <i class="fa-solid fa-pen-to-square mr-1"></i> แก้ไข
               </button>
               <button onclick="openTestCasesModal(${p.id}, '${p.title}')" class="tech-glass hover:bg-cyan-500/10 text-cyan-300 border border-cyan-500/30 px-3 py-1.5 rounded-xl transition text-xs font-semibold">

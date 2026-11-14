@@ -87,7 +87,7 @@
           <h2 class="text-xl font-bold text-white mb-1"><i class="fa-solid fa-list-check text-cyan-400 mr-2"></i> คลังโจทย์ทั้งหมดในระบบ</h2>
           <p class="text-xs text-gray-400">คลิกที่ "ชื่อโจทย์" เพื่อแก้ไขข้อมูล &bull; ควบคุมรหัสโจทย์, สถานะ, และดูสถิติ AC / Submissions</p>
         </div>
-        <button onclick="openUploadProblemModal()" class="bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-95 text-white px-5 py-3 rounded-2xl text-xs font-semibold shadow-lg shadow-cyan-500/20 transition flex items-center gap-2">
+        <button onclick="openProblemModal('create')" class="bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-95 text-white px-5 py-3 rounded-2xl text-xs font-semibold shadow-lg shadow-cyan-500/20 transition flex items-center gap-2">
           <i class="fa-solid fa-plus-circle"></i> อัปโหลด / สร้างโจทย์ใหม่
         </button>
       </div>
@@ -137,19 +137,22 @@
 
   </main>
 
-  <!-- MODAL: UPLOAD / CREATE PROBLEM -->
-  <div id="uploadProbModal" class="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/85 backdrop-blur-md opacity-0 pointer-events-none transition-all duration-300">
+  <!-- UNIFIED MODAL: CREATE / EDIT PROBLEM (หน้าเดียวกันเป๊ะๆ) -->
+  <div id="problemModal" class="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/85 backdrop-blur-md opacity-0 pointer-events-none transition-all duration-300">
     <div class="tech-modal rounded-3xl p-8 max-w-3xl w-full max-h-[92vh] overflow-y-auto relative transform scale-95 transition-all duration-300 border border-cyan-500/30 space-y-6">
-      <button onclick="closeUploadProblemModal()" class="absolute top-5 right-5 text-gray-400 hover:text-white w-8 h-8 rounded-full bg-cyan-500/10 flex items-center justify-center transition">
+      <button onclick="closeProblemModal()" class="absolute top-5 right-5 text-gray-400 hover:text-white w-8 h-8 rounded-full bg-cyan-500/10 flex items-center justify-center transition">
         <i class="fa-solid fa-xmark text-xs"></i>
       </button>
 
       <div class="text-center">
-        <h3 class="text-lg font-bold text-white mb-1"><i class="fa-solid fa-cloud-arrow-up text-cyan-400 mr-2"></i> สร้าง / อัปโหลดโจทย์ใหม่</h3>
-        <p class="text-xs text-gray-400">กรอกรหัสโจทย์ (Unique Code), Test Cases แบบพับเก็บได้ และรายละเอียด</p>
+        <h3 id="modalTitleText" class="text-lg font-bold text-white mb-1"><i class="fa-solid fa-cloud-arrow-up text-cyan-400 mr-2"></i> สร้าง / อัปโหลดโจทย์ใหม่</h3>
+        <p id="modalDescText" class="text-xs text-gray-400">กรอกรหัสโจทย์ (Unique Code), Test Cases แบบพับเก็บได้ และรายละเอียด</p>
       </div>
 
-      <form id="adminProblemForm" class="space-y-5">
+      <form id="problemForm" class="space-y-5">
+        <input type="hidden" id="formMode" value="create">
+        <input type="hidden" id="editProblemId" value="">
+
         <div class="grid grid-cols-1 md:grid-cols-5 gap-3">
           <div>
             <label class="block text-xs font-medium text-cyan-300 mb-1">รหัสโจทย์ (Code) *</label>
@@ -226,68 +229,8 @@
           <textarea id="admStatementText" rows="6" placeholder="พิมพ์เนื้อหาโจทย์ เงื่อนไข และรายละเอียดทั้งหมดที่นี่..." class="w-full bg-black/60 border border-cyan-500/20 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-cyan-400 font-sans resize-y"></textarea>
         </div>
 
-        <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-95 text-white font-bold py-3.5 rounded-xl text-xs transition shadow-lg shadow-cyan-500/25">
+        <button type="submit" id="submitBtnText" class="w-full bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-95 text-white font-bold py-3.5 rounded-xl text-xs transition shadow-lg shadow-cyan-500/25">
           <i class="fa-solid fa-cloud-arrow-up mr-1.5"></i> บันทึกและเผยแพร่โจทย์เข้าสู่ระบบทันที
-        </button>
-      </form>
-    </div>
-  </div>
-
-  <!-- MODAL: EDIT PROBLEM (โครงสร้างสมบูรณ์แบบหน้าอัปโหลด 100%) -->
-  <div id="editProbModal" class="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/85 backdrop-blur-md opacity-0 pointer-events-none transition-all duration-300">
-    <div class="tech-modal rounded-3xl p-8 max-w-3xl w-full max-h-[92vh] overflow-y-auto relative transform scale-95 transition-all duration-300 border border-cyan-500/30 space-y-6">
-      <button onclick="closeEditProblemModal()" class="absolute top-5 right-5 text-gray-400 hover:text-white w-8 h-8 rounded-full bg-cyan-500/10 flex items-center justify-center transition">
-        <i class="fa-solid fa-xmark text-xs"></i>
-      </button>
-
-      <div class="text-center">
-        <h3 class="text-lg font-bold text-white mb-1"><i class="fa-solid fa-pen-to-square text-cyan-400 mr-2"></i> แก้ไขข้อมูลโจทย์</h3>
-        <p id="editProbSubTitle" class="text-xs text-gray-400">แก้ไขรหัสโจทย์, ชื่อ, ความยาก, คะแนน และ Statement</p>
-      </div>
-
-      <form id="editProblemForm" class="space-y-5">
-        <input type="hidden" id="editProbId">
-        <div class="grid grid-cols-1 md:grid-cols-5 gap-3">
-          <div>
-            <label class="block text-xs font-medium text-cyan-300 mb-1">รหัสโจทย์ (Code) *</label>
-            <input type="text" id="editCode" required class="w-full bg-black/60 border border-cyan-500/20 rounded-xl px-3 py-2.5 text-xs text-white font-mono uppercase">
-          </div>
-          <div class="md:col-span-2">
-            <label class="block text-xs font-medium text-cyan-300 mb-1">ชื่อโจทย์ (Title) *</label>
-            <input type="text" id="editTitle" required class="w-full bg-black/60 border border-cyan-500/20 rounded-xl px-4 py-2.5 text-xs text-white font-mono">
-          </div>
-          <div>
-            <label class="block text-xs font-medium text-cyan-300 mb-1">ความยาก</label>
-            <select id="editDifficulty" class="w-full bg-black/60 border border-cyan-500/20 rounded-xl px-3 py-2.5 text-xs text-white">
-              <option value="Easy">Easy</option>
-              <option value="Medium">Medium</option>
-              <option value="Hard">Hard</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-xs font-medium text-cyan-300 mb-1">คะแนน</label>
-            <input type="number" id="editMaxScore" class="w-full bg-black/60 border border-cyan-500/20 rounded-xl px-3 py-2.5 text-xs text-white font-mono">
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <div>
-            <label class="block text-xs font-medium text-cyan-300 mb-1">ผู้แต่งโจทย์ (Author)</label>
-            <input type="text" id="editAuthor" placeholder="AP" class="w-full bg-black/60 border border-cyan-500/20 rounded-xl px-4 py-2.5 text-xs text-white font-mono">
-          </div>
-          <div class="md:col-span-2 space-y-1">
-            <label class="block text-xs font-medium text-cyan-300 mb-1">หมวดหมู่ / แท็ก</label>
-            <input type="text" id="editTags" placeholder="เช่น Graph, Sorting" class="w-full bg-black/60 border border-cyan-500/20 rounded-xl px-4 py-2.5 text-xs text-white font-mono">
-          </div>
-        </div>
-
-        <div class="tech-glass rounded-2xl p-4 border border-cyan-500/20 space-y-3">
-          <label class="block text-xs font-bold text-cyan-300"><i class="fa-solid fa-file-lines mr-1"></i> Statement โจทย์</label>
-          <textarea id="editStatementText" rows="6" class="w-full bg-black/60 border border-cyan-500/20 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-cyan-400 font-sans resize-y"></textarea>
-        </div>
-
-        <button type="submit" class="w-full bg-gradient-to-r from-emerald-600 to-teal-500 hover:opacity-95 text-white font-bold py-3.5 rounded-xl text-xs transition shadow-lg shadow-emerald-500/20">
-          <i class="fa-solid fa-floppy-disk mr-1.5"></i> บันทึกการแก้ไขโจทย์
         </button>
       </form>
     </div>
@@ -353,25 +296,59 @@
       setTimeout(() => { toast.classList.add('translate-x-full'); }, 3000);
     }
 
-    function openUploadProblemModal() { document.getElementById('uploadProbModal').classList.remove('opacity-0', 'pointer-events-none'); }
-    function closeUploadProblemModal() { document.getElementById('uploadProbModal').classList.add('opacity-0', 'pointer-events-none'); }
+    // UNIFIED PROBLEM MODAL (รองรับทั้งสร้างใหม่และแก้ไขในฟอร์มเดียวกัน)
+    function openProblemModal(mode, index = null) {
+      const modal = document.getElementById('problemModal');
+      const form = document.getElementById('problemForm');
+      const modeInput = document.getElementById('formMode');
+      const titleText = document.getElementById('modalTitleText');
+      const descText = document.getElementById('modalDescText');
+      const submitBtn = document.getElementById('submitBtnText');
 
-    function openEditProblemModalByIndex(index) {
-      const p = allLoadedProblems[index];
-      if (!p) return;
+      form.reset();
+      activeTags = [];
+      renderTags();
 
-      document.getElementById('editProbId').value = p.id;
-      document.getElementById('editCode').value = p.problem_code || '';
-      document.getElementById('editTitle').value = p.title || '';
-      document.getElementById('editDifficulty').value = p.difficulty || 'Medium';
-      document.getElementById('editMaxScore').value = p.max_score || 100;
-      document.getElementById('editAuthor').value = p.author || '';
-      document.getElementById('editTags').value = p.tags || '';
-      document.getElementById('editStatementText').value = p.statement || '';
-      document.getElementById('editProbSubTitle').textContent = `แก้ไขข้อมูลโจทย์รหัส: ${p.problem_code || '#PROB-' + p.id}`;
-      document.getElementById('editProbModal').classList.remove('opacity-0', 'pointer-events-none');
+      if (mode === 'create') {
+        modeInput.value = 'create';
+        document.getElementById('editProblemId').value = '';
+        titleText.innerHTML = '<i class="fa-solid fa-cloud-arrow-up text-cyan-400 mr-2"></i> สร้าง / อัปโหลดโจทย์ใหม่';
+        descText.textContent = 'กรอกรหัสโจทย์ (Unique Code), Test Cases แบบพับเก็บได้ และรายละเอียด';
+        submitBtn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up mr-1.5"></i> บันทึกและเผยแพร่โจทย์เข้าสู่ระบบทันที';
+        
+        // เคลียร์ Test Cases แล้วสร้างแถวแรกเริ่ม
+        document.getElementById('formTestCasesList').innerHTML = '';
+        addFormTestCaseRow();
+      } else if (mode === 'edit' && index !== null) {
+        const p = allLoadedProblems[index];
+        if (!p) return;
+
+        modeInput.value = 'edit';
+        document.getElementById('editProblemId').value = p.id;
+        document.getElementById('admCode').value = p.problem_code || '';
+        document.getElementById('admTitle').value = p.title || '';
+        document.getElementById('admDifficulty').value = p.difficulty || 'Medium';
+        document.getElementById('admMaxScore').value = p.max_score || 100;
+        document.getElementById('admAuthor').value = p.author || '';
+        document.getElementById('admStatementText').value = p.statement || '';
+
+        // จัดการแท็ก
+        if (p.tags) {
+          activeTags = p.tags.split(',').map(t => t.trim()).filter(Boolean);
+          renderTags();
+        }
+
+        titleText.innerHTML = `<i class="fa-solid fa-pen-to-square text-cyan-400 mr-2"></i> แก้ไขโจทย์: ${p.problem_code || '#PROB-' + p.id}`;
+        descText.textContent = 'แก้ไขรายละเอียด รหัสโจทย์ และข้อมูลทั้งหมดได้ที่นี่';
+        submitBtn.innerHTML = '<i class="fa-solid fa-floppy-disk mr-1.5"></i> บันทึกการแก้ไขโจทย์';
+      }
+
+      modal.classList.remove('opacity-0', 'pointer-events-none');
     }
-    function closeEditProblemModal() { document.getElementById('editProbModal').classList.add('opacity-0', 'pointer-events-none'); }
+
+    function closeProblemModal() {
+      document.getElementById('problemModal').classList.add('opacity-0', 'pointer-events-none');
+    }
 
     function initTagDropdown() {
       const dropdown = document.getElementById('tagSearchDropdown');
@@ -480,7 +457,6 @@
       `;
       list.appendChild(div);
     }
-    addFormTestCaseRow();
 
     function toggleTestCaseCard(header) {
       const body = header.nextElementSibling;
@@ -586,7 +562,7 @@
             <td class="p-4">
               <div class="flex items-center gap-2">
                 <span class="text-xs font-bold text-cyan-300 font-mono bg-cyan-500/10 px-2.5 py-1 rounded-lg border border-cyan-500/30">${p.problem_code || 'ST8-P' + p.id}</span>
-                <a href="javascript:void(0)" onclick="openEditProblemModalByIndex(${index})" class="font-bold text-white text-sm hover:text-cyan-400 underline decoration-cyan-500/40 transition">${p.title}</a>
+                <a href="javascript:void(0)" onclick="openProblemModal('edit', ${index})" class="font-bold text-white text-sm hover:text-cyan-400 underline decoration-cyan-500/40 transition">${p.title}</a>
               </div>
             </td>
             <td class="p-4">
@@ -604,7 +580,7 @@
               </label>
             </td>
             <td class="p-4 text-right space-x-1.5 font-sans">
-              <button onclick="openEditProblemModalByIndex(${index})" class="tech-glass hover:bg-cyan-500/10 text-cyan-300 border border-cyan-500/30 px-3 py-1.5 rounded-xl transition text-xs font-semibold">
+              <button onclick="openProblemModal('edit', ${index})" class="tech-glass hover:bg-cyan-500/10 text-cyan-300 border border-cyan-500/30 px-3 py-1.5 rounded-xl transition text-xs font-semibold">
                 <i class="fa-solid fa-pen-to-square mr-1"></i> แก้ไข
               </button>
               <button onclick="openTestCasesModal(${p.id}, '${p.title}')" class="tech-glass hover:bg-cyan-500/10 text-cyan-300 border border-cyan-500/30 px-3 py-1.5 rounded-xl transition text-xs font-semibold">
@@ -628,66 +604,56 @@
       }
     }
 
-    document.getElementById('adminProblemForm').addEventListener('submit', async (e) => {
+    // SUBMIT UNIFIED FORM (HANDLE BOTH CREATE & EDIT)
+    document.getElementById('problemForm').addEventListener('submit', async (e) => {
       e.preventDefault();
+      const mode = document.getElementById('formMode').value;
       const problem_code = document.getElementById('admCode').value.trim().toUpperCase();
       const title = document.getElementById('admTitle').value.trim();
       const difficulty = document.getElementById('admDifficulty').value;
       const statement = document.getElementById('admStatementText').value.trim();
       const tags = activeTags.join(', ');
       const max_score = parseInt(document.getElementById('admMaxScore').value) || 100;
-      const slug = problem_code.toLowerCase() + '-' + title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+      const author = document.getElementById('admAuthor').value.trim();
 
-      showToast('กำลังบันทึก', 'กำลังอัปโหลดโจทย์เข้าสู่ระบบ...');
-
-      const { data: { session } } = await supabaseClient.auth.getSession();
-      const { error } = await supabaseClient.from('problems').insert([
-        { problem_code, title, slug, difficulty, statement, tags, max_score, is_verified: true, created_by: session ? session.user.id : null }
-      ]);
-
-      if (error) {
-        showToast('เกิดข้อผิดพลาด', error.message, true);
-      } else {
-        showToast('สำเร็จ!', 'สร้างและเผยแพร่โจทย์ใหม่เรียบร้อยแล้ว');
-        setTimeout(() => {
-          closeUploadProblemModal();
-          document.getElementById('adminProblemForm').reset();
-          activeTags = [];
-          renderTags();
-          fetchAllAdminProblems();
-        }, 1200);
-      }
-    });
-
-    document.getElementById('editProblemForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const id = document.getElementById('editProbId').value;
-      const problem_code = document.getElementById('editCode').value.trim().toUpperCase();
-      const title = document.getElementById('editTitle').value.trim();
-      const difficulty = document.getElementById('editDifficulty').value;
-      const max_score = parseInt(document.getElementById('editMaxScore').value) || 100;
-      const author = document.getElementById('editAuthor').value.trim();
-      const tags = document.getElementById('editTags').value.trim();
-      const statement = document.getElementById('editStatementText').value.trim();
-
-      showToast('กำลังอัปเดต', 'กำลังบันทึกข้อมูลโจทย์...');
-
-      const { error } = await supabaseClient.from('problems').update({
+      const problemData = {
         problem_code,
         title,
         difficulty,
+        statement,
+        tags,
         max_score,
         author,
-        tags,
-        statement
-      }).eq('id', id);
+        is_verified: true
+      };
 
-      if (error) {
-        showToast('เกิดข้อผิดพลาด', error.message, true);
-      } else {
-        showToast('อัปเดตสำเร็จ', 'บันทึกการแก้ไขโจทย์เรียบร้อยแล้ว');
-        closeEditProblemModal();
-        fetchAllAdminProblems();
+      if (mode === 'create') {
+        problemData.slug = problem_code.toLowerCase() + '-' + title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        problemData.created_by = session ? session.user.id : null;
+
+        showToast('กำลังบันทึก', 'กำลังอัปโหลดโจทย์เข้าสู่ระบบ...');
+        const { error } = await supabaseClient.from('problems').insert([problemData]);
+
+        if (error) {
+          showToast('เกิดข้อผิดพลาด', error.message, true);
+        } else {
+          showToast('สำเร็จ!', 'สร้างและเผยแพร่โจทย์ใหม่เรียบร้อยแล้ว');
+          closeProblemModal();
+          fetchAllAdminProblems();
+        }
+      } else if (mode === 'edit') {
+        const id = document.getElementById('editProblemId').value;
+        showToast('กำลังอัปเดต', 'กำลังบันทึกข้อมูลโจทย์...');
+        const { error } = await supabaseClient.from('problems').update(problemData).eq('id', id);
+
+        if (error) {
+          showToast('เกิดข้อผิดพลาด', error.message, true);
+        } else {
+          showToast('อัปเดตสำเร็จ', 'บันทึกการแก้ไขโจทย์เรียบร้อยแล้ว');
+          closeProblemModal();
+          fetchAllAdminProblems();
+        }
       }
     });
 

@@ -8,11 +8,11 @@ const ADMIN_MENU_ITEMS = [
   { id: 'contests', label: 'จัดการ Contest', icon: 'fa-trophy', href: 'admin-contests.html' },
   { id: 'scoreboard', label: 'Scoreboard กระดานคะแนน', icon: 'fa-ranking-star', href: 'admin-scoreboard.html' },
   { id: 'users', label: 'จัดการผู้ใช้ (Users)', icon: 'fa-users-gear', href: 'admin-users.html' },
-  { id: 'stats', label: 'สถิติการทำโจทย์ & ส่งโค้ด', icon: 'fa-chart-pie', href: 'admin-stats.html' }
+  { id: 'stats', label: 'สถิติการทำโจทย์ & ส่งโค้ด', icon: 'fa-chart-pie', href: 'admin-stats.html' },
+  { id: 'audit', label: 'Audit Log ประวัติทั้งหมด', icon: 'fa-clock-rotate-left', href: 'admin-audit.html' }
 ];
 
 function renderAdminShell(activePageId) {
-  // Inject Top Navbar with Hamburger button
   const headerContainer = document.getElementById('adminHeaderMount');
   if (headerContainer) {
     headerContainer.innerHTML = `
@@ -44,7 +44,6 @@ function renderAdminShell(activePageId) {
     `;
   }
 
-  // Inject Desktop Sidebar + Mobile Slide-over Hamburger Drawer
   const sidebarContainer = document.getElementById('adminSidebarMount');
   if (sidebarContainer) {
     const navHtml = ADMIN_MENU_ITEMS.map(item => {
@@ -61,10 +60,7 @@ function renderAdminShell(activePageId) {
     }).join('');
 
     sidebarContainer.innerHTML = `
-      <!-- Mobile Backdrop -->
       <div id="adminMobileDrawerBackdrop" onclick="toggleAdminMobileDrawer(false)" class="fixed inset-0 z-40 bg-black/75 backdrop-blur-sm hidden lg:hidden"></div>
-
-      <!-- Sidebar / Drawer -->
       <aside id="adminSidebarDrawer" class="fixed lg:static inset-y-0 left-0 z-50 w-64 lg:w-60 shrink-0 tech-glass border-r border-cyan-500/20 p-4 space-y-3 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-out lg:min-h-[calc(100vh-69px)]">
         <div class="flex items-center justify-between text-cyan-300 font-bold text-xs tracking-wider uppercase px-2 pb-2.5 border-b border-cyan-500/20">
           <div class="flex items-center gap-2">
@@ -75,7 +71,6 @@ function renderAdminShell(activePageId) {
             <i class="fa-solid fa-xmark text-xs"></i>
           </button>
         </div>
-
         <nav class="flex flex-col gap-1.5">
           ${navHtml}
         </nav>
@@ -88,17 +83,10 @@ function toggleAdminMobileDrawer(forceState = null) {
   const drawer = document.getElementById('adminSidebarDrawer');
   const backdrop = document.getElementById('adminMobileDrawerBackdrop');
   if (!drawer || !backdrop) return;
-
   const isClosed = drawer.classList.contains('-translate-x-full');
   const shouldOpen = forceState !== null ? forceState : isClosed;
-
-  if (shouldOpen) {
-    drawer.classList.remove('-translate-x-full');
-    backdrop.classList.remove('hidden');
-  } else {
-    drawer.classList.add('-translate-x-full');
-    backdrop.classList.add('hidden');
-  }
+  drawer.classList.toggle('-translate-x-full', !shouldOpen);
+  backdrop.classList.toggle('hidden', !shouldOpen);
 }
 
 function showToast(title, desc, isError = false) {
@@ -108,9 +96,30 @@ function showToast(title, desc, isError = false) {
   document.getElementById('toastDesc').textContent = desc;
   const icon = document.getElementById('toastIcon');
   icon.className = isError ? 'fa-solid fa-circle-exclamation text-rose-400 text-lg' : 'fa-solid fa-circle-check text-cyan-400 text-lg';
-
   toast.classList.remove('translate-x-[120%]');
   setTimeout(() => { toast.classList.add('translate-x-[120%]'); }, 3200);
+}
+
+// ฟังก์ชันบันทึก Audit Log สำหรับ Action เสริมต่างๆ (เช่น สร้าง/ลบ Contest, Login/Logout)
+async function logSystemAudit({ category, action, targetLabel, severity = 'INFO', details = {} }) {
+  try {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    const actorId = session?.user?.id || null;
+    const actorName = session?.user?.email || 'Admin';
+
+    await supabaseClient.from('audit_logs').insert([{
+      actor_id: actorId,
+      actor_name: actorName,
+      actor_role: 'admin',
+      category,
+      action,
+      target_label: targetLabel,
+      severity,
+      details
+    }]);
+  } catch (err) {
+    console.warn('Audit log write skipped:', err.message);
+  }
 }
 
 async function ensureAdminSession(onReadyCallback) {
@@ -120,12 +129,12 @@ async function ensureAdminSession(onReadyCallback) {
     setTimeout(() => { window.location.href = 'index.html'; }, 1400);
     return null;
   }
-  if (typeof onReadyCallback === 'function') {
-    onReadyCallback(session);
-  }
+  if (typeof onReadyCallback === 'function') onReadyCallback(session);
   return session;
 }
 
 function handleAdminLogout() {
-  supabaseClient.auth.signOut().then(() => { window.location.href = 'index.html'; });
+  logSystemAudit({ category: 'AUTH', action: 'ADMIN_LOGOUT', targetLabel: 'ออกจากระบบแอดมิน', severity: 'INFO' }).finally(() => {
+    supabaseClient.auth.signOut().then(() => { window.location.href = 'index.html'; });
+  });
 }

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ตรวจสอบโจทย์จากทางบ้าน | ST8 CP-Grader Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    body { font-family: 'Kanit', sans-serif; background-color: #030712; color: #f3f4f6; }
+    .tech-glass { background: rgba(10, 15, 30, 0.78); backdrop-filter: blur(20px); border: 1px solid rgba(56, 189, 248, 0.16); }
+    .cyber-grid { background-image: linear-gradient(to right, rgba(56, 189, 248, 0.03) 1px, transparent 1px), linear-gradient(to bottom, rgba(56, 189, 248, 0.03) 1px, transparent 1px); background-size: 32px 32px; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col relative overflow-x-hidden cyber-grid">
+  <div id="systemToast" class="fixed top-5 right-5 z-[80] transform translate-x-[120%] transition-all duration-300 tech-glass px-5 py-3.5 rounded-2xl border border-cyan-500/40 shadow-2xl flex items-center gap-3">
+    <i id="toastIcon" class="fa-solid fa-circle-check text-cyan-400 text-lg"></i>
+    <div><h4 id="toastTitle" class="text-xs font-bold text-white"></h4><p id="toastDesc" class="text-xs text-gray-300"></p></div>
+  </div>
+
+  <div id="adminHeaderMount"></div>
+
+  <div class="flex-1 flex flex-col lg:flex-row relative z-10 w-full min-w-0">
+    <div id="adminSidebarMount"></div>
+
+    <main class="flex-1 min-w-0 px-4 md:px-6 py-6 space-y-5">
+      <div class="bg-gradient-to-r from-amber-950/35 to-cyan-950/25 p-5 rounded-2xl border border-amber-500/25 flex justify-between items-center flex-wrap gap-3">
+        <div>
+          <h2 class="text-lg md:text-xl font-bold text-white"><i class="fa-solid fa-clipboard-check text-amber-400 mr-2"></i> ตรวจสอบโจทย์ที่ User เสนอ</h2>
+          <p class="text-xs text-gray-400">ตรวจสอบเนื้อหา Statement, ระดับความยาก และ Test Cases ก่อนอนุมัติขึ้นคลังโจทย์หลัก</p>
+        </div>
+        <span id="pendingCountBadge" class="text-xs font-bold px-3.5 py-1.5 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/35">รอตรวจสอบ: 0 ข้อ</span>
+      </div>
+
+      <div id="pendingProblemsContainer" class="space-y-3">
+        <div class="tech-glass p-6 rounded-2xl text-center text-gray-400 text-xs">กำลังโหลดรายการโจทย์ที่รอตรวจสอบ...</div>
+      </div>
+    </main>
+  </div>
+
+  <script src="admin-common.js"></script>
+  <script>
+    renderAdminShell('verify');
+
+    async function fetchPendingProblems() {
+      const { data: list } = await supabaseClient.from('problems').select('*').eq('is_verified', false).order('id', { ascending: false });
+      const container = document.getElementById('pendingProblemsContainer');
+      const countBadge = document.getElementById('pendingCountBadge');
+
+      countBadge.textContent = `รอตรวจสอบ: ${(list || []).length} ข้อ`;
+
+      if (!list || list.length === 0) {
+        container.innerHTML = `<div class="tech-glass p-8 rounded-2xl text-center text-gray-400 text-sm"><i class="fa-solid fa-circle-check text-emerald-400 text-2xl mb-2 block"></i>ไม่มีโจทย์ที่รอการตรวจสอบในขณะนี้</div>`;
+        return;
+      }
+
+      container.innerHTML = list.map(p => `
+        <div class="tech-glass p-5 rounded-2xl border border-cyan-500/20 space-y-3">
+          <div class="flex flex-wrap justify-between items-start gap-3">
+            <div>
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="text-xs font-bold text-cyan-300 bg-cyan-500/15 px-2.5 py-0.5 rounded-lg border border-cyan-500/30">${p.problem_code || '#PROB-' + p.id}</span>
+                <h3 class="font-bold text-white text-base">${p.title}</h3>
+              </div>
+              <p class="text-xs text-gray-400 mt-1">ผู้เสนอ: <span class="text-amber-300 font-medium">${p.author || 'ไม่ระบุ'}</span> &bull; ความยาก: <span class="text-white">${p.difficulty}</span> &bull; แท็ก: ${p.tags || '-'}</p>
+            </div>
+            <div class="flex gap-2">
+              <button type="button" onclick="approveProblem('${p.id}')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl text-xs font-semibold transition cursor-pointer flex items-center gap-1.5">
+                <i class="fa-solid fa-check"></i> อนุมัติเผยแพร่
+              </button>
+              <button type="button" onclick="rejectProblem('${p.id}')" class="bg-rose-600/20 text-rose-400 hover:bg-rose-600 hover:text-white px-4 py-2 rounded-xl text-xs font-semibold transition cursor-pointer flex items-center gap-1.5">
+                <i class="fa-solid fa-trash"></i> ปฏิเสธ / ลบ
+              </button>
+            </div>
+          </div>
+
+          <div class="bg-black/50 p-3.5 rounded-xl border border-white/10 text-xs text-gray-300 max-h-40 overflow-y-auto whitespace-pre-wrap">${p.statement || '(ไม่มีเนื้อหา Statement)'}</div>
+        </div>
+      `).join('');
+    }
+
+    async function approveProblem(id) {
+      const { error } = await supabaseClient.from('problems').update({ is_verified: true, source: 'community' }).eq('id', id);
+      if (error) showToast('เกิดข้อผิดพลาด', error.message, true);
+      else { showToast('อนุมัติสำเร็จ', `เผยแพร่โจทย์ #${id} เข้าสู่ระบบเรียบร้อย`); fetchPendingProblems(); }
+    }
+
+    async function rejectProblem(id) {
+      if (!confirm('ยืนยันลบโจทย์ที่เสนอข้อนี้?')) return;
+      const { error } = await supabaseClient.from('problems').delete().eq('id', id);
+      if (error) showToast('เกิดข้อผิดพลาด', error.message, true);
+      else { showToast('ลบเรียบร้อย', `ลบโจทย์ #${id} ออกจากรายการแล้ว`); fetchPendingProblems(); }
+    }
+
+    ensureAdminSession(fetchPendingProblems);
+  </script>
+</body>
+</html>

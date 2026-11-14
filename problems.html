@@ -8,7 +8,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jszip/3.10.1/jszip.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <style>
     html, body { max-width: 100%; overflow-x: hidden; }
@@ -87,7 +87,7 @@
         <a href="problems.html" class="text-cyan-400 font-semibold transition"><i class="fa-solid fa-laptop-code mr-1"></i> คลังโจทย์</a>
       </nav>
 
-      <!-- AUTH / USER DROPDOWN AREA (เหมือนหน้า Landing Page) -->
+      <!-- AUTH / USER DROPDOWN AREA -->
       <div id="authNavArea" class="flex items-center gap-2.5">
         <a href="index.html" class="text-xs font-semibold text-gray-300 hover:text-cyan-400 px-3 py-2 transition">เข้าสู่ระบบ</a>
         <a href="index.html" class="bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-lg shadow-cyan-500/20 transition">สมัครสมาชิก</a>
@@ -109,7 +109,7 @@
       </button>
     </div>
 
-    <!-- SOURCE TABS: OFFICIAL VS STUDENT COMMUNITY VS MY SUBMISSIONS -->
+    <!-- SOURCE TABS -->
     <div class="flex flex-wrap items-center justify-between gap-3">
       <div class="flex flex-wrap bg-black/65 p-1.5 rounded-2xl border border-cyan-500/25 gap-1.5 w-full md:w-auto">
         <button type="button" id="tabBtnOfficial" onclick="switchProblemTab('official')" class="flex-1 md:flex-initial px-4 py-2.5 rounded-xl text-xs md:text-sm font-bold bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-md transition cursor-pointer flex items-center justify-center gap-2">
@@ -190,7 +190,7 @@
     </div>
   </main>
 
-  <!-- STATS & SUBMISSION MODAL (เหมือนหน้า Landing Page) -->
+  <!-- STATS MODAL -->
   <div id="statsModal" onclick="if(event.target === this) toggleStatsModal(false)" class="modal-backdrop modal-closed fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/80 backdrop-blur-md opacity-0 pointer-events-none">
     <div class="modal-box tech-modal rounded-3xl p-8 max-w-lg w-full relative border border-cyan-500/30">
       <button type="button" onclick="toggleStatsModal(false)" class="absolute top-5 right-5 text-gray-400 hover:text-white w-8 h-8 rounded-full bg-cyan-500/10 flex items-center justify-center transition cursor-pointer">
@@ -258,7 +258,7 @@
     </div>
   </div>
 
-  <!-- MODAL: CREATE / EDIT STUDENT PROBLEM (FULL ADMIN-LIKE BUILDER) -->
+  <!-- MODAL: CREATE / EDIT STUDENT PROBLEM (พร้อมปุ่ม Draft และ ส่งส่วนกลาง) -->
   <div id="problemModal" onclick="if(event.target === this) closeProblemModal()" class="modal-backdrop modal-closed fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/85 backdrop-blur-md opacity-0 pointer-events-none">
     <div class="modal-box tech-modal rounded-3xl p-6 md:p-8 max-w-3xl w-full max-h-[92vh] overflow-y-auto relative border border-cyan-500/30 space-y-6">
       <button type="button" onclick="closeProblemModal()" class="absolute top-5 right-5 text-gray-400 hover:text-white w-9 h-9 rounded-full bg-cyan-500/10 hover:bg-cyan-500/20 flex items-center justify-center transition cursor-pointer">
@@ -267,7 +267,7 @@
 
       <div class="text-center">
         <h3 id="modalTitleText" class="text-xl font-bold text-white mb-1"><i class="fa-solid fa-cloud-arrow-up text-cyan-400 mr-2"></i> สร้าง / อัปโหลดโจทย์ใหม่</h3>
-        <p id="modalDescText" class="text-xs text-gray-400">โจทย์จะถูกส่งไปยังคิวตรวจสอบของ Admin เมื่ออนุมัติแล้วจะแสดงในแท็บ <span class="text-amber-300 font-semibold">"โจทย์ที่นักเรียนเพิ่ม"</span></p>
+        <p id="modalDescText" class="text-xs text-gray-400">คุณสามารถบันทึกเป็นแบบร่างเพื่อเทสต์โค้ดส่วนตัว หรือกดส่งเข้าส่วนกลางเพื่อให้ Admin ตรวจสอบ</p>
       </div>
 
       <form id="problemForm" class="space-y-5">
@@ -461,14 +461,20 @@
           </div>
         </div>
 
-        <button type="submit" id="submitBtnText" class="w-full bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-95 text-white font-bold py-3.5 rounded-xl text-sm transition shadow-lg shadow-cyan-500/25 cursor-pointer">
-          <i class="fa-solid fa-paper-plane mr-1.5"></i> ส่งโจทย์ให้ Admin ตรวจสอบและอนุมัติ
-        </button>
+        <!-- 2 ปุ่มเลือก: บันทึก Draft หรือ ส่งเข้าส่วนกลาง -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
+          <button type="submit" id="btnSubmitDraft" class="bg-white/10 hover:bg-white/15 text-gray-200 font-semibold py-3.5 rounded-xl text-xs transition border border-white/15 cursor-pointer flex items-center justify-center gap-2">
+            <i class="fa-solid fa-file-pen text-amber-300"></i> บันทึกเป็นแบบร่าง (Draft) — เทสต์เองได้
+          </button>
+          <button type="submit" id="submitBtnText" class="bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-95 text-white font-bold py-3.5 rounded-xl text-xs transition shadow-lg shadow-cyan-500/25 cursor-pointer flex items-center justify-center gap-2">
+            <i class="fa-solid fa-paper-plane"></i> ส่งเข้าส่วนกลาง (รอ Admin อนุมัติ)
+          </button>
+        </div>
       </form>
     </div>
   </div>
 
-  <!-- POPUP: VIEW / EDIT SINGLE TEST CASE -->
+  <!-- POPUP: TEST CASE -->
   <div id="singleTestCaseModal" onclick="if(event.target === this) closeSingleTestCaseModal()" class="modal-backdrop modal-closed fixed inset-0 z-[60] flex items-center justify-center px-4 bg-black/85 backdrop-blur-md opacity-0 pointer-events-none">
     <div class="modal-box tech-modal rounded-3xl p-6 md:p-7 max-w-2xl w-full relative space-y-5 border border-cyan-500/35">
       <div class="flex flex-wrap justify-between items-center gap-3 border-b border-cyan-500/20 pb-3.5">
@@ -536,7 +542,7 @@
     <p class="text-cyan-400 font-bold tracking-widest uppercase">ST8 CP-Grader &bull; Problem Bank</p>
   </footer>
 
-<script>
+  <script>
     const SUPABASE_URL = 'https://hqnmfkafwwnjiqpdhzoh.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhxbm1ma2Fmd3duamlxcGRoem9oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQyMTc0NzEsImV4cCI6MjEwOTc5MzQ3MX0.m6dHtNnXuQ108DvafyKWeFvAg_oySuQH3LRg0Jzaops';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -551,7 +557,6 @@
     let attemptedProblemIds = new Set();
     let acCountByProblem = {};
 
-    // Filter & Builder State
     let activeTags = [];
     let customTagsList = JSON.parse(localStorage.getItem('st8_custom_tags')) || ["Graph", "Dynamic Programming", "Sorting", "Math", "Greedy", "String", "Bitmask", "Tree", "Binary Search"];
     let selectedQuickTag = '';
@@ -586,7 +591,6 @@
       el.classList.add('modal-closed', 'opacity-0', 'pointer-events-none');
     }
 
-    // --- USER NAVBAR DROPDOWN (แสดง Username จริงแทน Gmail) ---
     function updateNavbarLoggedIn(username, isAdmin = false) {
       const adminLink = isAdmin
         ? `<a href="admin.html" class="block px-4 py-2.5 text-xs text-rose-300 font-bold hover:bg-rose-500/15 transition"><i class="fa-solid fa-user-shield mr-2 text-rose-400"></i> ระบบจัดการ Admin</a>`
@@ -1028,13 +1032,11 @@
         document.getElementById('editProblemId').value = '';
         document.getElementById('admCode').value = 'STU-' + Math.floor(100 + Math.random() * 900);
         
-        // ดึงชื่อ Username จริงมาแสดงในช่องผู้แต่งโจทย์อัตโนมัติ
         const defaultAuthor = (currentUserProfile && (currentUserProfile.display_name || currentUserProfile.username)) || session.user.email.split('@')[0];
         document.getElementById('admAuthor').value = defaultAuthor;
 
         setProblemExecutionMode('standard');
         document.getElementById('modalTitleText').innerHTML = '<i class="fa-solid fa-cloud-arrow-up text-cyan-400 mr-2"></i> สร้าง / อัปโหลดโจทย์ใหม่';
-        document.getElementById('submitBtnText').innerHTML = '<i class="fa-solid fa-paper-plane mr-1.5"></i> ส่งโจทย์ให้ Admin ตรวจสอบและอนุมัติ';
         formTestCasesData = [{ input: '', output: '', is_sample: true }];
         renderTestCaseChips();
       } else {
@@ -1068,7 +1070,6 @@
           document.getElementById('existingPdfContainer').innerHTML = `<button type="button" onclick="openPdfInNewTab('${p.statement_pdf_url}')" class="text-xs text-cyan-300 bg-cyan-500/15 px-3 py-1 rounded-lg border border-cyan-500/40 cursor-pointer"><i class="fa-solid fa-file-pdf text-rose-400 mr-1"></i> ดู PDF เดิม</button>`;
         }
         document.getElementById('modalTitleText').innerHTML = `<i class="fa-solid fa-pen-to-square text-cyan-400 mr-2"></i> แก้ไขโจทย์: ${p.problem_code || 'STU-' + p.id}`;
-        document.getElementById('submitBtnText').innerHTML = '<i class="fa-solid fa-floppy-disk mr-1.5"></i> บันทึกการแก้ไขและส่งตรวจสอบ';
       }
 
       openSmoothModal('problemModal');
@@ -1076,7 +1077,7 @@
 
     function closeProblemModal() { closeSmoothModal('problemModal'); }
 
-    // --- SUBMIT STUDENT PROBLEM (แก้ไขเพื่อป้องกัน Error 400) ---
+    // --- SUBMIT STUDENT PROBLEM (รองรับ Draft และ ส่งส่วนกลาง) ---
     document.getElementById('problemForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const { data: { session } } = await supabaseClient.auth.getSession();
@@ -1084,6 +1085,8 @@
         showToast('เซสชันหมดอายุ', 'กรุณาเข้าสู่ระบบใหม่อีกครั้ง', true);
         return;
       }
+
+      const isDraftSubmit = e.submitter && e.submitter.id === 'btnSubmitDraft';
 
       const mode = document.getElementById('formMode').value;
       const problem_code = document.getElementById('admCode').value.trim().toUpperCase();
@@ -1107,7 +1110,6 @@
 
       const test_cases = (formTestCasesData || []).filter(tc => (tc.input && tc.input.trim() !== '') || (tc.output && tc.output.trim() !== ''));
 
-      // แพ็กเกจข้อมูลที่ปลอดภัย ตรงตามโครงสร้างคอลัมน์มาตรฐานเพื่อป้องกัน Error 400
       const problemData = {
         problem_code,
         title,
@@ -1124,6 +1126,7 @@
         max_score,
         author,
         is_verified: false,
+        is_draft: isDraftSubmit,
         test_cases,
         time_limit,
         memory_limit,
@@ -1141,7 +1144,7 @@
         if (error) {
           showToast('เกิดข้อผิดพลาด', error.message, true);
         } else {
-          showToast('ส่งโจทย์สำเร็จ!', 'โจทย์ถูกส่งไปรอ Admin ตรวจสอบและอนุมัติแล้ว');
+          showToast(isDraftSubmit ? 'บันทึก Draft สำเร็จ!' : 'ส่งเข้าส่วนกลางสำเร็จ!', isDraftSubmit ? 'คุณสามารถทดสอบโค้ดของตัวเองได้ทันทีในแท็บโจทย์ที่ฉันเสนอ' : 'โจทย์ถูกส่งไปรอ Admin ตรวจสอบแล้ว');
           closeProblemModal();
           await initProblemBank();
           switchProblemTab('mine');
@@ -1152,7 +1155,7 @@
         if (error) {
           showToast('เกิดข้อผิดพลาด', error.message, true);
         } else {
-          showToast('อัปเดตสำเร็จ', 'บันทึกการแก้ไขโจทย์เรียบร้อย (รอ Admin ตรวจสอบ)');
+          showToast('อัปเดตสำเร็จ', isDraftSubmit ? 'บันทึกร่างเรียบร้อย' : 'บันทึกการแก้ไขเรียบร้อย');
           closeProblemModal();
           await initProblemBank();
           switchProblemTab('mine');
@@ -1167,7 +1170,6 @@
         const { data: prof } = await supabaseClient.from('profiles').select('*').eq('id', currentUser.id).maybeSingle();
         currentUserProfile = prof;
 
-        // ดึงชื่อ Username จริงมาแสดงบน Navbar
         const displayName = (prof && (prof.display_name || prof.username)) || currentUser.email.split('@')[0];
         const isAdmin = prof && prof.role === 'admin';
         updateNavbarLoggedIn(displayName, isAdmin);
@@ -1278,7 +1280,7 @@
         if (currentTab === 'mine') {
           if (!currentUser || String(p.created_by) !== String(currentUser.id)) return false;
         } else {
-          if (!p.is_verified) return false;
+          if (!p.is_verified || p.is_draft) return false;
           if (p.open_at && now < new Date(p.open_at).getTime()) return false;
           if (p.close_at && now > new Date(p.close_at).getTime()) return false;
           if (getProblemSource(p) !== currentTab) return false;
@@ -1319,12 +1321,20 @@
         const isAttempted = attemptedProblemIds.has(pidStr);
 
         let statusIcon = `<span class="text-gray-600" title="ยังไม่เริ่ม"><i class="fa-regular fa-circle"></i></span>`;
-        if (currentTab === 'mine' && !p.is_verified) {
-          statusIcon = `<span class="text-amber-400" title="รอ Admin ตรวจสอบ"><i class="fa-solid fa-hourglass-half"></i></span>`;
-        } else if (isSolved) {
-          statusIcon = `<span class="text-emerald-400 text-base" title="ผ่านแล้ว (Accepted)"><i class="fa-solid fa-circle-check"></i></span>`;
-        } else if (isAttempted) {
-          statusIcon = `<span class="text-amber-400" title="กำลังพยายาม"><i class="fa-solid fa-circle-dot"></i></span>`;
+        if (currentTab === 'mine') {
+          if (p.is_draft) {
+            statusIcon = `<span class="text-gray-400" title="แบบร่าง (Draft)"><i class="fa-solid fa-file-pen"></i></span>`;
+          } else if (!p.is_verified) {
+            statusIcon = `<span class="text-amber-400" title="รอ Admin ตรวจสอบ"><i class="fa-solid fa-hourglass-half"></i></span>`;
+          } else if (isSolved) {
+            statusIcon = `<span class="text-emerald-400 text-base" title="ผ่านแล้ว"><i class="fa-solid fa-circle-check"></i></span>`;
+          }
+        } else {
+          if (isSolved) {
+            statusIcon = `<span class="text-emerald-400 text-base" title="ผ่านแล้ว (Accepted)"><i class="fa-solid fa-circle-check"></i></span>`;
+          } else if (isAttempted) {
+            statusIcon = `<span class="text-amber-400" title="กำลังพยายาม"><i class="fa-solid fa-circle-dot"></i></span>`;
+          }
         }
 
         const diffBadge = p.difficulty === 'Easy'
@@ -1344,11 +1354,16 @@
           ? `<span class="text-[10px] px-2 py-0.5 rounded bg-purple-500/15 text-purple-300 border border-purple-500/30">ฟังก์ชัน (ปิด main)</span>`
           : '';
 
-        const approvalStatusBadge = currentTab === 'mine'
-          ? (p.is_verified
-              ? `<span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/35">อนุมัติแล้ว</span>`
-              : `<span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/35">รอ Admin อนุมัติ</span>`)
-          : '';
+        let approvalStatusBadge = '';
+        if (currentTab === 'mine') {
+          if (p.is_draft) {
+            approvalStatusBadge = `<span class="text-[10px] px-2 py-0.5 rounded-full bg-gray-500/20 text-gray-300 border border-gray-500/35">แบบร่าง (Draft)</span>`;
+          } else if (p.is_verified) {
+            approvalStatusBadge = `<span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/35">อนุมัติแล้ว</span>`;
+          } else {
+            approvalStatusBadge = `<span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/35">รอ Admin อนุมัติ</span>`;
+          }
+        }
 
         const acUsers = acCountByProblem[p.id] || 0;
         const isOwner = currentUser && String(p.created_by) === String(currentUser.id);
@@ -1383,9 +1398,9 @@
                     </button>`
                   : ''
                 }
-                ${p.is_verified
+                ${(p.is_verified || isOwner)
                   ? `<button type="button" onclick="handleSolveClick('${p.id}')" class="bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-95 text-white px-4 py-2 rounded-xl transition text-xs font-bold shadow-md shadow-cyan-500/15 cursor-pointer">
-                      <i class="fa-solid fa-code mr-1"></i> ทำโจทย์
+                      <i class="fa-solid fa-code mr-1"></i> ${p.is_draft ? 'ทดสอบ (Draft)' : 'ทำโจทย์'}
                     </button>`
                   : `<span class="text-xs text-amber-300/80 italic px-2">รอตรวจสอบ</span>`
                 }

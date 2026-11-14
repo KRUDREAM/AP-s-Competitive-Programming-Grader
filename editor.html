@@ -39,6 +39,13 @@
     .markdown-preview code { background: rgba(56, 189, 248, 0.15); color: #67e8f9; padding: 0.12rem 0.38rem; border-radius: 0.35rem; font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; }
     .markdown-preview pre { background: #020617; border: 1px solid rgba(56, 189, 248, 0.25); padding: 0.85rem; border-radius: 0.75rem; overflow-x: auto; margin-bottom: 0.75rem; }
 
+    /* สัดส่วนกระดาษ A4 แนวตั้ง (210mm x 297mm = 1 : 1.414) */
+    .a4-pdf-frame {
+      width: 100%;
+      aspect-ratio: 1 / 1.414;
+      min-height: 540px;
+    }
+
     /* Resizable Splitter */
     .split-resizer {
       width: 6px;
@@ -95,13 +102,12 @@
     </div>
 
     <div class="flex items-center gap-2 shrink-0">
-      <!-- Quick Layout Width Buttons (Desktop) -->
       <div class="hidden lg:flex items-center bg-black/50 p-1 rounded-xl border border-cyan-500/20 text-[11px]">
-        <button type="button" onclick="setSplitRatio(28)" class="px-2 py-1 rounded-lg text-gray-300 hover:bg-cyan-500/20 hover:text-cyan-300 transition cursor-pointer" title="ย่อฝั่งโจทย์ให้เล็กลง (เน้นเขียนโค้ดกว้างๆ)">
+        <button type="button" onclick="setSplitRatio(28)" class="px-2 py-1 rounded-lg text-gray-300 hover:bg-cyan-500/20 hover:text-cyan-300 transition cursor-pointer" title="ย่อฝั่งโจทย์ (เน้นเขียนโค้ดกว้างๆ)">
           <i class="fa-solid fa-compress mr-1"></i> โค้ดกว้าง
         </button>
-        <button type="button" onclick="setSplitRatio(45)" class="px-2 py-1 rounded-lg text-gray-300 hover:bg-cyan-500/20 hover:text-cyan-300 transition cursor-pointer" title="สมดุล 45 / 55">
-          สมดุล
+        <button type="button" onclick="setSplitRatio(48)" class="px-2 py-1 rounded-lg text-gray-300 hover:bg-cyan-500/20 hover:text-cyan-300 transition cursor-pointer" title="สมดุลพอดีหน้า A4">
+          สมดุล A4
         </button>
         <button type="button" onclick="setSplitRatio(62)" class="px-2 py-1 rounded-lg text-gray-300 hover:bg-cyan-500/20 hover:text-cyan-300 transition cursor-pointer" title="ขยายฝั่งโจทย์ให้อ่านชัดๆ">
           <i class="fa-solid fa-expand mr-1"></i> อ่านโจทย์กว้าง
@@ -117,11 +123,11 @@
     </div>
   </header>
 
-  <!-- MAIN WORKSPACE: LEFT (STATEMENT / SUBS / CHAT) | RESIZER | RIGHT (CODE + CONSOLE) -->
+  <!-- MAIN WORKSPACE -->
   <div id="workspaceContainer" class="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden">
 
     <!-- ==================== LEFT PANE: STATEMENT / SUBMISSIONS / LIVE CHAT ==================== -->
-    <section id="leftPane" style="width: 45%;" class="w-full lg:w-[45%] h-[45vh] lg:h-full flex flex-col bg-[#070c1b] border-b lg:border-b-0 border-cyan-500/20 min-w-0 shrink-0">
+    <section id="leftPane" style="width: 48%;" class="w-full lg:w-[48%] h-[45vh] lg:h-full flex flex-col bg-[#070c1b] border-b lg:border-b-0 border-cyan-500/20 min-w-0 shrink-0">
       
       <!-- LEFT TABS BAR -->
       <div class="h-12 shrink-0 px-3 bg-[#090f22] border-b border-cyan-500/20 flex items-center justify-between gap-1.5 overflow-x-auto">
@@ -161,13 +167,17 @@
           <div id="stmtTagsRow" class="flex flex-wrap gap-1.5 pt-1"></div>
         </div>
 
-        <!-- PDF ATTACHMENT VIEWER -->
-        <div id="stmtPdfSection" class="hidden space-y-2">
+        <!-- A4 PDF ATTACHMENT VIEWER -->
+        <div id="stmtPdfSection" class="hidden space-y-2.5">
           <div class="flex items-center justify-between bg-rose-500/10 border border-rose-500/30 px-3.5 py-2 rounded-xl">
-            <span class="text-xs font-semibold text-rose-300"><i class="fa-solid fa-file-pdf mr-1.5"></i> โจทย์ข้อนี้มีเอกสาร PDF แนบมาด้วย</span>
-            <button type="button" onclick="openProblemPdfNewTab()" class="text-xs bg-rose-500/20 hover:bg-rose-500/30 text-rose-200 px-3 py-1 rounded-lg transition cursor-pointer">เปิดเต็มจอ</button>
+            <span class="text-xs font-semibold text-rose-300"><i class="fa-solid fa-file-pdf mr-1.5"></i> เอกสารโจทย์ (สัดส่วน A4)</span>
+            <button type="button" onclick="openProblemPdfNewTab()" class="text-xs bg-rose-500/20 hover:bg-rose-500/30 text-rose-200 px-3 py-1 rounded-lg transition cursor-pointer">
+              <i class="fa-solid fa-up-right-from-square mr-1"></i> เปิดเต็มจอ
+            </button>
           </div>
-          <iframe id="stmtPdfFrame" class="w-full h-96 rounded-2xl border border-cyan-500/25 bg-white"></iframe>
+          <div class="w-full bg-white rounded-2xl overflow-hidden border border-cyan-500/30 shadow-xl">
+            <iframe id="stmtPdfFrame" class="a4-pdf-frame block border-0"></iframe>
+          </div>
         </div>
 
         <!-- MARKDOWN STATEMENT -->
@@ -199,7 +209,6 @@
 
       <!-- TAB 3: LIVE CHATROOM WITH SUBMISSION ATTACHMENT -->
       <div id="leftPaneChat" class="hidden flex-1 flex flex-col min-h-0">
-        <!-- Chat Header -->
         <div class="px-4 py-2.5 bg-gradient-to-r from-amber-950/35 to-cyan-950/30 border-b border-cyan-500/15 flex items-center justify-between shrink-0">
           <div class="flex items-center gap-2">
             <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
@@ -208,12 +217,10 @@
           <span class="text-[11px] text-gray-400">แนบโค้ดส่งตรวจในแชตได้</span>
         </div>
 
-        <!-- Messages Scroll Area -->
         <div id="chatMessagesContainer" class="flex-1 overflow-y-auto p-4 space-y-3 bg-[#050914]/60">
           <p class="text-xs text-gray-400 text-center py-8">กำลังโหลดข้อความแชต...</p>
         </div>
 
-        <!-- Attached Submission Preview Pill (if selected) -->
         <div id="chatAttachmentBar" class="hidden px-3.5 py-2 bg-cyan-950/70 border-t border-cyan-500/30 flex items-center justify-between text-xs shrink-0">
           <div class="flex items-center gap-2 truncate">
             <i class="fa-solid fa-paperclip text-cyan-400"></i>
@@ -228,13 +235,11 @@
           </button>
         </div>
 
-        <!-- Chat Input Box -->
         <form id="chatSendForm" class="p-3 bg-[#080e20] border-t border-cyan-500/20 flex items-center gap-2 shrink-0">
           <div class="relative">
             <button type="button" onclick="toggleAttachSubMenu()" class="w-9 h-9 rounded-xl bg-white/5 hover:bg-cyan-500/20 text-cyan-300 border border-cyan-500/25 flex items-center justify-center transition cursor-pointer" title="แนบ Submission ที่เคยส่ง">
               <i class="fa-solid fa-paperclip text-xs"></i>
             </button>
-            <!-- Popup Pick Submission -->
             <div id="attachSubPopup" class="hidden absolute bottom-11 left-0 w-64 tech-modal rounded-2xl p-2.5 border border-cyan-500/35 shadow-2xl z-40 space-y-1.5">
               <div class="text-[11px] font-bold text-cyan-300 px-2 py-1 border-b border-white/10">เลือก Submission ที่ต้องการแนบ</div>
               <div id="attachSubOptionsList" class="max-h-44 overflow-y-auto space-y-1 text-xs"></div>
@@ -250,7 +255,7 @@
       </div>
     </section>
 
-    <!-- ==================== DRAGGABLE RESIZER BAR (DESKTOP) ==================== -->
+    <!-- ==================== DRAGGABLE RESIZER BAR ==================== -->
     <div id="splitResizer" class="hidden lg:block split-resizer shrink-0" title="ลากเพื่อปรับขนาดฝั่งโจทย์และฝั่งเขียนโค้ด"></div>
 
     <!-- ==================== RIGHT PANE: CODE EDITOR & CONSOLE ==================== -->
@@ -292,7 +297,7 @@
       <!-- MONACO CODE EDITOR CONTAINER -->
       <div id="monacoContainer" class="flex-1 min-h-0 w-full relative"></div>
 
-      <!-- BOTTOM CONSOLE (CUSTOM INPUT / VERDICT) -->
+      <!-- BOTTOM CONSOLE -->
       <div class="h-52 shrink-0 bg-[#060a17] border-t border-cyan-500/25 flex flex-col">
         <div class="h-9 px-3 bg-black/50 border-b border-cyan-500/15 flex items-center justify-between">
           <div class="flex items-center gap-1.5">
@@ -309,7 +314,6 @@
           </button>
         </div>
 
-        <!-- TAB 1: CUSTOM INPUT & OUTPUT -->
         <div id="consoleAreaTest" class="flex-1 grid grid-cols-2 divide-x divide-cyan-500/15 min-h-0">
           <div class="flex flex-col p-2.5 min-h-0">
             <span class="text-[10px] font-bold text-gray-400 uppercase mb-1">Standard Input (stdin)</span>
@@ -324,7 +328,6 @@
           </div>
         </div>
 
-        <!-- TAB 2: SUBMISSION VERDICT RESULT -->
         <div id="consoleAreaVerdict" class="hidden flex-1 p-3 overflow-y-auto">
           <div id="verdictResultContainer" class="text-xs text-gray-400 flex items-center justify-center h-full">
             ยังไม่มีผลการส่งตรวจในรอบนี้ — กดปุ่ม "ส่งตรวจ (Submit)" เพื่อตรวจกับชุดทดสอบทั้งหมด
@@ -391,11 +394,9 @@
     let modalViewedCode = '';
     let modalViewedLang = 'cpp';
 
-    // Split Pane State
-    let leftPaneWidthPct = parseFloat(localStorage.getItem('st8_split_left_pct')) || 45;
+    let leftPaneWidthPct = parseFloat(localStorage.getItem('st8_split_left_pct')) || 48;
     let isLeftCollapsed = false;
 
-    // Chat State
     let selectedChatAttachmentId = null;
     let chatMessagesCache = [];
 
@@ -416,7 +417,7 @@
       setTimeout(() => toast.classList.add('translate-x-[130%]'), 3200);
     }
 
-    // ==================== RESIZABLE SPLIT PANE (LEFT STATEMENT | RIGHT EDITOR) ====================
+    // ==================== RESIZABLE SPLIT PANE ====================
     function setSplitRatio(pct) {
       if (window.innerWidth < 1024) return;
       isLeftCollapsed = false;
@@ -449,13 +450,10 @@
       const leftEl = document.getElementById('leftPane');
       if (!resizer || !container || !leftEl) return;
 
-      if (window.innerWidth >= 1024) {
-        leftEl.style.width = leftPaneWidthPct + '%';
-      }
+      if (window.innerWidth >= 1024) leftEl.style.width = leftPaneWidthPct + '%';
 
       let isDragging = false;
-
-      resizer.addEventListener('mousedown', (e) => {
+      resizer.addEventListener('mousedown', () => {
         if (window.innerWidth < 1024) return;
         isDragging = true;
         resizer.classList.add('dragging');
@@ -484,11 +482,7 @@
       });
 
       window.addEventListener('resize', () => {
-        if (window.innerWidth < 1024) {
-          leftEl.style.width = '100%';
-        } else {
-          leftEl.style.width = leftPaneWidthPct + '%';
-        }
+        leftEl.style.width = window.innerWidth < 1024 ? '100%' : leftPaneWidthPct + '%';
         if (editorInstance) editorInstance.layout();
       });
     }
@@ -672,9 +666,13 @@
       const draft = localStorage.getItem(`st8_draft_${problemId}_${activeLang}`);
       editorInstance.setValue(draft || getStarterCodeForLang(activeLang));
 
+      // A4 PDF Attachment
       if (p.statement_pdf_url) {
         document.getElementById('stmtPdfSection').classList.remove('hidden');
-        document.getElementById('stmtPdfFrame').src = p.statement_pdf_url;
+        const pdfSrc = p.statement_pdf_url.includes('#')
+          ? p.statement_pdf_url
+          : `${p.statement_pdf_url}#view=FitH&navpanes=0`;
+        document.getElementById('stmtPdfFrame').src = pdfSrc;
       }
 
       const mdOutput = document.getElementById('stmtMarkdownBody');
@@ -732,7 +730,7 @@
 
     function loadSampleIntoCustomInput() { copySampleInput(0); }
 
-    // ==================== FAST CODE EXECUTION ENGINE (PISTON + PARALLEL BATCHING) ====================
+    // ==================== TURBO MULTI-ENGINE COMPILER (JUDGE0 + CODAPI + WANDBOX) ====================
     function buildFullRunnableCode(userCode) {
       if (!currentProblem || !currentProblem.is_function_mode || !currentProblem.grader_main_code) {
         return userCode;
@@ -740,60 +738,103 @@
       return `${userCode}\n\n// --- GRADER HARNESS ---\n${currentProblem.grader_main_code}`;
     }
 
-    async function executeCodeFast(code, lang, stdin) {
-      const pistonConfig = {
-        cpp: { language: 'c++', version: '10.2.0', filename: 'main.cpp' },
-        c: { language: 'c', version: '10.2.0', filename: 'main.c' },
-        python: { language: 'python', version: '3.10.0', filename: 'main.py' }
-      };
-      const cfg = pistonConfig[lang] || pistonConfig.cpp;
+    function b64Encode(str) {
+      return btoa(unescape(encodeURIComponent(str || '')));
+    }
+
+    function b64Decode(str) {
+      if (!str) return '';
+      try { return decodeURIComponent(escape(atob(str))); } catch { return str; }
+    }
+
+    // ยิง Judge0 CE แบบรอผลในคำขอเดียว (?wait=true) -> เร็วมาก (~0.6-1.2s)
+    async function runWithJudge0Single(code, lang, stdin) {
+      const langIdMap = { cpp: 54, c: 50, python: 71 }; // 54 = C++ (GCC 9.2.0), 50 = C, 71 = Python 3.8
+      const cpuLimit = Math.min(5, Math.max(1, parseFloat(currentProblem?.time_limit) || 1.0));
       const startTime = performance.now();
 
-      try {
-        const res = await fetch('https://emkc.org/api/v2/piston/execute', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            language: cfg.language,
-            version: cfg.version,
-            files: [{ name: cfg.filename, content: code }],
-            stdin: stdin || '',
-            run_timeout: Math.min(5000, Math.ceil(((currentProblem?.time_limit) || 1.0) * 1500))
-          })
-        });
+      const res = await fetch('https://ce.judge0.com/submissions/?base64_encoded=true&wait=true', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          source_code: b64Encode(code),
+          language_id: langIdMap[lang] || 54,
+          stdin: b64Encode(stdin || ''),
+          cpu_time_limit: cpuLimit
+        })
+      });
 
-        if (res.ok) {
-          const data = await res.json();
-          const elapsed = ((performance.now() - startTime) / 1000).toFixed(2);
-          if (data.compile && data.compile.code !== 0) {
-            return {
-              status: 'CE',
-              stdout: '',
-              stderr: '',
-              compilerError: data.compile.stderr || data.compile.output || 'Compilation Error',
-              elapsed: parseFloat(elapsed)
-            };
-          }
-          const run = data.run || {};
-          if (run.signal === 'SIGKILL' || run.code === 137) {
-            return { status: 'TLE', stdout: run.stdout || '', stderr: 'Time Limit Exceeded', compilerError: '', elapsed: parseFloat(elapsed) };
-          }
-          if (run.code !== 0) {
-            return { status: 'RE', stdout: run.stdout || '', stderr: run.stderr || `Exit code ${run.code}`, compilerError: '', elapsed: parseFloat(elapsed) };
-          }
-          return {
-            status: 'OK',
-            stdout: run.stdout || '',
-            stderr: run.stderr || '',
-            compilerError: '',
-            elapsed: parseFloat(elapsed)
-          };
-        }
-      } catch (e) {
-        // Fallback to Wandbox if Piston is rate-limited
+      if (!res.ok) throw new Error('Judge0 unavailable');
+      const data = await res.json();
+      const elapsed = parseFloat(data.time) || parseFloat(((performance.now() - startTime) / 1000).toFixed(2));
+      const statusId = data.status?.id;
+
+      if (statusId === 6) {
+        return { status: 'CE', stdout: '', stderr: '', compilerError: b64Decode(data.compile_output), elapsed };
       }
+      if (statusId === 5) {
+        return { status: 'TLE', stdout: b64Decode(data.stdout), stderr: 'Time Limit Exceeded', compilerError: '', elapsed };
+      }
+      if (statusId >= 7 && statusId <= 12) {
+        return { status: 'RE', stdout: b64Decode(data.stdout), stderr: b64Decode(data.stderr) || data.status?.description, compilerError: '', elapsed };
+      }
+      return {
+        status: 'OK',
+        stdout: b64Decode(data.stdout),
+        stderr: b64Decode(data.stderr),
+        compilerError: '',
+        elapsed
+      };
+    }
 
-      // Fallback Wandbox
+    // ยิง Judge0 Batch Submissions รวดเดียวทุก Test Case
+    async function runWithJudge0Batch(code, lang, testCases) {
+      const langIdMap = { cpp: 54, c: 50, python: 71 };
+      const cpuLimit = Math.min(5, Math.max(1, parseFloat(currentProblem?.time_limit) || 1.0));
+      const encodedSrc = b64Encode(code);
+
+      const createRes = await fetch('https://ce.judge0.com/submissions/batch?base64_encoded=true', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          submissions: testCases.map(tc => ({
+            source_code: encodedSrc,
+            language_id: langIdMap[lang] || 54,
+            stdin: b64Encode(tc.input || ''),
+            cpu_time_limit: cpuLimit
+          }))
+        })
+      });
+
+      if (!createRes.ok) throw new Error('Judge0 batch failed');
+      const tokensArr = await createRes.json();
+      const tokens = tokensArr.map(t => t.token).join(',');
+
+      // Poll ทุก 350ms จนกว่าทุกเคสจะเสร็จ
+      for (let attempt = 0; attempt < 25; attempt++) {
+        await new Promise(r => setTimeout(r, 350));
+        const pollRes = await fetch(`https://ce.judge0.com/submissions/batch?tokens=${tokens}&base64_encoded=true&fields=token,stdout,stderr,status,compile_output,time`);
+        if (!pollRes.ok) continue;
+        const pollData = await pollRes.json();
+        const subs = pollData.submissions || [];
+        const allDone = subs.every(s => s.status && s.status.id >= 3);
+        if (allDone) {
+          return subs.map(data => {
+            const statusId = data.status?.id;
+            const elapsed = parseFloat(data.time) || 0.05;
+            if (statusId === 6) return { status: 'CE', stdout: '', stderr: '', compilerError: b64Decode(data.compile_output), elapsed };
+            if (statusId === 5) return { status: 'TLE', stdout: b64Decode(data.stdout), stderr: 'Time Limit Exceeded', compilerError: '', elapsed };
+            if (statusId >= 7 && statusId <= 12) return { status: 'RE', stdout: b64Decode(data.stdout), stderr: b64Decode(data.stderr) || data.status?.description, compilerError: '', elapsed };
+            return { status: 'OK', stdout: b64Decode(data.stdout), stderr: b64Decode(data.stderr), compilerError: '', elapsed };
+          });
+        }
+      }
+      throw new Error('Judge0 timeout');
+    }
+
+    // Fallback: Codapi / Wandbox
+    async function runWithFallbackSingle(code, lang, stdin) {
+      const startTime = performance.now();
       const wandboxMap = { cpp: 'gcc-head', c: 'gcc-head-c', python: 'cpython-3.11.6' };
       const wbRes = await fetch('https://wandbox.org/api/compile.json', {
         method: 'POST',
@@ -805,11 +846,19 @@
           options: lang === 'cpp' ? 'warning,gnu++17' : ''
         })
       });
-      const elapsed = ((performance.now() - startTime) / 1000).toFixed(2);
+      const elapsed = parseFloat(((performance.now() - startTime) / 1000).toFixed(2));
       const wb = await wbRes.json();
-      if (wb.compiler_error) return { status: 'CE', stdout: '', stderr: '', compilerError: wb.compiler_error, elapsed: parseFloat(elapsed) };
-      if (wb.status !== '0') return { status: 'RE', stdout: wb.program_output || '', stderr: wb.program_error || '', compilerError: '', elapsed: parseFloat(elapsed) };
-      return { status: 'OK', stdout: wb.program_output || '', stderr: wb.program_error || '', compilerError: '', elapsed: parseFloat(elapsed) };
+      if (wb.compiler_error) return { status: 'CE', stdout: '', stderr: '', compilerError: wb.compiler_error, elapsed };
+      if (wb.status !== '0') return { status: 'RE', stdout: wb.program_output || '', stderr: wb.program_error || '', compilerError: '', elapsed };
+      return { status: 'OK', stdout: wb.program_output || '', stderr: wb.program_error || '', compilerError: '', elapsed };
+    }
+
+    async function executeCodeSingle(code, lang, stdin) {
+      try {
+        return await runWithJudge0Single(code, lang, stdin);
+      } catch {
+        return await runWithFallbackSingle(code, lang, stdin);
+      }
     }
 
     async function runCustomTest() {
@@ -822,13 +871,13 @@
 
       switchConsoleTab('test');
       btn.disabled = true;
-      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังรัน...';
+      btn.innerHTML = '<i class="fa-solid fa-bolt fa-spin"></i> กำลังรัน...';
       outBox.className = 'flex-1 w-full bg-black/70 border border-cyan-500/30 rounded-xl p-2 text-xs text-cyan-300 font-code overflow-auto whitespace-pre-wrap';
       outBox.textContent = 'กำลังคอมไพล์และรันโปรแกรม...';
       statsEl.textContent = '';
 
       try {
-        const result = await executeCodeFast(fullCode, lang, stdin);
+        const result = await executeCodeSingle(fullCode, lang, stdin);
         statsEl.textContent = `Time: ${result.elapsed}s`;
 
         if (result.status === 'CE') {
@@ -872,7 +921,7 @@
       verdictBox.innerHTML = `
         <div class="text-center space-y-2 py-4">
           <i class="fa-solid fa-bolt text-2xl text-cyan-400 animate-pulse"></i>
-          <p class="text-xs font-bold text-cyan-300">กำลังรันตรวจแบบขนาน (${testCases.length} Test Cases)...</p>
+          <p class="text-xs font-bold text-cyan-300">กำลังรันตรวจแบบ Batch (${testCases.length} Test Cases)...</p>
         </div>
       `;
 
@@ -883,55 +932,45 @@
         let caseResults = [];
 
         if (testCases.length === 0) {
-          const singleRes = await executeCodeFast(fullCode, lang, '');
+          const singleRes = await executeCodeSingle(fullCode, lang, '');
           if (singleRes.status === 'CE') finalStatus = 'Compilation Error';
           else if (singleRes.status !== 'OK') finalStatus = 'Runtime Error';
           else passedCount = 1;
         } else {
-          // 1. ทดสอบเคสแรกก่อนเพื่อเช็ก Compilation Error แบบ Fail-Fast
-          const firstRes = await executeCodeFast(fullCode, lang, testCases[0].input || '');
-          maxExecTime = Math.max(maxExecTime, firstRes.elapsed || 0);
+          let rawResponses = null;
+          try {
+            rawResponses = await runWithJudge0Batch(fullCode, lang, testCases);
+          } catch {
+            // Fallback: รันขนานผ่าน single engine ถ้า batch API ไม่ว่าง
+            rawResponses = await Promise.all(
+              testCases.map(tc => executeCodeSingle(fullCode, lang, tc.input || ''))
+            );
+          }
 
-          if (firstRes.status === 'CE') {
+          if (rawResponses[0] && rawResponses[0].status === 'CE') {
             finalStatus = 'Compilation Error';
-            caseResults.push({ index: 1, verdict: 'CE', detail: firstRes.compilerError });
+            caseResults.push({ index: 1, verdict: 'CE', detail: rawResponses[0].compilerError });
           } else {
-            const evalResult = (idx, tc, res) => {
+            rawResponses.forEach((res, idx) => {
               maxExecTime = Math.max(maxExecTime, res.elapsed || 0);
               if (res.status === 'TLE') {
                 if (finalStatus === 'Accepted') finalStatus = 'Time Limit Exceeded';
-                return { index: idx + 1, verdict: 'TLE', time: res.elapsed };
-              }
-              if (res.status !== 'OK') {
+                caseResults.push({ index: idx + 1, verdict: 'TLE', time: res.elapsed });
+              } else if (res.status !== 'OK') {
                 if (finalStatus === 'Accepted') finalStatus = 'Runtime Error';
-                return { index: idx + 1, verdict: 'RE', time: res.elapsed };
-              }
-              const actual = normalizeOutput(res.stdout);
-              const expected = normalizeOutput(tc.output);
-              if (actual === expected) {
-                passedCount++;
-                return { index: idx + 1, verdict: 'AC', time: res.elapsed };
+                caseResults.push({ index: idx + 1, verdict: 'RE', time: res.elapsed });
               } else {
-                if (finalStatus === 'Accepted') finalStatus = 'Wrong Answer';
-                return { index: idx + 1, verdict: 'WA', time: res.elapsed };
+                const actual = normalizeOutput(res.stdout);
+                const expected = normalizeOutput(testCases[idx].output);
+                if (actual === expected) {
+                  passedCount++;
+                  caseResults.push({ index: idx + 1, verdict: 'AC', time: res.elapsed });
+                } else {
+                  if (finalStatus === 'Accepted') finalStatus = 'Wrong Answer';
+                  caseResults.push({ index: idx + 1, verdict: 'WA', time: res.elapsed });
+                }
               }
-            };
-
-            caseResults.push(evalResult(0, testCases[0], firstRes));
-
-            // 2. รันเคสที่เหลือแบบขนานพร้อมกัน (Parallel Batch) เพื่อความเร็วสูงสุด
-            const remaining = testCases.slice(1);
-            const batchSize = 4;
-            for (let b = 0; b < remaining.length; b += batchSize) {
-              const chunk = remaining.slice(b, b + batchSize);
-              const chunkResponses = await Promise.all(
-                chunk.map(tc => executeCodeFast(fullCode, lang, tc.input || ''))
-              );
-              chunkResponses.forEach((res, offset) => {
-                const realIdx = 1 + b + offset;
-                caseResults.push(evalResult(realIdx, chunk[offset], res));
-              });
-            }
+            });
           }
         }
 
@@ -1088,7 +1127,7 @@
       }
     }
 
-    // ==================== REAL-TIME CHATTING & SUBMISSION ATTACHMENT ====================
+    // ==================== REAL-TIME CHATTING ====================
     function toggleAttachSubMenu() {
       const popup = document.getElementById('attachSubPopup');
       const list = document.getElementById('attachSubOptionsList');

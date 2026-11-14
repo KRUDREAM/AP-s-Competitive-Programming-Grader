@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>จัดการ Contest | ST8 CP-Grader Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body { font-family: 'Kanit', sans-serif; background-color: #030712; color: #f3f4f6; }
+    .tech-glass { background: rgba(10, 15, 30, 0.78); backdrop-filter: blur(20px); border: 1px solid rgba(56, 189, 248, 0.16); }
+    .cyber-grid { background-image: linear-gradient(to right, rgba(56, 189, 248, 0.03) 1px, transparent 1px), linear-gradient(to bottom, rgba(56, 189, 248, 0.03) 1px, transparent 1px); background-size: 32px 32px; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col relative overflow-x-hidden cyber-grid">
+  <div id="systemToast" class="fixed top-5 right-5 z-[80] transform translate-x-[120%] transition-all duration-300 tech-glass px-5 py-3.5 rounded-2xl border border-cyan-500/40 shadow-2xl flex items-center gap-3">
+    <i id="toastIcon" class="fa-solid fa-circle-check text-cyan-400 text-lg"></i>
+    <div><h4 id="toastTitle" class="text-xs font-bold text-white"></h4><p id="toastDesc" class="text-xs text-gray-300"></p></div>
+  </div>
+
+  <div id="adminHeaderMount"></div>
+
+  <div class="flex-1 flex flex-col lg:flex-row relative z-10 w-full min-w-0">
+    <div id="adminSidebarMount"></div>
+
+    <main class="flex-1 min-w-0 px-4 md:px-6 py-6 space-y-5">
+      <div class="bg-gradient-to-r from-amber-950/35 to-blue-950/25 p-5 rounded-2xl border border-amber-500/20">
+        <h2 class="text-lg md:text-xl font-bold text-white"><i class="fa-solid fa-trophy text-amber-400 mr-2"></i> จัดการการแข่งขัน (Contest Hub)</h2>
+        <p class="text-xs text-gray-400">สร้างรอบการแข่งขัน กำหนดกติกา และจัดการรายการ Contest ของระบบ</p>
+      </div>
+
+      <form id="createContestForm" class="tech-glass p-5 rounded-2xl border border-cyan-500/20 space-y-4">
+        <h3 class="font-bold text-cyan-300 text-sm"><i class="fa-solid fa-plus-circle mr-1.5"></i> สร้าง Contest ใหม่</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+          <div>
+            <label class="block text-xs text-gray-300 mb-1">ชื่อ Contest *</label>
+            <input type="text" id="contestTitleInput" required placeholder="เช่น ST8 Weekly Contest #05" class="w-full bg-black/60 border border-cyan-500/20 rounded-xl px-4 py-2.5 text-sm text-white">
+          </div>
+          <div>
+            <label class="block text-xs text-gray-300 mb-1">รายละเอียด / กติกา</label>
+            <input type="text" id="contestDescInput" placeholder="เช่น แข่งขัน 3 ชั่วโมง จำนวน 5 ข้อ" class="w-full bg-black/60 border border-cyan-500/20 rounded-xl px-4 py-2.5 text-sm text-white">
+          </div>
+        </div>
+        <button type="submit" class="bg-gradient-to-r from-blue-600 to-cyan-500 text-white px-5 py-2.5 rounded-xl text-xs font-semibold shadow-md cursor-pointer transition hover:opacity-95">บันทึก Contest</button>
+      </form>
+
+      <div id="contestsListContainer" class="space-y-3"></div>
+    </main>
+  </div>
+
+  <script src="admin-common.js"></script>
+  <script>
+    renderAdminShell('contests');
+
+    document.getElementById('createContestForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const title = document.getElementById('contestTitleInput').value.trim();
+      const desc = document.getElementById('contestDescInput').value.trim();
+      if (!title) return;
+
+      const contests = JSON.parse(localStorage.getItem('st8_contests')) || [];
+      contests.unshift({ id: Date.now(), title, desc, createdAt: new Date().toLocaleDateString('th-TH') });
+      localStorage.setItem('st8_contests', JSON.stringify(contests));
+      document.getElementById('createContestForm').reset();
+      renderContestsList();
+      showToast('สร้าง Contest สำเร็จ', `บันทึก "${title}" เรียบร้อยแล้ว`);
+    });
+
+    function deleteContest(id) {
+      const contests = (JSON.parse(localStorage.getItem('st8_contests')) || []).filter(c => c.id !== id);
+      localStorage.setItem('st8_contests', JSON.stringify(contests));
+      renderContestsList();
+      showToast('ลบ Contest แล้ว', 'นำรายการ Contest ออกจากระบบเรียบร้อย');
+    }
+
+    function renderContestsList() {
+      const container = document.getElementById('contestsListContainer');
+      const contests = JSON.parse(localStorage.getItem('st8_contests')) || [];
+      if (contests.length === 0) {
+        container.innerHTML = '<div class="tech-glass p-6 rounded-2xl text-center text-gray-500 text-xs">ยังไม่มีรายการ Contest ที่สร้างไว้</div>';
+        return;
+      }
+      container.innerHTML = contests.map(c => `
+        <div class="tech-glass p-4 rounded-2xl flex justify-between items-center border border-cyan-500/20">
+          <div>
+            <h4 class="font-bold text-white text-sm">${c.title}</h4>
+            <p class="text-xs text-gray-400 mt-0.5">${c.desc || 'ไม่มีรายละเอียดเพิ่มเติม'} &bull; สร้างเมื่อ ${c.createdAt}</p>
+          </div>
+          <button type="button" onclick="deleteContest(${c.id})" class="bg-rose-600/20 text-rose-400 hover:bg-rose-600 hover:text-white px-3.5 py-2 rounded-xl text-xs font-semibold cursor-pointer transition">
+            <i class="fa-solid fa-trash mr-1"></i> ลบ
+          </button>
+        </div>
+      `).join('');
+    }
+
+    ensureAdminSession(renderContestsList);
+  </script>
+</body>
+</html>

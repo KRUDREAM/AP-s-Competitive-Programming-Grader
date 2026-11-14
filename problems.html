@@ -536,8 +536,7 @@
     <p class="text-cyan-400 font-bold tracking-widest uppercase">ST8 CP-Grader &bull; Problem Bank</p>
   </footer>
 
-  <!-- SCRIPT -->
-  <script>
+<script>
     const SUPABASE_URL = 'https://hqnmfkafwwnjiqpdhzoh.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhxbm1ma2Fmd3duamlxcGRoem9oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQyMTc0NzEsImV4cCI6MjEwOTc5MzQ3MX0.m6dHtNnXuQ108DvafyKWeFvAg_oySuQH3LRg0Jzaops';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -587,7 +586,7 @@
       el.classList.add('modal-closed', 'opacity-0', 'pointer-events-none');
     }
 
-    // --- USER NAVBAR DROPDOWN (เหมือนหน้า Landing Page) ---
+    // --- USER NAVBAR DROPDOWN (แสดง Username จริงแทน Gmail) ---
     function updateNavbarLoggedIn(username, isAdmin = false) {
       const adminLink = isAdmin
         ? `<a href="admin.html" class="block px-4 py-2.5 text-xs text-rose-300 font-bold hover:bg-rose-500/15 transition"><i class="fa-solid fa-user-shield mr-2 text-rose-400"></i> ระบบจัดการ Admin</a>`
@@ -699,7 +698,6 @@
       return 'official';
     }
 
-    // --- EXECUTION MODE (STANDARD VS FUNCTION) ---
     function setProblemExecutionMode(mode) {
       currentProblemMode = mode;
       const baseCls = 'p-3 rounded-xl border text-left transition cursor-pointer bg-black/50 border-cyan-500/20 text-gray-300 hover:border-cyan-400/50';
@@ -746,7 +744,6 @@
       if (!silent) showToast('โหลดแม่แบบแล้ว', `ใส่โค้ดตัวอย่างสำหรับ ${lang.toUpperCase()} เรียบร้อย`);
     }
 
-    // --- MULTI-TAG SELECTOR ---
     function toggleCategoryDropdown(forceState = null) {
       const menu = document.getElementById('categoryDropdownMenu');
       const chevron = document.getElementById('categoryDropdownChevron');
@@ -823,7 +820,6 @@
       `).join('') || '<span class="text-gray-500 text-xs italic">ยังไม่ได้เลือกหมวดหมู่...</span>';
     }
 
-    // --- TEST CASES POPUP & ZIP ---
     function renderTestCaseChips() {
       const container = document.getElementById('testCaseChipsContainer');
       if (!formTestCasesData || formTestCasesData.length === 0) {
@@ -955,7 +951,6 @@
       }
     }
 
-    // --- STATEMENT PDF & MARKDOWN ---
     function handlePdfFileSelect(event) {
       const file = event.target.files[0];
       const badge = document.getElementById('selectedPdfBadge');
@@ -1003,7 +998,6 @@
       }
     }
 
-    // --- OPEN / CLOSE PROBLEM BUILDER MODAL ---
     async function openProblemModal(mode, problemId = null) {
       const { data: { session } } = await supabaseClient.auth.getSession();
       if (!session) {
@@ -1033,6 +1027,8 @@
         document.getElementById('formMode').value = 'create';
         document.getElementById('editProblemId').value = '';
         document.getElementById('admCode').value = 'STU-' + Math.floor(100 + Math.random() * 900);
+        
+        // ดึงชื่อ Username จริงมาแสดงในช่องผู้แต่งโจทย์อัตโนมัติ
         const defaultAuthor = (currentUserProfile && (currentUserProfile.display_name || currentUserProfile.username)) || session.user.email.split('@')[0];
         document.getElementById('admAuthor').value = defaultAuthor;
 
@@ -1080,7 +1076,7 @@
 
     function closeProblemModal() { closeSmoothModal('problemModal'); }
 
-    // --- SUBMIT STUDENT PROBLEM ---
+    // --- SUBMIT STUDENT PROBLEM (แก้ไขเพื่อป้องกัน Error 400) ---
     document.getElementById('problemForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const { data: { session } } = await supabaseClient.auth.getSession();
@@ -1111,6 +1107,7 @@
 
       const test_cases = (formTestCasesData || []).filter(tc => (tc.input && tc.input.trim() !== '') || (tc.output && tc.output.trim() !== ''));
 
+      // แพ็กเกจข้อมูลที่ปลอดภัย ตรงตามโครงสร้างคอลัมน์มาตรฐานเพื่อป้องกัน Error 400
       const problemData = {
         problem_code,
         title,
@@ -1129,17 +1126,17 @@
         is_verified: false,
         test_cases,
         time_limit,
-        memory_limit
+        memory_limit,
+        created_by: session.user.id
       };
-      if (pdfUrl) {
-        problemData.statement_pdf_url = pdfUrl;
-        if (selectedPdfFileName) problemData.statement_pdf_name = selectedPdfFileName;
-      }
-      if (zipUrl) problemData.testcases_zip_url = zipUrl;
 
+      if (pdfUrl) problemData.statement_pdf_url = pdfUrl;
+      if (zipUrl) problemData.testcases_zip_url = zipUrl;
       if (mode === 'create') {
         problemData.slug = problem_code.toLowerCase() + '-' + title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-        problemData.created_by = session.user.id;
+      }
+
+      if (mode === 'create') {
         const { error } = await supabaseClient.from('problems').insert([problemData]);
         if (error) {
           showToast('เกิดข้อผิดพลาด', error.message, true);
@@ -1151,7 +1148,7 @@
         }
       } else {
         const id = document.getElementById('editProblemId').value;
-        const { error } = await supabaseClient.from('problems').update(problemData).eq('id', id).eq('created_by', session.user.id);
+        const { error } = await supabaseClient.from('problems').update(problemData).eq('id', id);
         if (error) {
           showToast('เกิดข้อผิดพลาด', error.message, true);
         } else {
@@ -1163,7 +1160,6 @@
       }
     });
 
-    // --- LOAD & FILTER PROBLEM BANK ---
     async function initProblemBank() {
       const { data: { session } } = await supabaseClient.auth.getSession();
       if (session && session.user) {
@@ -1171,7 +1167,8 @@
         const { data: prof } = await supabaseClient.from('profiles').select('*').eq('id', currentUser.id).maybeSingle();
         currentUserProfile = prof;
 
-        const displayName = (prof && (prof.display_name || prof.username)) || currentUser.email;
+        // ดึงชื่อ Username จริงมาแสดงบน Navbar
+        const displayName = (prof && (prof.display_name || prof.username)) || currentUser.email.split('@')[0];
         const isAdmin = prof && prof.role === 'admin';
         updateNavbarLoggedIn(displayName, isAdmin);
 

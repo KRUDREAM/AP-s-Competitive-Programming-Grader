@@ -65,7 +65,7 @@
   </header>
 
   <!-- MAIN CONTAINER -->
-  <main class="flex-1 max-w-6xl mx-auto px-6 py-10 space-y-8 w-full relative z-10">
+  <main class="flex-1 max-w-7xl mx-auto px-6 py-10 space-y-8 w-full relative z-10">
     
     <!-- Admin Tabs Header -->
     <div class="flex flex-wrap gap-3 border-b border-cyan-500/20 pb-4">
@@ -80,20 +80,33 @@
       </button>
     </div>
 
-    <!-- TAB 1: ALL PROBLEMS MANAGEMENT -->
+    <!-- TAB 1: ALL PROBLEMS MANAGEMENT (TABLE FORMAT) -->
     <section id="adminTabProblems" class="space-y-6">
       <div class="flex justify-between items-center bg-gradient-to-r from-cyan-950/40 to-blue-950/20 p-6 rounded-3xl border border-cyan-500/20">
         <div>
           <h2 class="text-xl font-bold text-white mb-1"><i class="fa-solid fa-list-check text-cyan-400 mr-2"></i> คลังโจทย์ทั้งหมดในระบบ</h2>
-          <p class="text-xs text-gray-400">ควบคุมรหัสโจทย์ (Unique Code), สถานะการมองเห็น, แก้ไข Test Cases และ Statement ได้เต็มรูปแบบ</p>
+          <p class="text-xs text-gray-400">คลิกที่ "ชื่อโจทย์" เพื่อแก้ไขข้อมูล &bull; ควบคุมรหัสโจทย์, สถานะ, และดูสถิติ AC / Submissions</p>
         </div>
         <button onclick="openUploadProblemModal()" class="bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-95 text-white px-5 py-3 rounded-2xl text-xs font-semibold shadow-lg shadow-cyan-500/20 transition flex items-center gap-2">
           <i class="fa-solid fa-plus-circle"></i> อัปโหลด / สร้างโจทย์ใหม่
         </button>
       </div>
 
-      <div id="allAdminProblemsContainer" class="grid grid-cols-1 gap-4">
-        <div class="tech-glass p-6 rounded-2xl text-center text-gray-400 text-xs">กำลังโหลดรายการโจทย์...</div>
+      <div class="tech-glass rounded-2xl overflow-hidden border border-cyan-500/20">
+        <table class="w-full text-left text-xs font-mono">
+          <thead class="bg-cyan-950/40 text-cyan-300 border-b border-cyan-500/20 font-sans">
+            <tr>
+              <th class="p-4">รหัสโจทย์ & ชื่อโจทย์ (คลิกเพื่อแก้ไข)</th>
+              <th class="p-4">หมวดหมู่ / ความยาก</th>
+              <th class="p-4 text-center">สถิติ (AC / ส่ง)</th>
+              <th class="p-4 text-center">การแสดงผล</th>
+              <th class="p-4 text-right">จัดการ</th>
+            </tr>
+          </thead>
+          <tbody id="allAdminProblemsTableBody" class="divide-y divide-cyan-500/10 font-sans">
+            <tr><td colspan="5" class="p-6 text-center text-gray-400">กำลังโหลดรายการโจทย์...</td></tr>
+          </tbody>
+        </table>
       </div>
     </section>
 
@@ -206,32 +219,6 @@
         </div>
 
         <div class="tech-glass rounded-2xl p-4 border border-cyan-500/20 space-y-3">
-          <div class="flex items-center justify-between">
-            <label class="text-xs font-bold text-cyan-300"><i class="fa-solid fa-layer-group mr-1"></i> ระบบ Subtask (TOI / IOI Style)</label>
-            <label class="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" id="admSubtaskToggle" onchange="toggleSubtaskSection()" class="sr-only peer">
-              <div class="w-9 h-5 bg-black/60 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-cyan-500"></div>
-              <span class="ml-2 text-xs text-gray-300 font-medium">เปิดใช้งาน Subtask</span>
-            </label>
-          </div>
-
-          <div id="subtaskContainer" class="hidden space-y-2 pt-1">
-            <div id="subtaskList" class="space-y-2">
-              <div class="flex items-center gap-2 bg-black/40 p-2 rounded-xl border border-cyan-500/15">
-                <span class="text-xs text-cyan-400 font-bold whitespace-nowrap">Subtask #1</span>
-                <input type="number" placeholder="เริ่ม TC" class="bg-black/60 border border-cyan-500/20 rounded-lg px-3 py-1 text-xs text-white w-1/3">
-                <input type="number" placeholder="จบ TC" class="bg-black/60 border border-cyan-500/20 rounded-lg px-3 py-1 text-xs text-white w-1/3">
-                <input type="number" placeholder="สัดส่วน (%)" class="bg-black/60 border border-cyan-500/20 rounded-lg px-3 py-1 text-xs text-white w-1/3">
-                <button type="button" onclick="this.parentElement.remove()" class="text-rose-400 text-xs px-2"><i class="fa-solid fa-trash"></i></button>
-              </div>
-            </div>
-            <button type="button" onclick="addSubtaskRow()" class="tech-glass text-cyan-300 border border-cyan-500/30 hover:bg-cyan-500/10 px-3 py-1.5 rounded-xl text-xs transition">
-              + เพิ่ม Subtask อีก
-            </button>
-          </div>
-        </div>
-
-        <div class="tech-glass rounded-2xl p-4 border border-cyan-500/20 space-y-3">
           <label class="block text-xs font-bold text-cyan-300"><i class="fa-solid fa-file-pdf mr-1"></i> Statement โจทย์ (พิมพ์รายละเอียดไม่จำกัด หรืออัปโหลด PDF)</label>
           <div class="mb-2">
             <input type="file" id="admStatementPdf" accept=".pdf" class="w-full bg-black/60 border border-cyan-500/20 rounded-xl p-2 text-xs text-gray-300 file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-cyan-500/20 file:text-cyan-300 cursor-pointer">
@@ -246,7 +233,7 @@
     </div>
   </div>
 
-  <!-- MODAL: EDIT PROBLEM (แก้ไขโจทย์ที่อัปไปแล้ว) -->
+  <!-- MODAL: EDIT PROBLEM (โครงสร้างสมบูรณ์แบบหน้าอัพโหลด) -->
   <div id="editProbModal" class="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/85 backdrop-blur-md opacity-0 pointer-events-none transition-all duration-300">
     <div class="tech-modal rounded-3xl p-8 max-w-3xl w-full max-h-[92vh] overflow-y-auto relative transform scale-95 transition-all duration-300 border border-cyan-500/30 space-y-6">
       <button onclick="closeEditProblemModal()" class="absolute top-5 right-5 text-gray-400 hover:text-white w-8 h-8 rounded-full bg-cyan-500/10 flex items-center justify-center transition">
@@ -255,7 +242,7 @@
 
       <div class="text-center">
         <h3 class="text-lg font-bold text-white mb-1"><i class="fa-solid fa-pen-to-square text-cyan-400 mr-2"></i> แก้ไขข้อมูลโจทย์</h3>
-        <p id="editProbSubTitle" class="text-xs text-gray-400">แก้ไขรหัสโจทย์, ชื่อ, ความยาก และ Statement</p>
+        <p id="editProbSubTitle" class="text-xs text-gray-400">แก้ไขรหัสโจทย์, ชื่อ, ความยาก, คะแนน และ Statement</p>
       </div>
 
       <form id="editProblemForm" class="space-y-5">
@@ -283,7 +270,7 @@
           </div>
         </div>
 
-        <div class="tech-glass rounded-2xl p-4 border border-cyan-500/20 space-y-2">
+        <div class="tech-glass rounded-2xl p-4 border border-cyan-500/20 space-y-3">
           <label class="block text-xs font-bold text-cyan-300"><i class="fa-solid fa-file-lines mr-1"></i> Statement โจทย์</label>
           <textarea id="editStatementText" rows="6" class="w-full bg-black/60 border border-cyan-500/20 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-cyan-400 font-sans resize-y"></textarea>
         </div>
@@ -341,7 +328,7 @@
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     let activeTags = [];
-    let allLoadedProblems = []; // เก็บข้อมูลโจทย์ทั้งหมดสำหรับ Index-based Modal
+    let allLoadedProblems = [];
     let customTagsList = JSON.parse(localStorage.getItem('st8_custom_tags')) || ["Graph", "Dynamic Programming", "Sorting", "Math", "Greedy"];
 
     function showToast(title, desc, isError = false) {
@@ -455,28 +442,6 @@
       `).join('') || '<span class="text-gray-500 text-[11px] italic">ยังไม่ได้เลือกแท็ก...</span>';
     }
 
-    function toggleSubtaskSection() {
-      const isChecked = document.getElementById('admSubtaskToggle').checked;
-      const container = document.getElementById('subtaskContainer');
-      if (isChecked) container.classList.remove('hidden');
-      else container.classList.add('hidden');
-    }
-
-    function addSubtaskRow() {
-      const list = document.getElementById('subtaskList');
-      const count = list.children.length + 1;
-      const row = document.createElement('div');
-      row.className = 'flex items-center gap-2 bg-black/40 p-2 rounded-xl border border-cyan-500/15';
-      row.innerHTML = `
-        <span class="text-xs text-cyan-400 font-bold whitespace-nowrap">Subtask #${count}</span>
-        <input type="number" placeholder="เริ่ม TC" class="bg-black/60 border border-cyan-500/20 rounded-lg px-3 py-1 text-xs text-white w-1/3">
-        <input type="number" placeholder="จบ TC" class="bg-black/60 border border-cyan-500/20 rounded-lg px-3 py-1 text-xs text-white w-1/3">
-        <input type="number" placeholder="สัดส่วน (%)" class="bg-black/60 border border-cyan-500/20 rounded-lg px-3 py-1 text-xs text-white w-1/3">
-        <button type="button" onclick="this.parentElement.remove()" class="text-rose-400 text-xs px-2"><i class="fa-solid fa-trash"></i></button>
-      `;
-      list.appendChild(row);
-    }
-
     function addFormTestCaseRow() {
       const list = document.getElementById('formTestCasesList');
       const count = list.children.length + 1;
@@ -586,38 +551,49 @@
       }
     }
 
+    // FETCH PROBLEMS WITH TABLE LAYOUT & AC/SUBMISSIONS STATS
     async function fetchAllAdminProblems() {
       const { data: list, error } = await supabaseClient.from('problems').select('*').order('id', { ascending: false });
-      const container = document.getElementById('allAdminProblemsContainer');
+      const tableBody = document.getElementById('allAdminProblemsTableBody');
       
       if (error || !list || list.length === 0) {
-        container.innerHTML = `<div class="tech-glass p-6 rounded-2xl text-center text-gray-400 text-xs">ยังไม่มีโจทย์ในระบบ</div>`;
+        tableBody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-gray-400">ยังไม่มีโจทย์ในระบบ</td></tr>`;
         return;
       }
 
-      allLoadedProblems = list; // บันทึกลงตัวแปรกลางเพื่อใช้อ้างอิงตอนกดแก้ไข
+      allLoadedProblems = list;
 
-      container.innerHTML = list.map((p, index) => `
-        <div class="tech-glass p-5 rounded-2xl border border-cyan-500/20 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:border-cyan-500/40 transition">
-          <div class="space-y-1">
-            <div class="flex items-center gap-2">
-              <span class="text-xs font-bold text-cyan-300 font-mono bg-cyan-500/10 px-2.5 py-1 rounded-lg border border-cyan-500/30">${p.problem_code || 'ST8-P' + p.id}</span>
-              <h3 class="font-bold text-white text-sm">${p.title}</h3>
-              <span class="text-[10px] px-2 py-0.5 rounded-full ${p.difficulty === 'Easy' ? 'bg-emerald-500/20 text-emerald-300' : p.difficulty === 'Medium' ? 'bg-amber-500/20 text-amber-300' : 'bg-rose-500/20 text-rose-300'}">${p.difficulty}</span>
-            </div>
-            <p class="text-xs text-gray-400"><i class="fa-solid fa-tags text-cyan-500 mr-1"></i> หมวดหมู่: ${p.tags || '-'} &bull; คะแนนเต็ม: <strong class="text-amber-400">${p.max_score || 100}</strong></p>
-          </div>
+      // ดึงข้อมูล submissions เพื่อคำนวณสถิติ AC / Submissions
+      const { data: subs } = await supabaseClient.from('submissions').select('problem_id, status');
 
-          <div class="flex items-center gap-3 w-full md:w-auto justify-between md:justify-end border-t md:border-t-0 pt-3 md:pt-0 border-cyan-500/10">
-            <div class="flex items-center gap-2">
-              <span class="text-[11px] text-gray-300">แสดงโจทย์:</span>
+      tableBody.innerHTML = list.map((p, index) => {
+        const pSubs = subs ? subs.filter(s => s.problem_id === p.id) : [];
+        const totalSubs = pSubs.length;
+        const acceptedSubs = pSubs.filter(s => s.status === 'Accepted' || s.status === 'AC').length;
+
+        return `
+          <tr class="hover:bg-cyan-500/5 transition">
+            <td class="p-4">
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-bold text-cyan-300 font-mono bg-cyan-500/10 px-2.5 py-1 rounded-lg border border-cyan-500/30">${p.problem_code || 'ST8-P' + p.id}</span>
+                <a href="javascript:void(0)" onclick="openEditProblemModalByIndex(${index})" class="font-bold text-white text-sm hover:text-cyan-400 underline decoration-cyan-500/40 transition">${p.title}</a>
+              </div>
+            </td>
+            <td class="p-4">
+              <span class="text-cyan-300 block">${p.tags || '-'}</span>
+              <span class="text-[10px] px-2 py-0.5 rounded-full inline-block mt-1 ${p.difficulty === 'Easy' ? 'bg-emerald-500/20 text-emerald-300' : p.difficulty === 'Medium' ? 'bg-amber-500/20 text-amber-300' : 'bg-rose-500/20 text-rose-300'}">${p.difficulty}</span>
+            </td>
+            <td class="p-4 text-center font-mono">
+              <span class="text-emerald-400 font-bold">${acceptedSubs}</span> / <span class="text-gray-300">${totalSubs}</span>
+              <span class="text-[10px] text-gray-400 block">(${Math.round((acceptedSubs / (totalSubs || 1)) * 100)}% ผ่าน)</span>
+            </td>
+            <td class="p-4 text-center">
               <label class="relative inline-flex items-center cursor-pointer">
                 <input type="checkbox" ${p.is_verified ? 'checked' : ''} onchange="toggleProblemVisibility(${p.id}, this.checked)" class="sr-only peer">
                 <div class="w-9 h-5 bg-black/60 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-cyan-500"></div>
               </label>
-            </div>
-
-            <div class="flex items-center gap-1.5">
+            </td>
+            <td class="p-4 text-right space-x-1.5 font-sans">
               <button onclick="openEditProblemModalByIndex(${index})" class="tech-glass hover:bg-cyan-500/10 text-cyan-300 border border-cyan-500/30 px-3 py-1.5 rounded-xl transition text-xs font-semibold">
                 <i class="fa-solid fa-pen-to-square mr-1"></i> แก้ไข
               </button>
@@ -627,10 +603,10 @@
               <button onclick="deleteProblem(${p.id})" class="bg-rose-600/20 text-rose-400 hover:bg-rose-600 hover:text-white px-3 py-1.5 rounded-xl transition text-xs font-semibold">
                 <i class="fa-solid fa-trash"></i>
               </button>
-            </div>
-          </div>
-        </div>
-      `).join('');
+            </td>
+          </tr>
+        `;
+      }).join('');
     }
 
     async function toggleProblemVisibility(id, status) {

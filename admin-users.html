@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>จัดการผู้ใช้ (Users) | ST8 CP-Grader Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body { font-family: 'Kanit', sans-serif; background-color: #030712; color: #f3f4f6; }
+    .tech-glass { background: rgba(10, 15, 30, 0.78); backdrop-filter: blur(20px); border: 1px solid rgba(56, 189, 248, 0.16); }
+    .tech-modal { background: rgba(6, 11, 25, 0.96); backdrop-filter: blur(28px); border: 1px solid rgba(56, 189, 248, 0.28); }
+    .cyber-grid { background-image: linear-gradient(to right, rgba(56, 189, 248, 0.03) 1px, transparent 1px), linear-gradient(to bottom, rgba(56, 189, 248, 0.03) 1px, transparent 1px); background-size: 32px 32px; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col relative overflow-x-hidden cyber-grid">
+  <div id="systemToast" class="fixed top-5 right-5 z-[80] transform translate-x-[120%] transition-all duration-300 tech-glass px-5 py-3.5 rounded-2xl border border-cyan-500/40 shadow-2xl flex items-center gap-3">
+    <i id="toastIcon" class="fa-solid fa-circle-check text-cyan-400 text-lg"></i>
+    <div><h4 id="toastTitle" class="text-xs font-bold text-white"></h4><p id="toastDesc" class="text-xs text-gray-300"></p></div>
+  </div>
+
+  <div id="adminHeaderMount"></div>
+
+  <div class="flex-1 flex flex-col lg:flex-row relative z-10 w-full min-w-0">
+    <div id="adminSidebarMount"></div>
+
+    <main class="flex-1 min-w-0 px-4 md:px-6 py-6 space-y-5">
+      <div class="bg-gradient-to-r from-blue-950/40 to-purple-950/25 p-5 rounded-2xl border border-cyan-500/20 flex flex-wrap justify-between items-center gap-3">
+        <div>
+          <h2 class="text-lg md:text-xl font-bold text-white"><i class="fa-solid fa-users-gear text-cyan-400 mr-2"></i> จัดการข้อมูลผู้ใช้ (Users Management)</h2>
+          <p class="text-xs text-gray-400">ดูข้อมูลผู้ใช้แต่ละคน สถิติการผ่านโจทย์ ปรับสิทธิ์ Role และดูประวัติการส่งโค้ดรายบุคคล</p>
+        </div>
+        <span id="userCountBadge" class="text-xs font-bold px-3.5 py-1.5 rounded-xl bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">ทั้งหมด 0 คน</span>
+      </div>
+
+      <div class="tech-glass p-4 rounded-2xl border border-cyan-500/20 grid grid-cols-1 md:grid-cols-12 gap-3">
+        <div class="md:col-span-8 relative">
+          <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-cyan-400 text-xs"></i>
+          <input type="text" id="userSearchInput" oninput="renderUsersTable()" placeholder="ค้นหาชื่อผู้ใช้, อีเมล, หรือ User ID..." class="w-full bg-black/60 border border-cyan-500/25 focus:border-cyan-400 focus:outline-none rounded-xl pl-9 pr-4 py-2 text-sm text-white">
+        </div>
+        <div class="md:col-span-4">
+          <select id="userRoleFilter" onchange="renderUsersTable()" class="w-full bg-black/60 border border-cyan-500/25 focus:border-cyan-400 focus:outline-none rounded-xl px-3.5 py-2 text-sm text-white cursor-pointer">
+            <option value="all">สิทธิ์ทั้งหมด (All Roles)</option>
+            <option value="admin">เฉพาะ Admin</option>
+            <option value="user">เฉพาะ User ทั่วไป</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="tech-glass rounded-2xl overflow-x-auto border border-cyan-500/20">
+        <table class="w-full text-left text-sm">
+          <thead class="bg-cyan-950/50 text-cyan-300 border-b border-cyan-500/20 text-xs uppercase">
+            <tr>
+              <th class="px-4 py-3.5">ผู้ใช้ (Username / Email)</th>
+              <th class="px-4 py-3.5 text-center">สิทธิ์ (Role)</th>
+              <th class="px-4 py-3.5 text-center">ผ่านแล้ว (AC)</th>
+              <th class="px-4 py-3.5 text-center">ส่งโค้ดทั้งหมด</th>
+              <th class="px-4 py-3.5 text-right">จัดการรายบุคคล</th>
+            </tr>
+          </thead>
+          <tbody id="usersTableBody" class="divide-y divide-cyan-500/10">
+            <tr><td colspan="5" class="p-6 text-center text-gray-400">กำลังโหลดข้อมูลผู้ใช้...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <!-- USER DETAIL POPUP MODAL -->
+  <div id="userDetailModal" onclick="if(event.target === this) closeUserDetailModal()" class="fixed inset-0 z-50 hidden items-center justify-center px-4 bg-black/85 backdrop-blur-md">
+    <div class="tech-modal rounded-3xl p-6 max-w-2xl w-full max-h-[85vh] overflow-y-auto relative space-y-4">
+      <button type="button" onclick="closeUserDetailModal()" class="absolute top-5 right-5 text-gray-400 hover:text-white w-8 h-8 rounded-full bg-white/10 flex items-center justify-center cursor-pointer"><i class="fa-solid fa-xmark text-xs"></i></button>
+      <h3 id="udModalTitle" class="text-lg font-bold text-cyan-300">รายละเอียดผู้ใช้</h3>
+      <div id="udModalStats" class="grid grid-cols-3 gap-3 text-center"></div>
+      <div class="space-y-2">
+        <h4 class="text-xs font-bold text-gray-300 uppercase">ประวัติการส่งโค้ดล่าสุด</h4>
+        <div id="udSubmissionsList" class="space-y-2 max-h-64 overflow-y-auto"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="admin-common.js"></script>
+  <script>
+    renderAdminShell('users');
+    let allUsersList = [];
+    let allSubsList = [];
+    let problemNameMap = {};
+
+    async function fetchUsersAndStats() {
+      const [{ data: profiles }, { data: subs }, { data: probs }] = await Promise.all([
+        supabaseClient.from('profiles').select('*'),
+        supabaseClient.from('submissions').select('*').order('created_at', { ascending: false }),
+        supabaseClient.from('problems').select('id, problem_code, title')
+      ]);
+
+      allSubsList = subs || [];
+      (probs || []).forEach(p => { problemNameMap[p.id] = `${p.problem_code || 'P' + p.id} - ${p.title}`; });
+
+      const mergedMap = {};
+      (profiles || []).forEach(p => {
+        mergedMap[p.id] = {
+          id: p.id,
+          username: p.username || p.full_name || 'ไม่ระบุชื่อ',
+          email: p.email || '-',
+          role: p.role || 'user',
+          acSet: new Set(),
+          totalSubs: 0
+        };
+      });
+
+      allSubsList.forEach(s => {
+        const uid = s.user_id;
+        if (!uid) return;
+        if (!mergedMap[uid]) {
+          mergedMap[uid] = { id: uid, username: `User-${String(uid).slice(0, 6)}`, email: '-', role: 'user', acSet: new Set(), totalSubs: 0 };
+        }
+        mergedMap[uid].totalSubs++;
+        if (s.status === 'Accepted' || s.status === 'AC') mergedMap[uid].acSet.add(s.problem_id);
+      });
+
+      allUsersList = Object.values(mergedMap).map(u => ({ ...u, acCount: u.acSet.size }));
+      renderUsersTable();
+    }
+
+    function renderUsersTable() {
+      const tbody = document.getElementById('usersTableBody');
+      const query = (document.getElementById('userSearchInput').value || '').trim().toLowerCase();
+      const roleFilter = document.getElementById('userRoleFilter').value;
+
+      const filtered = allUsersList.filter(u => {
+        if (roleFilter !== 'all' && u.role !== roleFilter) return false;
+        if (query && !`${u.username} ${u.email} ${u.id}`.toLowerCase().includes(query)) return false;
+        return true;
+      });
+
+      document.getElementById('userCountBadge').textContent = `ทั้งหมด ${filtered.length} คน`;
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-gray-400">ไม่พบข้อมูลผู้ใช้</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(u => `
+        <tr class="hover:bg-cyan-500/5 transition">
+          <td class="px-4 py-3.5">
+            <div class="font-semibold text-white">${u.username}</div>
+            <div class="text-xs text-gray-400">${u.email} &bull; <span class="text-[11px] text-gray-500">${String(u.id).slice(0, 10)}</span></div>
+          </td>
+          <td class="px-4 py-3.5 text-center">
+            <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full ${u.role === 'admin' ? 'bg-rose-500/20 text-rose-300 border border-rose-500/35' : 'bg-cyan-500/15 text-cyan-300 border border-cyan-500/30'}">${u.role.toUpperCase()}</span>
+          </td>
+          <td class="px-4 py-3.5 text-center font-bold text-emerald-400">${u.acCount} ข้อ</td>
+          <td class="px-4 py-3.5 text-center text-gray-300">${u.totalSubs} ครั้ง</td>
+          <td class="px-4 py-3.5 text-right whitespace-nowrap space-x-1.5">
+            <button type="button" onclick="openUserDetail('${u.id}')" class="bg-cyan-500/20 text-cyan-300 hover:bg-cyan-500 hover:text-black px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer">
+              <i class="fa-solid fa-eye mr-1"></i> ดูข้อมูล
+            </button>
+            <button type="button" onclick="toggleUserRole('${u.id}', '${u.role}')" class="bg-white/5 text-gray-300 hover:bg-amber-500/20 hover:text-amber-300 border border-white/10 px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer">
+              สลับสิทธิ์
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    async function toggleUserRole(userId, currentRole) {
+      const nextRole = currentRole === 'admin' ? 'user' : 'admin';
+      const { error } = await supabaseClient.from('profiles').update({ role: nextRole }).eq('id', userId);
+      if (error) showToast('เปลี่ยนสิทธิ์ไม่สำเร็จ', error.message, true);
+      else { showToast('อัปเดตสิทธิ์แล้ว', `เปลี่ยนสิทธิ์ผู้ใช้เป็น ${nextRole.toUpperCase()} เรียบร้อย`); fetchUsersAndStats(); }
+    }
+
+    function openUserDetail(userId) {
+      const user = allUsersList.find(u => String(u.id) === String(userId));
+      if (!user) return;
+      const userSubs = allSubsList.filter(s => String(s.user_id) === String(userId));
+
+      document.getElementById('udModalTitle').textContent = `ข้อมูลผู้ใช้: ${user.username} (${user.role.toUpperCase()})`;
+      document.getElementById('udModalStats').innerHTML = `
+        <div class="tech-glass p-3 rounded-2xl"><div class="text-xs text-gray-400">โจทย์ที่ผ่าน</div><div class="text-lg font-bold text-emerald-400">${user.acCount} ข้อ</div></div>
+        <div class="tech-glass p-3 rounded-2xl"><div class="text-xs text-gray-400">ส่งทั้งหมด</div><div class="text-lg font-bold text-cyan-300">${user.totalSubs} ครั้ง</div></div>
+        <div class="tech-glass p-3 rounded-2xl"><div class="text-xs text-gray-400">อัตราผ่าน</div><div class="text-lg font-bold text-amber-300">${user.totalSubs ? Math.round((userSubs.filter(s => s.status === 'Accepted' || s.status === 'AC').length / user.totalSubs) * 100) : 0}%</div></div>
+      `;
+
+      document.getElementById('udSubmissionsList').innerHTML = userSubs.slice(0, 20).map(s => {
+        const isAc = s.status === 'Accepted' || s.status === 'AC';
+        return `
+          <div class="bg-black/50 border border-white/10 p-3 rounded-xl flex justify-between items-center text-xs">
+            <div>
+              <span class="font-semibold text-white">${problemNameMap[s.problem_id] || 'Problem #' + s.problem_id}</span>
+              <span class="text-gray-400 block text-[11px]">${s.language || 'C++'} &bull; ${s.created_at ? new Date(s.created_at).toLocaleString('th-TH') : ''}</span>
+            </div>
+            <span class="font-bold px-2.5 py-0.5 rounded-full ${isAc ? 'bg-emerald-500/20 text-emerald-300' : 'bg-rose-500/20 text-rose-300'}">${s.status}</span>
+          </div>
+        `;
+      }).join('') || '<div class="text-xs text-gray-500 text-center py-4">ยังไม่มีประวัติการส่งโค้ด</div>';
+
+      const modal = document.getElementById('userDetailModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeUserDetailModal() {
+      const modal = document.getElementById('userDetailModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    ensureAdminSession(fetchUsersAndStats);
+  </script>
+</body>
+</html>

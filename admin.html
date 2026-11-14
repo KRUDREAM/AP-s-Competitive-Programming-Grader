@@ -8,6 +8,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <style>
     body { font-family: 'Kanit', sans-serif; background-color: #030712; color: #f3f4f6; }
     .tech-glass {
@@ -180,11 +181,6 @@
             <div class="flex gap-2">
               <select id="tagSearchDropdown" onchange="addSelectedTag(this)" class="bg-black/60 border border-cyan-500/20 rounded-xl px-3 py-2 text-xs text-white w-full">
                 <option value="">-- ค้นหาหรือเลือกหมวดหมู่ที่มีอยู่ --</option>
-                <option value="Graph">Graph</option>
-                <option value="Dynamic Programming">Dynamic Programming</option>
-                <option value="Sorting">Sorting</option>
-                <option value="Math">Math</option>
-                <option value="Greedy">Greedy</option>
               </select>
             </div>
             <div id="selectedTagsContainer" class="flex flex-wrap gap-1.5 p-2 bg-black/40 rounded-xl border border-cyan-500/10 min-h-[36px]"></div>
@@ -203,16 +199,20 @@
           </div>
         </div>
 
-        <!-- Test Case Upload -->
+        <!-- Test Case Upload (รองรับ ZIP หรือพิมพ์เอง + ปุ่มดาว Sample) -->
         <div class="tech-glass rounded-2xl p-4 border border-cyan-500/20 space-y-3">
           <div class="flex justify-between items-center">
-            <label class="text-xs font-bold text-cyan-300"><i class="fa-solid fa-box-archive mr-1"></i> ชุดทดสอบ Test Cases (กดดาว ⭐ เพื่อเลือกเป็น Sample I/O)</label>
-            <button type="button" onclick="addFormTestCaseRow()" class="tech-glass px-3 py-1.5 rounded-xl text-xs text-cyan-300 border border-cyan-500/30 hover:bg-cyan-500/10">+ เพิ่ม Test Case</button>
+            <label class="text-xs font-bold text-cyan-300"><i class="fa-solid fa-box-archive mr-1"></i> ชุดทดสอบ Test Cases (อัปโหลด ZIP หรือกดดาว ⭐ เลือก Sample)</label>
+            <button type="button" onclick="addFormTestCaseRow()" class="tech-glass px-3 py-1.5 rounded-xl text-xs text-cyan-300 border border-cyan-500/30 hover:bg-cyan-500/10">+ เพิ่ม Test Case เอง</button>
+          </div>
+          <div class="bg-black/40 p-2.5 rounded-xl border border-cyan-500/10">
+            <span class="text-[11px] text-cyan-400 font-semibold block mb-1"><i class="fa-solid fa-file-zipper mr-1"></i> อัปโหลดไฟล์ ZIP (.in / .out):</span>
+            <input type="file" id="admZipFile" accept=".zip" onchange="handleZipUpload(event)" class="w-full bg-black/60 border border-cyan-500/20 rounded-xl p-2 text-xs text-gray-300 file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-cyan-500/20 file:text-cyan-300 cursor-pointer">
           </div>
           <div id="formTestCasesList" class="space-y-2 max-h-48 overflow-y-auto pr-1"></div>
         </div>
 
-        <!-- Subtask System -->
+        <!-- Subtask System (3 ช่องชัดเจน) -->
         <div class="tech-glass rounded-2xl p-4 border border-cyan-500/20 space-y-3">
           <div class="flex items-center justify-between">
             <label class="text-xs font-bold text-cyan-300"><i class="fa-solid fa-layer-group mr-1"></i> ระบบ Subtask (TOI / IOI Style)</label>
@@ -239,9 +239,15 @@
           </div>
         </div>
 
-        <!-- Statement -->
-        <div class="tech-glass rounded-2xl p-4 border border-cyan-500/20 space-y-2">
-          <label class="block text-xs font-bold text-cyan-300"><i class="fa-solid fa-file-lines mr-1"></i> Statement โจทย์ (พิมพ์รายละเอียดแบบไม่จำกัด)</label>
+        <!-- Statement (ย้ายมาไว้ด้านล่างสุด พิมพ์ได้แบบไม่จำกัด + อัปโหลด PDF) -->
+        <div class="tech-glass rounded-2xl p-4 border border-cyan-500/20 space-y-3">
+          <label class="block text-xs font-bold text-cyan-300"><i class="fa-solid fa-file-pdf mr-1"></i> Statement โจทย์ (พิมพ์รายละเอียดแบบไม่จำกัด หรืออัปโหลด PDF)</label>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-2">
+            <div>
+              <span class="text-[11px] text-gray-400 block mb-1">อัปโหลดไฟล์ PDF Statement:</span>
+              <input type="file" id="admStatementPdf" accept=".pdf" class="w-full bg-black/60 border border-cyan-500/20 rounded-xl p-2 text-xs text-gray-300 file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-cyan-500/20 file:text-cyan-300 cursor-pointer">
+            </div>
+          </div>
           <textarea id="admStatementText" rows="6" placeholder="พิมพ์เนื้อหาโจทย์ เงื่อนไข และรายละเอียดทั้งหมดที่นี่..." class="w-full bg-black/60 border border-cyan-500/20 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-cyan-400 font-sans resize-y"></textarea>
         </div>
 
@@ -302,7 +308,6 @@
     let activeTags = [];
     let customTagsList = JSON.parse(localStorage.getItem('st8_custom_tags')) || ["Graph", "Dynamic Programming", "Sorting", "Math", "Greedy"];
 
-    // ฟังก์ชันเปิด-ปิด Modal ให้อยู่ด้านบนสุดเรียกใช้งานได้ทันที
     function openUploadProblemModal() { 
       const modal = document.getElementById('uploadProbModal');
       if (modal) modal.classList.remove('opacity-0', 'pointer-events-none'); 
@@ -432,8 +437,8 @@
           </div>
         </div>
         <div class="grid grid-cols-2 gap-2">
-          <div><span class="text-[10px] text-gray-400">Input (.in)</span><textarea rows="2" class="w-full bg-black/60 border border-cyan-500/20 rounded-lg p-2 text-xs text-white font-mono"></textarea></div>
-          <div><span class="text-[10px] text-gray-400">Output (.out)</span><textarea rows="2" class="w-full bg-black/60 border border-cyan-500/20 rounded-lg p-2 text-xs text-white font-mono"></textarea></div>
+          <div><span class="text-[10px] text-gray-400">Input (.in)</span><textarea rows="2" class="tc-input w-full bg-black/60 border border-cyan-500/20 rounded-lg p-2 text-xs text-white font-mono"></textarea></div>
+          <div><span class="text-[10px] text-gray-400">Output (.out)</span><textarea rows="2" class="tc-output w-full bg-black/60 border border-cyan-500/20 rounded-lg p-2 text-xs text-white font-mono"></textarea></div>
         </div>
       `;
       list.appendChild(div);
@@ -447,6 +452,60 @@
       });
       btn.innerHTML = '<i class="fa-solid fa-star"></i>';
       btn.classList.add('text-amber-400');
+    }
+
+    // ฟังก์ชันอ่านไฟล์ ZIP แยก .in / .out อัตโนมัติ
+    async function handleZipUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const zip = new JSZip();
+      try {
+        const content = await zip.loadAsync(file);
+        const testCasesMap = {};
+
+        for (let filename of Object.keys(content.files)) {
+          if (content.files[filename].dir) continue;
+          const baseName = filename.split('/').pop();
+          const ext = baseName.split('.').pop().toLowerCase();
+          const nameWithoutExt = baseName.substring(0, baseName.lastIndexOf('.'));
+
+          if (ext === 'in' || ext === 'out') {
+            if (!testCasesMap[nameWithoutExt]) testCasesMap[nameWithoutExt] = { input: '', output: '' };
+            const textContent = await content.files[filename].async('text');
+            if (ext === 'in') testCasesMap[nameWithoutExt].input = textContent;
+            if (ext === 'out') testCasesMap[nameWithoutExt].output = textContent;
+          }
+        }
+
+        const list = document.getElementById('formTestCasesList');
+        list.innerHTML = '';
+        let index = 1;
+
+        for (let key of Object.keys(testCasesMap).sort()) {
+          const tc = testCasesMap[key];
+          const div = document.createElement('div');
+          div.className = 'tech-glass p-2.5 rounded-xl border border-cyan-500/20 space-y-2';
+          div.innerHTML = `
+            <div class="flex justify-between items-center text-xs text-cyan-300 font-bold">
+              <span class="tc-label">Test Case #${index} (${key})</span>
+              <div class="flex items-center gap-2">
+                <button type="button" onclick="toggleSampleStar(this)" title="ตั้งเป็น Sample I/O" class="text-gray-400 hover:text-amber-400 text-sm"><i class="fa-regular fa-star"></i></button>
+                <button type="button" onclick="this.closest('.tech-glass').remove()" class="text-rose-400 text-xs"><i class="fa-solid fa-trash"></i></button>
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div><span class="text-[10px] text-gray-400">Input (.in)</span><textarea rows="2" class="tc-input w-full bg-black/60 border border-cyan-500/20 rounded-lg p-2 text-xs text-white font-mono">${tc.input}</textarea></div>
+              <div><span class="text-[10px] text-gray-400">Output (.out)</span><textarea rows="2" class="tc-output w-full bg-black/60 border border-cyan-500/20 rounded-lg p-2 text-xs text-white font-mono">${tc.output}</textarea></div>
+            </div>
+          `;
+          list.appendChild(div);
+          index++;
+        }
+        alert(`🎉 แตกไฟล์ ZIP สำเร็จ! โหลด Test Cases เข้าสู่ระบบแล้ว ${index - 1} ชุด`);
+      } catch (err) {
+        alert('❌ เกิดข้อผิดพลาดในการอ่านไฟล์ ZIP: ' + err.message);
+      }
     }
 
     async function fetchAllAdminProblems() {

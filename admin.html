@@ -439,9 +439,16 @@
       btn.classList.add('text-amber-400');
     }
 
-    function openUploadProblemModal() { document.getElementById('uploadProbModal').classList.remove('opacity-0', 'pointer-events-none'); }
-    function closeUploadProblemModal() { document.getElementById('uploadProbModal').classList.add('opacity-0', 'pointer-events-none'); }
+function openUploadProblemModal() { 
+  const modal = document.getElementById('uploadProbModal');
+  if (modal) modal.classList.remove('opacity-0', 'pointer-events-none'); 
+}
 
+function closeUploadProblemModal() { 
+  const modal = document.getElementById('uploadProbModal');
+  if (modal) modal.classList.add('opacity-0', 'pointer-events-none'); 
+}
+    
     async function fetchAllAdminProblems() {
       const { data: list, error } = await supabaseClient.from('problems').select('*').order('id', { ascending: false });
       const table = document.getElementById('allAdminProblemsTable');

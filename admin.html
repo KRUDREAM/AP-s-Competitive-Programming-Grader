@@ -13,17 +13,17 @@
   <style>
     body { font-family: 'Kanit', sans-serif; background-color: #030712; color: #f3f4f6; }
     .tech-glass {
-      background: rgba(10, 15, 30, 0.75);
+      background: rgba(10, 15, 30, 0.78);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
-      border: 1px solid rgba(56, 189, 248, 0.15);
-      box-shadow: 0 0 40px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(56, 189, 248, 0.16);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.05);
     }
     .tech-modal {
-      background: rgba(6, 11, 25, 0.95);
-      backdrop-filter: blur(25px);
-      border: 1px solid rgba(56, 189, 248, 0.25);
-      box-shadow: 0 0 60px rgba(14, 165, 233, 0.2);
+      background: rgba(6, 11, 25, 0.96);
+      backdrop-filter: blur(28px);
+      border: 1px solid rgba(56, 189, 248, 0.28);
+      box-shadow: 0 20px 70px rgba(14, 165, 233, 0.22);
     }
     .cyber-grid {
       background-image: linear-gradient(to right, rgba(56, 189, 248, 0.03) 1px, transparent 1px),
@@ -34,24 +34,44 @@
       color: #facc15 !important;
       text-shadow: 0 0 10px rgba(250, 204, 21, 0.5);
     }
+    input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+      filter: invert(0.8) sepia(1) saturate(4) hue-rotate(165deg);
+      cursor: pointer;
+    }
 
-    /* MARKDOWN PREVIEW STYLING */
-    .markdown-preview { line-height: 1.7; color: #e5e7eb; font-size: 0.875rem; }
-    .markdown-preview h1 { font-size: 1.4rem; font-weight: 700; color: #38bdf8; margin-top: 1rem; margin-bottom: 0.5rem; border-bottom: 1px solid rgba(56, 189, 248, 0.2); padding-bottom: 0.25rem; }
-    .markdown-preview h2 { font-size: 1.2rem; font-weight: 700; color: #7dd3fc; margin-top: 0.9rem; margin-bottom: 0.4rem; }
-    .markdown-preview h3 { font-size: 1.05rem; font-weight: 600; color: #bae6fd; margin-top: 0.75rem; margin-bottom: 0.3rem; }
+    /* SMOOTH MODAL TRANSITIONS */
+    .modal-backdrop {
+      transition: opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .modal-box {
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.28s ease;
+    }
+    .modal-open .modal-box {
+      transform: scale(1) translateY(0);
+      opacity: 1;
+    }
+    .modal-closed .modal-box {
+      transform: scale(0.95) translateY(12px);
+      opacity: 0;
+    }
+
+    /* MARKDOWN PREVIEW STYLING (KANIT FONT) */
+    .markdown-preview { font-family: 'Kanit', sans-serif; line-height: 1.75; color: #e5e7eb; font-size: 0.95rem; }
+    .markdown-preview h1 { font-size: 1.45rem; font-weight: 700; color: #38bdf8; margin-top: 1rem; margin-bottom: 0.5rem; border-bottom: 1px solid rgba(56, 189, 248, 0.2); padding-bottom: 0.25rem; }
+    .markdown-preview h2 { font-size: 1.25rem; font-weight: 700; color: #7dd3fc; margin-top: 0.9rem; margin-bottom: 0.4rem; }
+    .markdown-preview h3 { font-size: 1.1rem; font-weight: 600; color: #bae6fd; margin-top: 0.75rem; margin-bottom: 0.3rem; }
     .markdown-preview p { margin-bottom: 0.65rem; }
     .markdown-preview strong, .markdown-preview b { color: #ffffff; font-weight: 700; }
     .markdown-preview em { color: #fde047; font-style: italic; }
     .markdown-preview ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 0.75rem; }
     .markdown-preview ol { list-style-type: decimal; padding-left: 1.5rem; margin-bottom: 0.75rem; }
     .markdown-preview li { margin-bottom: 0.25rem; }
-    .markdown-preview code { background: rgba(56, 189, 248, 0.15); color: #67e8f9; padding: 0.15rem 0.4rem; border-radius: 0.375rem; font-family: monospace; font-size: 0.8rem; }
-    .markdown-preview pre { background: #020617; border: 1px solid rgba(56, 189, 248, 0.25); padding: 0.85rem; border-radius: 0.75rem; overflow-x: auto; margin-bottom: 0.75rem; }
+    .markdown-preview code { background: rgba(56, 189, 248, 0.15); color: #67e8f9; padding: 0.15rem 0.4rem; border-radius: 0.375rem; font-family: monospace; font-size: 0.85rem; }
+    .markdown-preview pre { background: #020617; border: 1px solid rgba(56, 189, 248, 0.25); padding: 0.9rem; border-radius: 0.75rem; overflow-x: auto; margin-bottom: 0.75rem; }
     .markdown-preview pre code { background: transparent; color: #e2e8f0; padding: 0; }
-    .markdown-preview blockquote { border-left: 3px solid #38bdf8; background: rgba(56, 189, 248, 0.08); padding: 0.5rem 0.85rem; border-radius: 0 0.5rem 0.5rem 0; margin-bottom: 0.75rem; color: #cbd5e1; }
-    .markdown-preview table { width: 100%; border-collapse: collapse; margin-bottom: 0.75rem; font-size: 0.8rem; }
-    .markdown-preview th, .markdown-preview td { border: 1px solid rgba(56, 189, 248, 0.25); padding: 0.45rem 0.65rem; text-align: left; }
+    .markdown-preview blockquote { border-left: 3px solid #38bdf8; background: rgba(56, 189, 248, 0.08); padding: 0.55rem 0.9rem; border-radius: 0 0.5rem 0.5rem 0; margin-bottom: 0.75rem; color: #cbd5e1; }
+    .markdown-preview table { width: 100%; border-collapse: collapse; margin-bottom: 0.75rem; font-size: 0.85rem; }
+    .markdown-preview th, .markdown-preview td { border: 1px solid rgba(56, 189, 248, 0.25); padding: 0.5rem 0.7rem; text-align: left; }
     .markdown-preview th { background: rgba(56, 189, 248, 0.15); color: #7dd3fc; font-weight: 600; }
     .markdown-preview hr { border-color: rgba(56, 189, 248, 0.2); margin: 1rem 0; }
     .markdown-preview a { color: #38bdf8; text-decoration: underline; }
@@ -60,11 +80,11 @@
 <body class="min-h-screen flex flex-col relative overflow-x-hidden cyber-grid selection:bg-cyan-500 selection:text-black">
 
   <!-- SYSTEM NOTIFICATION TOAST -->
-  <div id="systemToast" class="fixed top-5 right-5 z-[60] transform translate-x-full transition-all duration-300 tech-glass px-5 py-3 rounded-2xl border border-cyan-500/40 shadow-2xl flex items-center gap-3">
+  <div id="systemToast" class="fixed top-5 right-5 z-[70] transform translate-x-[120%] transition-all duration-300 ease-out tech-glass px-5 py-3.5 rounded-2xl border border-cyan-500/40 shadow-2xl flex items-center gap-3">
     <i id="toastIcon" class="fa-solid fa-circle-check text-cyan-400 text-lg"></i>
     <div>
       <h4 id="toastTitle" class="text-xs font-bold text-white">แจ้งเตือนระบบ</h4>
-      <p id="toastDesc" class="text-[11px] text-gray-300">ดำเนินการสำเร็จ</p>
+      <p id="toastDesc" class="text-xs text-gray-300">ดำเนินการสำเร็จ</p>
     </div>
   </div>
 
@@ -76,7 +96,7 @@
       </div>
       <div>
         <h1 class="font-bold text-sm tracking-widest text-rose-400 uppercase">ST8 CP-Grader</h1>
-        <p class="text-[9px] text-gray-400 tracking-wider">ADMIN CONTROL PANEL</p>
+        <p class="text-[10px] text-gray-400 tracking-wider">ADMIN CONTROL PANEL</p>
       </div>
     </div>
 
@@ -95,23 +115,23 @@
     
     <!-- PERMANENT LEFT SIDEBAR MENU -->
     <aside class="w-full md:w-64 lg:w-72 shrink-0 tech-glass border-b md:border-b-0 md:border-r border-cyan-500/20 p-4 md:p-5 space-y-4 md:min-h-[calc(100vh-73px)]">
-      <div class="flex items-center gap-2 text-cyan-300 font-bold text-xs tracking-wider uppercase px-2 pb-2 border-b border-cyan-500/20">
+      <div class="flex items-center gap-2 text-cyan-300 font-bold text-xs tracking-wider uppercase px-2 pb-2.5 border-b border-cyan-500/20">
         <i class="fa-solid fa-bars text-cyan-400"></i>
         <span>เมนูการจัดการ Admin</span>
       </div>
 
       <nav class="flex flex-row md:flex-col gap-2 overflow-x-auto md:overflow-visible pb-1 md:pb-0">
-        <button type="button" id="drawerBtnProblems" onclick="switchAdminTab('problems')" class="shrink-0 text-left px-4 py-3 rounded-xl bg-cyan-500/20 border border-cyan-500/40 text-cyan-300 text-xs font-semibold flex items-center gap-2.5 transition cursor-pointer">
+        <button type="button" id="drawerBtnProblems" onclick="switchAdminTab('problems')" class="shrink-0 text-left px-4 py-3 rounded-xl bg-cyan-500/20 border border-cyan-500/40 text-cyan-300 text-xs font-semibold flex items-center gap-2.5 transition-all duration-200 cursor-pointer">
           <i class="fa-solid fa-book-open w-4 text-center"></i>
           <span>จัดการโจทย์ทั้งหมดในระบบ</span>
         </button>
 
-        <button type="button" id="drawerBtnVerify" onclick="switchAdminTab('verify')" class="shrink-0 text-left px-4 py-3 rounded-xl tech-glass text-gray-300 hover:text-cyan-300 border border-cyan-500/15 text-xs font-semibold flex items-center gap-2.5 transition cursor-pointer">
+        <button type="button" id="drawerBtnVerify" onclick="switchAdminTab('verify')" class="shrink-0 text-left px-4 py-3 rounded-xl tech-glass text-gray-300 hover:text-cyan-300 hover:bg-cyan-500/10 border border-cyan-500/15 text-xs font-semibold flex items-center gap-2.5 transition-all duration-200 cursor-pointer">
           <i class="fa-solid fa-clipboard-check w-4 text-center"></i>
           <span>ตรวจสอบโจทย์ที่ User เสนอ</span>
         </button>
 
-        <button type="button" id="drawerBtnContests" onclick="switchAdminTab('contests')" class="shrink-0 text-left px-4 py-3 rounded-xl tech-glass text-gray-300 hover:text-cyan-300 border border-cyan-500/15 text-xs font-semibold flex items-center gap-2.5 transition cursor-pointer">
+        <button type="button" id="drawerBtnContests" onclick="switchAdminTab('contests')" class="shrink-0 text-left px-4 py-3 rounded-xl tech-glass text-gray-300 hover:text-cyan-300 hover:bg-cyan-500/10 border border-cyan-500/15 text-xs font-semibold flex items-center gap-2.5 transition-all duration-200 cursor-pointer">
           <i class="fa-solid fa-trophy w-4 text-center"></i>
           <span>จัดการ Contest</span>
         </button>
@@ -126,9 +146,9 @@
         <div class="flex flex-wrap gap-4 justify-between items-center bg-gradient-to-r from-cyan-950/40 to-blue-950/20 p-6 rounded-3xl border border-cyan-500/20">
           <div>
             <h2 class="text-xl font-bold text-white mb-1"><i class="fa-solid fa-list-check text-cyan-400 mr-2"></i> คลังโจทย์ทั้งหมดในระบบ</h2>
-            <p class="text-xs text-gray-400">คลิกที่ "ชื่อโจทย์" เพื่อแก้ไขข้อมูล &bull; ควบคุมรหัสโจทย์, สถานะ, และดูสถิติ AC / Submissions</p>
+            <p class="text-xs text-gray-400">คลิกที่ "ชื่อโจทย์" เพื่อแก้ไขข้อมูล &bull; ตั้งเวลาเปิด-ปิดโจทย์, สถานะ, และดูสถิติ AC / Submissions</p>
           </div>
-          <button type="button" onclick="openProblemModal('create')" class="bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-95 text-white px-5 py-3 rounded-2xl text-xs font-semibold shadow-lg shadow-cyan-500/20 transition flex items-center gap-2 cursor-pointer">
+          <button type="button" onclick="openProblemModal('create')" class="bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-95 hover:scale-[1.01] active:scale-[0.99] text-white px-5 py-3 rounded-2xl text-sm font-semibold shadow-lg shadow-cyan-500/20 transition-all duration-200 flex items-center gap-2 cursor-pointer">
             <i class="fa-solid fa-plus-circle"></i> อัปโหลด / สร้างโจทย์ใหม่
           </button>
         </div>
@@ -139,13 +159,14 @@
               <tr>
                 <th class="p-4">รหัสโจทย์ & ชื่อโจทย์ (คลิกเพื่อแก้ไข)</th>
                 <th class="p-4">หมวดหมู่ / ความยาก</th>
+                <th class="p-4">กำหนดเวลาเปิด-ปิด</th>
                 <th class="p-4 text-center">สถิติ (AC / ส่ง)</th>
                 <th class="p-4 text-center">การแสดงผล</th>
                 <th class="p-4 text-right">จัดการ</th>
               </tr>
             </thead>
             <tbody id="allAdminProblemsTableBody" class="divide-y divide-cyan-500/10 font-sans">
-              <tr><td colspan="5" class="p-6 text-center text-gray-400">กำลังโหลดรายการโจทย์...</td></tr>
+              <tr><td colspan="6" class="p-6 text-center text-gray-400">กำลังโหลดรายการโจทย์...</td></tr>
             </tbody>
           </table>
         </div>
@@ -166,12 +187,12 @@
         <div class="tech-glass rounded-3xl p-6 border border-cyan-500/20 space-y-4">
           <h2 class="text-xl font-bold text-white"><i class="fa-solid fa-trophy text-amber-400 mr-2"></i> จัดการการแข่งขัน (Contest Hub)</h2>
           <form id="createContestForm" class="tech-glass p-5 rounded-2xl border border-cyan-500/10 space-y-3">
-            <h3 class="font-bold text-cyan-300 text-xs">สร้าง Contest ใหม่</h3>
+            <h3 class="font-bold text-cyan-300 text-sm">สร้าง Contest ใหม่</h3>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <input type="text" id="contestTitleInput" required placeholder="ชื่อ Contest (เช่น ST8 Weekly Contest #05)" class="bg-black/60 border border-cyan-500/20 rounded-xl px-4 py-2 text-xs text-white">
-              <input type="text" id="contestDescInput" placeholder="รายละเอียดหรือกติกา" class="bg-black/60 border border-cyan-500/20 rounded-xl px-4 py-2 text-xs text-white">
+              <input type="text" id="contestTitleInput" required placeholder="ชื่อ Contest (เช่น ST8 Weekly Contest #05)" class="bg-black/60 border border-cyan-500/20 rounded-xl px-4 py-2.5 text-sm text-white">
+              <input type="text" id="contestDescInput" placeholder="รายละเอียดหรือกติกา" class="bg-black/60 border border-cyan-500/20 rounded-xl px-4 py-2.5 text-sm text-white">
             </div>
-            <button type="submit" class="bg-gradient-to-r from-blue-600 to-cyan-500 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-md cursor-pointer">บันทึก Contest</button>
+            <button type="submit" class="bg-gradient-to-r from-blue-600 to-cyan-500 text-white px-5 py-2.5 rounded-xl text-xs font-semibold shadow-md cursor-pointer transition hover:opacity-95">บันทึก Contest</button>
           </form>
           <div id="contestsListContainer" class="space-y-2"></div>
         </div>
@@ -181,15 +202,15 @@
   </div>
 
   <!-- UNIFIED MODAL: CREATE / EDIT PROBLEM -->
-  <div id="problemModal" class="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/85 backdrop-blur-md opacity-0 pointer-events-none transition-all duration-300">
-    <div class="tech-modal rounded-3xl p-8 max-w-3xl w-full max-h-[92vh] overflow-y-auto relative transform scale-95 transition-all duration-300 border border-cyan-500/30 space-y-6">
-      <button type="button" onclick="closeProblemModal()" class="absolute top-5 right-5 text-gray-400 hover:text-white w-8 h-8 rounded-full bg-cyan-500/10 flex items-center justify-center transition cursor-pointer">
-        <i class="fa-solid fa-xmark text-xs"></i>
+  <div id="problemModal" onclick="if(event.target === this) closeProblemModal()" class="modal-backdrop modal-closed fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/85 backdrop-blur-md opacity-0 pointer-events-none">
+    <div class="modal-box tech-modal rounded-3xl p-7 md:p-8 max-w-3xl w-full max-h-[92vh] overflow-y-auto relative border border-cyan-500/30 space-y-6">
+      <button type="button" onclick="closeProblemModal()" class="absolute top-5 right-5 text-gray-400 hover:text-white w-9 h-9 rounded-full bg-cyan-500/10 hover:bg-cyan-500/20 flex items-center justify-center transition cursor-pointer">
+        <i class="fa-solid fa-xmark text-sm"></i>
       </button>
 
       <div class="text-center">
-        <h3 id="modalTitleText" class="text-lg font-bold text-white mb-1"><i class="fa-solid fa-cloud-arrow-up text-cyan-400 mr-2"></i> สร้าง / อัปโหลดโจทย์ใหม่</h3>
-        <p id="modalDescText" class="text-xs text-gray-400">กรอกรหัสโจทย์ (Unique Code), ชื่อโจทย์, และรายละเอียดทั้งหมด</p>
+        <h3 id="modalTitleText" class="text-xl font-bold text-white mb-1"><i class="fa-solid fa-cloud-arrow-up text-cyan-400 mr-2"></i> สร้าง / อัปโหลดโจทย์ใหม่</h3>
+        <p id="modalDescText" class="text-xs text-gray-400">กรอกรหัสโจทย์ (Unique Code), ชื่อโจทย์, กำหนดเวลาเปิด-ปิด และรายละเอียดทั้งหมด</p>
       </div>
 
       <form id="problemForm" class="space-y-5">
@@ -201,114 +222,152 @@
         <!-- รหัสโจทย์ กับ ชื่อโจทย์ แยกชัดเจน -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div class="md:col-span-1">
-            <label class="block text-xs font-medium text-cyan-300 mb-1">รหัสโจทย์ (Code) *</label>
-            <input type="text" id="admCode" required placeholder="เช่น ST8-P01" class="w-full bg-black/60 border border-cyan-500/20 rounded-xl px-3 py-2.5 text-xs text-white font-mono uppercase">
+            <label class="block text-sm font-medium text-cyan-300 mb-1.5">รหัสโจทย์ (Code) *</label>
+            <input type="text" id="admCode" required placeholder="เช่น ST8-P01" class="w-full bg-black/60 border border-cyan-500/20 focus:border-cyan-400 focus:outline-none rounded-xl px-3.5 py-2.5 text-sm text-white font-mono uppercase transition">
           </div>
           <div class="md:col-span-2">
-            <label class="block text-xs font-medium text-cyan-300 mb-1">ชื่อโจทย์ (Title) *</label>
-            <input type="text" id="admTitle" required placeholder="เช่น Dijkstra Shortest Path" class="w-full bg-black/60 border border-cyan-500/20 rounded-xl px-4 py-2.5 text-xs text-white font-mono">
+            <label class="block text-sm font-medium text-cyan-300 mb-1.5">ชื่อโจทย์ (Title) *</label>
+            <input type="text" id="admTitle" required placeholder="เช่น Dijkstra Shortest Path" class="w-full bg-black/60 border border-cyan-500/20 focus:border-cyan-400 focus:outline-none rounded-xl px-4 py-2.5 text-sm text-white transition">
           </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <label class="block text-xs font-medium text-cyan-300 mb-1">ความยาก</label>
-            <select id="admDifficulty" class="w-full bg-black/60 border border-cyan-500/20 rounded-xl px-3 py-2.5 text-xs text-white">
+            <label class="block text-sm font-medium text-cyan-300 mb-1.5">ความยาก</label>
+            <select id="admDifficulty" class="w-full bg-black/60 border border-cyan-500/20 focus:border-cyan-400 focus:outline-none rounded-xl px-3.5 py-2.5 text-sm text-white transition">
               <option value="Easy">Easy</option>
               <option value="Medium" selected>Medium</option>
               <option value="Hard">Hard</option>
             </select>
           </div>
           <div>
-            <label class="block text-xs font-medium text-cyan-300 mb-1">คะแนน</label>
-            <input type="number" id="admMaxScore" value="100" class="w-full bg-black/60 border border-cyan-500/20 rounded-xl px-3 py-2.5 text-xs text-white font-mono">
+            <label class="block text-sm font-medium text-cyan-300 mb-1.5">คะแนน</label>
+            <input type="number" id="admMaxScore" value="100" class="w-full bg-black/60 border border-cyan-500/20 focus:border-cyan-400 focus:outline-none rounded-xl px-3.5 py-2.5 text-sm text-white font-mono transition">
           </div>
           <div>
-            <label class="block text-xs font-medium text-cyan-300 mb-1">ผู้แต่งโจทย์ (Author)</label>
-            <input type="text" id="admAuthor" placeholder="AP" class="w-full bg-black/60 border border-cyan-500/20 rounded-xl px-4 py-2.5 text-xs text-white font-mono">
+            <label class="block text-sm font-medium text-cyan-300 mb-1.5">ผู้แต่งโจทย์ (Author)</label>
+            <input type="text" id="admAuthor" placeholder="AP" class="w-full bg-black/60 border border-cyan-500/20 focus:border-cyan-400 focus:outline-none rounded-xl px-4 py-2.5 text-sm text-white transition">
           </div>
         </div>
 
-        <!-- หมวดหมู่ / แท็ก -->
-        <div class="space-y-1">
-          <div class="flex justify-between items-center">
-            <label class="text-xs font-medium text-cyan-300">หมวดหมู่ / แท็ก</label>
-            <button type="button" onclick="openNewTagPopup()" class="text-[11px] text-cyan-400 hover:underline cursor-pointer"><i class="fa-solid fa-plus mr-1"></i> เพิ่มหมวดหมู่ใหม่</button>
+        <!-- CUSTOM DROPDOWN หมวดหมู่ / แท็ก (ขยายตัวอักษร + ค้นหา + เพิ่มใหม่ได้ง่าย) -->
+        <div class="space-y-2 relative" id="categoryDropdownWrapper">
+          <div class="flex flex-wrap gap-2 justify-between items-center">
+            <label class="text-sm font-medium text-cyan-300">หมวดหมู่ / แท็ก (Tags)</label>
+            <button type="button" onclick="openNewTagPopup()" class="text-xs font-semibold text-cyan-300 bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-500/35 px-3 py-1.5 rounded-xl transition cursor-pointer flex items-center gap-1.5">
+              <i class="fa-solid fa-plus"></i> เพิ่มหมวดหมู่ใหม่
+            </button>
           </div>
-          <select id="tagSearchDropdown" onchange="addSelectedTag(this)" class="w-full bg-black/60 border border-cyan-500/20 rounded-xl px-3 py-2 text-xs text-white">
-            <option value="">-- ค้นหาหรือเลือกหมวดหมู่ --</option>
-          </select>
-          <div id="selectedTagsContainer" class="flex flex-wrap gap-1.5 p-2 bg-black/40 rounded-xl border border-cyan-500/10 min-h-[36px]"></div>
+
+          <!-- Dropdown Trigger -->
+          <div onclick="toggleCategoryDropdown()" class="w-full bg-black/60 border border-cyan-500/25 hover:border-cyan-400/60 rounded-xl px-4 py-2.5 text-sm text-gray-300 flex justify-between items-center cursor-pointer transition">
+            <span id="categoryDropdownPlaceholder"><i class="fa-solid fa-tags text-cyan-400 mr-2"></i> คลิกเพื่อเลือกหรือค้นหาหมวดหมู่...</span>
+            <i id="categoryDropdownChevron" class="fa-solid fa-chevron-down text-cyan-400 text-xs transition-transform duration-200"></i>
+          </div>
+
+          <!-- Dropdown Menu List -->
+          <div id="categoryDropdownMenu" class="hidden absolute left-0 right-0 z-30 mt-1 tech-modal rounded-2xl border border-cyan-500/35 p-3 shadow-2xl space-y-2">
+            <div class="relative">
+              <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+              <input type="text" id="categorySearchInput" oninput="filterCategoryOptions(this.value)" placeholder="พิมพ์ค้นหาหมวดหมู่..." class="w-full bg-black/70 border border-cyan-500/25 focus:border-cyan-400 focus:outline-none rounded-xl pl-8 pr-3 py-2 text-sm text-white">
+            </div>
+            <div id="categoryOptionsList" class="max-h-44 overflow-y-auto space-y-1 pr-1"></div>
+          </div>
+
+          <!-- Selected Tags Badges -->
+          <div id="selectedTagsContainer" class="flex flex-wrap gap-2 p-2.5 bg-black/40 rounded-xl border border-cyan-500/15 min-h-[44px] items-center"></div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <!-- TIME & MEMORY LIMIT -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label class="block text-xs font-medium text-cyan-300 mb-1">Time Limit (วินาที)</label>
-            <input type="number" step="0.1" id="admTimeLimit" value="1.0" class="w-full bg-black/60 border border-cyan-500/20 rounded-xl px-4 py-2.5 text-xs text-white font-mono">
+            <label class="block text-sm font-medium text-cyan-300 mb-1.5">Time Limit (วินาที)</label>
+            <input type="number" step="0.1" id="admTimeLimit" value="1.0" class="w-full bg-black/60 border border-cyan-500/20 focus:border-cyan-400 focus:outline-none rounded-xl px-4 py-2.5 text-sm text-white font-mono transition">
           </div>
           <div>
-            <label class="block text-xs font-medium text-cyan-300 mb-1">Memory Limit (MB)</label>
-            <input type="number" id="admMemoryLimit" value="256" class="w-full bg-black/60 border border-cyan-500/20 rounded-xl px-4 py-2.5 text-xs text-white font-mono">
+            <label class="block text-sm font-medium text-cyan-300 mb-1.5">Memory Limit (MB)</label>
+            <input type="number" id="admMemoryLimit" value="256" class="w-full bg-black/60 border border-cyan-500/20 focus:border-cyan-400 focus:outline-none rounded-xl px-4 py-2.5 text-sm text-white font-mono transition">
           </div>
+        </div>
+
+        <!-- SCHEDULED OPEN & CLOSE TIME -->
+        <div class="tech-glass rounded-2xl p-4 border border-cyan-500/20 space-y-3">
+          <div class="flex flex-wrap justify-between items-center gap-2">
+            <label class="text-sm font-bold text-cyan-300"><i class="fa-regular fa-clock mr-1.5"></i> ตั้งวันและเวลาเปิด-ปิดโจทย์ (ไม่บังคับ)</label>
+            <button type="button" onclick="clearScheduleTimes()" class="text-xs text-gray-400 hover:text-rose-400 transition cursor-pointer">
+              <i class="fa-solid fa-rotate-left mr-1"></i> ล้างเวลา (เปิดตลอด)
+            </button>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-medium text-emerald-300 mb-1">เวลาเปิดโจทย์ (Open At)</label>
+              <input type="datetime-local" id="admOpenAt" class="w-full bg-black/60 border border-cyan-500/20 focus:border-emerald-400 focus:outline-none rounded-xl px-3.5 py-2.5 text-sm text-white font-mono transition">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-rose-300 mb-1">เวลาปิดโจทย์ (Close At)</label>
+              <input type="datetime-local" id="admCloseAt" class="w-full bg-black/60 border border-cyan-500/20 focus:border-rose-400 focus:outline-none rounded-xl px-3.5 py-2.5 text-sm text-white font-mono transition">
+            </div>
+          </div>
+          <p class="text-[11px] text-gray-400">* หากปล่อยว่างไว้ โจทย์จะเปิดให้เข้าทำได้ทันทีและไม่มีวันหมดอายุ</p>
         </div>
 
         <!-- TEST CASES SECTION WITH YELLOW STAR & ZIP DOWNLOAD -->
         <div class="tech-glass rounded-2xl p-4 border border-cyan-500/20 space-y-3">
           <div class="flex flex-wrap gap-2 justify-between items-center">
             <div class="flex items-center gap-2">
-              <label class="text-xs font-bold text-cyan-300"><i class="fa-solid fa-box-archive mr-1"></i> ชุดทดสอบ Test Cases (ดาวสีเหลือง = Sample)</label>
-              <button type="button" onclick="toggleAllTestCasesFold()" class="text-[10px] text-cyan-400 bg-cyan-500/10 px-2 py-1 rounded-lg border border-cyan-500/30 hover:bg-cyan-500/20 cursor-pointer">พับ/ขยายทั้งหมด</button>
+              <label class="text-sm font-bold text-cyan-300"><i class="fa-solid fa-box-archive mr-1"></i> ชุดทดสอบ Test Cases (ดาวสีเหลือง = Sample)</label>
+              <button type="button" onclick="toggleAllTestCasesFold()" class="text-xs text-cyan-400 bg-cyan-500/10 px-2.5 py-1 rounded-lg border border-cyan-500/30 hover:bg-cyan-500/20 transition cursor-pointer">พับ/ขยายทั้งหมด</button>
             </div>
             <div class="flex items-center gap-2">
-              <button type="button" onclick="downloadTestCasesZip()" class="tech-glass px-3 py-1.5 rounded-xl text-xs text-yellow-300 border border-yellow-500/30 hover:bg-yellow-500/10 cursor-pointer"><i class="fa-solid fa-download mr-1"></i> โหลดเทสเคสเป็น ZIP</button>
-              <button type="button" onclick="addFormTestCaseRow()" class="tech-glass px-3 py-1.5 rounded-xl text-xs text-cyan-300 border border-cyan-500/30 hover:bg-cyan-500/10 cursor-pointer">+ เพิ่ม</button>
+              <button type="button" onclick="downloadTestCasesZip()" class="tech-glass px-3 py-1.5 rounded-xl text-xs text-yellow-300 border border-yellow-500/30 hover:bg-yellow-500/10 transition cursor-pointer"><i class="fa-solid fa-download mr-1"></i> โหลดเทสเคสเป็น ZIP</button>
+              <button type="button" onclick="addFormTestCaseRow()" class="tech-glass px-3 py-1.5 rounded-xl text-xs text-cyan-300 border border-cyan-500/30 hover:bg-cyan-500/10 transition cursor-pointer">+ เพิ่ม</button>
             </div>
           </div>
           
-          <div class="bg-black/40 p-2.5 rounded-xl border border-cyan-500/10 space-y-2">
+          <div class="bg-black/40 p-3 rounded-xl border border-cyan-500/10 space-y-2">
             <div class="flex flex-wrap gap-2 justify-between items-center">
-              <span class="text-[11px] text-cyan-400 font-semibold"><i class="fa-solid fa-file-zipper mr-1"></i> อัปโหลดไฟล์ ZIP Test Cases (.in / .sol):</span>
+              <span class="text-xs text-cyan-400 font-semibold"><i class="fa-solid fa-file-zipper mr-1"></i> อัปโหลดไฟล์ ZIP Test Cases (.in / .sol):</span>
               <div id="existingZipContainer"></div>
             </div>
-            <input type="file" id="admZipFile" accept=".zip" onchange="handleZipUpload(event)" class="w-full bg-black/60 border border-cyan-500/20 rounded-xl p-2 text-xs text-gray-300 file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-cyan-500/20 file:text-cyan-300 cursor-pointer">
+            <input type="file" id="admZipFile" accept=".zip" onchange="handleZipUpload(event)" class="w-full bg-black/60 border border-cyan-500/20 rounded-xl p-2 text-xs text-gray-300 file:mr-2.5 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-cyan-500/20 file:text-cyan-300 cursor-pointer">
           </div>
 
-          <div id="formTestCasesList" class="space-y-2 max-h-56 overflow-y-auto pr-1"></div>
+          <div id="formTestCasesList" class="space-y-2 max-h-60 overflow-y-auto pr-1"></div>
         </div>
 
-        <!-- STATEMENT SECTION WITH SWITCH TAB & PDF FILE DISPLAY / POP-OUT -->
+        <!-- STATEMENT SECTION (KANIT FONT + SWITCH TAB + PDF PREVIEW/POP-OUT) -->
         <div class="tech-glass rounded-2xl p-4 border border-cyan-500/20 space-y-3">
-          <div class="flex flex-wrap gap-2 justify-between items-center border-b border-cyan-500/20 pb-2">
-            <div class="flex items-center gap-2">
-              <label class="text-xs font-bold text-cyan-300"><i class="fa-solid fa-file-pdf mr-1"></i> Statement โจทย์</label>
+          <div class="flex flex-wrap gap-2 justify-between items-center border-b border-cyan-500/20 pb-2.5">
+            <div class="flex items-center gap-2.5">
+              <label class="text-sm font-bold text-cyan-300"><i class="fa-solid fa-file-pdf mr-1"></i> Statement โจทย์</label>
               <div class="flex bg-black/60 p-1 rounded-xl border border-cyan-500/20">
-                <button type="button" onclick="switchStatementTab('edit')" id="stmtTabEdit" class="px-3 py-1 rounded-lg text-[11px] font-semibold bg-cyan-500 text-black transition cursor-pointer">Markdown / แก้ไข</button>
-                <button type="button" onclick="switchStatementTab('preview')" id="stmtTabPreview" class="px-3 py-1 rounded-lg text-[11px] font-semibold text-gray-300 hover:text-white transition cursor-pointer">ดูตัวอย่าง (Preview)</button>
+                <button type="button" onclick="switchStatementTab('edit')" id="stmtTabEdit" class="px-3 py-1 rounded-lg text-xs font-semibold bg-cyan-500 text-black transition cursor-pointer">Markdown / แก้ไข</button>
+                <button type="button" onclick="switchStatementTab('preview')" id="stmtTabPreview" class="px-3 py-1 rounded-lg text-xs font-semibold text-gray-300 hover:text-white transition cursor-pointer">ดูตัวอย่าง (Preview)</button>
               </div>
             </div>
             <div id="existingPdfContainer"></div>
           </div>
 
           <div class="space-y-2">
-            <span class="text-[11px] text-gray-400 block">ไฟล์ Statement PDF (เลือกไฟล์เพื่ออัปโหลด หรือดูไฟล์เดิมด้านบน):</span>
-            <input type="file" id="admStatementPdf" accept=".pdf" onchange="handlePdfFileSelect(event)" class="w-full bg-black/60 border border-cyan-500/20 rounded-xl p-2 text-xs text-gray-300 file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-cyan-500/20 file:text-cyan-300 cursor-pointer">
+            <span class="text-xs text-gray-400 block">ไฟล์ Statement PDF (เลือกไฟล์เพื่ออัปโหลด หรือดูไฟล์เดิมด้านบน):</span>
+            <input type="file" id="admStatementPdf" accept=".pdf" onchange="handlePdfFileSelect(event)" class="w-full bg-black/60 border border-cyan-500/20 rounded-xl p-2 text-xs text-gray-300 file:mr-2.5 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-cyan-500/20 file:text-cyan-300 cursor-pointer">
             <div id="selectedPdfBadge" class="hidden"></div>
           </div>
 
           <div id="statementEditArea">
-            <textarea id="admStatementText" rows="6" placeholder="พิมพ์เนื้อหาโจทย์ในรูปแบบ Markdown (เช่น # หัวข้อ, **ตัวหนา**, `code`, - รายการ) ..." class="w-full bg-black/60 border border-cyan-500/20 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-cyan-400 font-mono resize-y"></textarea>
+            <textarea id="admStatementText" rows="7" placeholder="พิมพ์เนื้อหาโจทย์ในรูปแบบ Markdown (เช่น # หัวข้อ, **ตัวหนา**, `code`, - รายการ) ..." style="font-family: 'Kanit', sans-serif;" class="w-full bg-black/60 border border-cyan-500/20 focus:border-cyan-400 focus:outline-none rounded-xl p-3.5 text-sm text-white leading-relaxed resize-y transition"></textarea>
           </div>
 
-          <div id="statementPreviewArea" class="hidden w-full bg-black/60 border border-cyan-500/20 rounded-xl p-4 text-xs text-white min-h-[150px] max-h-96 overflow-y-auto font-sans space-y-4">
+          <div id="statementPreviewArea" class="hidden w-full bg-black/60 border border-cyan-500/20 rounded-xl p-4 text-sm text-white min-h-[160px] max-h-96 overflow-y-auto space-y-4">
             <div id="markdownRenderOutput" class="markdown-preview"></div>
             <div id="pdfEmbedPreviewContainer" class="hidden border-t border-cyan-500/20 pt-3">
-              <p class="text-[11px] text-cyan-300 font-semibold mb-2"><i class="fa-solid fa-file-pdf text-rose-400 mr-1"></i> ตัวอย่างไฟล์ PDF ที่แนบไว้:</p>
+              <p class="text-xs text-cyan-300 font-semibold mb-2"><i class="fa-solid fa-file-pdf text-rose-400 mr-1"></i> ตัวอย่างไฟล์ PDF ที่แนบไว้:</p>
               <iframe id="pdfPreviewIframe" class="w-full h-72 rounded-xl border border-cyan-500/30 bg-white"></iframe>
             </div>
           </div>
         </div>
 
-        <button type="submit" id="submitBtnText" class="w-full bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-95 text-white font-bold py-3.5 rounded-xl text-xs transition shadow-lg shadow-cyan-500/25 cursor-pointer">
+        <button type="submit" id="submitBtnText" class="w-full bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-95 hover:scale-[1.005] active:scale-[0.995] text-white font-bold py-3.5 rounded-xl text-sm transition-all duration-200 shadow-lg shadow-cyan-500/25 cursor-pointer">
           <i class="fa-solid fa-cloud-arrow-up mr-1.5"></i> บันทึกและเผยแพร่โจทย์เข้าสู่ระบบทันที
         </button>
       </form>
@@ -316,13 +375,42 @@
   </div>
 
   <!-- POPUP: เพิ่มหมวดหมู่ใหม่ -->
-  <div id="newTagPopupModal" onclick="if(event.target === this) closeNewTagPopup()" class="fixed inset-0 z-[55] flex items-center justify-center px-4 bg-black/80 backdrop-blur-md opacity-0 pointer-events-none transition-all duration-300">
-    <div class="tech-modal rounded-3xl p-6 max-w-sm w-full relative space-y-4 border border-cyan-500/30">
-      <h3 class="text-sm font-bold text-white"><i class="fa-solid fa-folder-plus text-cyan-400 mr-1.5"></i> เพิ่มหมวดหมู่ใหม่</h3>
-      <input type="text" id="customNewTagInput" placeholder="ชื่อหมวดหมู่ (เช่น Backtracking)" class="w-full bg-black/60 border border-cyan-500/20 rounded-xl px-3 py-2 text-xs text-white">
+  <div id="newTagPopupModal" onclick="if(event.target === this) closeNewTagPopup()" class="modal-backdrop modal-closed fixed inset-0 z-[55] flex items-center justify-center px-4 bg-black/80 backdrop-blur-md opacity-0 pointer-events-none">
+    <div class="modal-box tech-modal rounded-3xl p-6 max-w-sm w-full relative space-y-4 border border-cyan-500/30">
+      <h3 class="text-base font-bold text-white"><i class="fa-solid fa-folder-plus text-cyan-400 mr-1.5"></i> เพิ่มหมวดหมู่ใหม่</h3>
+      <input type="text" id="customNewTagInput" placeholder="ชื่อหมวดหมู่ (เช่น Backtracking)" class="w-full bg-black/60 border border-cyan-500/25 focus:border-cyan-400 focus:outline-none rounded-xl px-3.5 py-2.5 text-sm text-white">
       <div class="flex gap-2 justify-end">
-        <button type="button" onclick="closeNewTagPopup()" class="px-4 py-2 rounded-xl text-xs text-gray-300 hover:bg-white/5 cursor-pointer">ยกเลิก</button>
-        <button type="button" onclick="saveNewTagToSystem()" class="bg-gradient-to-r from-blue-600 to-cyan-500 px-4 py-2 rounded-xl text-xs font-semibold text-white cursor-pointer">บันทึกหมวดหมู่</button>
+        <button type="button" onclick="closeNewTagPopup()" class="px-4 py-2 rounded-xl text-xs text-gray-300 hover:bg-white/5 transition cursor-pointer">ยกเลิก</button>
+        <button type="button" onclick="saveNewTagToSystem()" class="bg-gradient-to-r from-blue-600 to-cyan-500 px-4 py-2 rounded-xl text-xs font-semibold text-white transition cursor-pointer">บันทึกหมวดหมู่</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CUSTOM POPUP: ยืนยันการลบโจทย์ (แทน confirm ของ Chrome) -->
+  <div id="deleteConfirmModal" onclick="if(event.target === this) closeDeleteConfirmModal()" class="modal-backdrop modal-closed fixed inset-0 z-[60] flex items-center justify-center px-4 bg-black/85 backdrop-blur-md opacity-0 pointer-events-none">
+    <div class="modal-box tech-modal rounded-3xl p-6 max-w-md w-full relative space-y-5 border border-rose-500/40">
+      <div class="flex items-center gap-3.5">
+        <div class="w-12 h-12 rounded-2xl bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-rose-400 text-xl shrink-0">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+        <div>
+          <h3 class="text-base font-bold text-white">ยืนยันการลบโจทย์ออกจากระบบ</h3>
+          <p class="text-xs text-gray-400">การดำเนินการนี้ไม่สามารถย้อนกลับได้</p>
+        </div>
+      </div>
+
+      <div class="bg-black/50 border border-rose-500/20 rounded-2xl p-4 space-y-1">
+        <p class="text-xs text-gray-400">โจทย์ที่กำลังจะลบ:</p>
+        <p id="deleteTargetName" class="text-sm font-bold text-rose-300 font-mono">#ID : ชื่อโจทย์</p>
+      </div>
+
+      <div class="flex gap-3 justify-end">
+        <button type="button" onclick="closeDeleteConfirmModal()" class="px-4 py-2.5 rounded-xl text-xs font-semibold text-gray-300 bg-white/5 hover:bg-white/10 transition cursor-pointer">
+          ยกเลิก
+        </button>
+        <button type="button" id="confirmDeleteActionBtn" onclick="executeDeleteProblem()" class="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-rose-600 to-red-500 hover:opacity-95 shadow-lg shadow-rose-500/25 transition cursor-pointer flex items-center gap-1.5">
+          <i class="fa-solid fa-trash"></i> ยืนยันการลบถาวร
+        </button>
       </div>
     </div>
   </div>
@@ -342,10 +430,25 @@
 
     let activeTags = [];
     let allLoadedProblems = [];
-    let customTagsList = JSON.parse(localStorage.getItem('st8_custom_tags')) || ["Graph", "Dynamic Programming", "Sorting", "Math", "Greedy", "String", "Bitmask"];
+    let customTagsList = JSON.parse(localStorage.getItem('st8_custom_tags')) || ["Graph", "Dynamic Programming", "Sorting", "Math", "Greedy", "String", "Bitmask", "Tree", "Binary Search"];
     let selectedPdfDataUrl = '';
     let selectedPdfFileName = '';
     let selectedZipDataUrl = '';
+    let pendingDeleteProblemId = null;
+
+    function openSmoothModal(id) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.classList.remove('opacity-0', 'pointer-events-none', 'modal-closed');
+      el.classList.add('modal-open');
+    }
+
+    function closeSmoothModal(id) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.classList.remove('modal-open');
+      el.classList.add('modal-closed', 'opacity-0', 'pointer-events-none');
+    }
 
     function showToast(title, desc, isError = false) {
       const toast = document.getElementById('systemToast');
@@ -354,32 +457,83 @@
       const icon = document.getElementById('toastIcon');
       icon.className = isError ? 'fa-solid fa-circle-exclamation text-rose-400 text-lg' : 'fa-solid fa-circle-check text-cyan-400 text-lg';
       
-      toast.classList.remove('translate-x-full');
-      setTimeout(() => { toast.classList.add('translate-x-full'); }, 3000);
+      toast.classList.remove('translate-x-[120%]');
+      setTimeout(() => { toast.classList.add('translate-x-[120%]'); }, 3200);
     }
 
-    // TAGS MANAGEMENT
-    function initTagDropdown() {
-      const dropdown = document.getElementById('tagSearchDropdown');
-      if (dropdown) {
-        dropdown.innerHTML = '<option value="">-- ค้นหาหรือเลือกหมวดหมู่ --</option>' + 
-          customTagsList.map(t => `<option value="${t}">${t}</option>`).join('');
+    // CUSTOM CATEGORY DROPDOWN LOGIC
+    function toggleCategoryDropdown(forceState = null) {
+      const menu = document.getElementById('categoryDropdownMenu');
+      const chevron = document.getElementById('categoryDropdownChevron');
+      const isHidden = menu.classList.contains('hidden');
+      const shouldOpen = forceState !== null ? forceState : isHidden;
+
+      if (shouldOpen) {
+        menu.classList.remove('hidden');
+        chevron.classList.add('rotate-180');
+        document.getElementById('categorySearchInput').value = '';
+        renderCategoryOptions('');
+        setTimeout(() => document.getElementById('categorySearchInput').focus(), 50);
+      } else {
+        menu.classList.add('hidden');
+        chevron.classList.remove('rotate-180');
       }
     }
-    initTagDropdown();
+
+    document.addEventListener('click', (e) => {
+      const wrapper = document.getElementById('categoryDropdownWrapper');
+      if (wrapper && !wrapper.contains(e.target)) {
+        toggleCategoryDropdown(false);
+      }
+    });
+
+    function filterCategoryOptions(query) {
+      renderCategoryOptions(query.trim().toLowerCase());
+    }
+
+    function renderCategoryOptions(filterText = '') {
+      const container = document.getElementById('categoryOptionsList');
+      const filtered = customTagsList.filter(t => t.toLowerCase().includes(filterText));
+
+      if (filtered.length === 0) {
+        container.innerHTML = `<div class="text-xs text-gray-400 text-center py-3">ไม่พบหมวดหมู่ "${filterText}" กดปุ่ม "+ เพิ่มหมวดหมู่ใหม่" ด้านบนได้</div>`;
+        return;
+      }
+
+      container.innerHTML = filtered.map(tag => {
+        const isSelected = activeTags.includes(tag);
+        return `
+          <div onclick="toggleTagSelection('${tag.replace(/'/g, "\\'")}')" class="flex items-center justify-between px-3 py-2 rounded-xl text-sm cursor-pointer transition ${isSelected ? 'bg-cyan-500/20 text-cyan-300 font-semibold' : 'text-gray-300 hover:bg-white/5'}">
+            <span>${tag}</span>
+            ${isSelected ? '<i class="fa-solid fa-check text-cyan-400 text-xs"></i>' : '<i class="fa-solid fa-plus text-gray-500 text-xs"></i>'}
+          </div>
+        `;
+      }).join('');
+    }
+
+    function toggleTagSelection(tag) {
+      if (activeTags.includes(tag)) {
+        activeTags = activeTags.filter(t => t !== tag);
+      } else {
+        activeTags.push(tag);
+      }
+      renderTags();
+      renderCategoryOptions(document.getElementById('categorySearchInput').value.trim().toLowerCase());
+    }
 
     function openNewTagPopup() {
-      document.getElementById('newTagPopupModal').classList.remove('opacity-0', 'pointer-events-none');
+      toggleCategoryDropdown(false);
+      openSmoothModal('newTagPopupModal');
+      setTimeout(() => document.getElementById('customNewTagInput').focus(), 80);
     }
     function closeNewTagPopup() {
-      document.getElementById('newTagPopupModal').classList.add('opacity-0', 'pointer-events-none');
+      closeSmoothModal('newTagPopupModal');
     }
     function saveNewTagToSystem() {
       const val = document.getElementById('customNewTagInput').value.trim();
       if (val && !customTagsList.includes(val)) {
         customTagsList.push(val);
         localStorage.setItem('st8_custom_tags', JSON.stringify(customTagsList));
-        initTagDropdown();
         activeTags.push(val);
         renderTags();
         showToast('เพิ่มหมวดหมู่สำเร็จ', `บันทึกแท็ก "${val}" เรียบร้อย`);
@@ -390,25 +544,49 @@
       document.getElementById('customNewTagInput').value = '';
       closeNewTagPopup();
     }
-    function addSelectedTag(select) {
-      const val = select.value;
-      if (val && !activeTags.includes(val)) {
-        activeTags.push(val);
-        renderTags();
-      }
-      select.value = "";
-    }
     function removeTag(tag) {
       activeTags = activeTags.filter(t => t !== tag);
       renderTags();
+      if (!document.getElementById('categoryDropdownMenu').classList.contains('hidden')) {
+        renderCategoryOptions(document.getElementById('categorySearchInput').value.trim().toLowerCase());
+      }
     }
     function renderTags() {
       const container = document.getElementById('selectedTagsContainer');
+      const placeholder = document.getElementById('categoryDropdownPlaceholder');
+      if (activeTags.length > 0) {
+        placeholder.innerHTML = `<i class="fa-solid fa-tags text-cyan-400 mr-2"></i> เลือกแล้ว ${activeTags.length} หมวดหมู่`;
+      } else {
+        placeholder.innerHTML = `<i class="fa-solid fa-tags text-cyan-400 mr-2"></i> คลิกเพื่อเลือกหรือค้นหาหมวดหมู่...`;
+      }
+
       container.innerHTML = activeTags.map(t => `
-        <span class="bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 px-2.5 py-1 rounded-lg text-[11px] flex items-center gap-1.5">
-          ${t} <button type="button" onclick="removeTag('${t}')" class="hover:text-rose-400 cursor-pointer">&times;</button>
+        <span class="bg-cyan-500/20 text-cyan-300 border border-cyan-500/35 px-3 py-1 rounded-xl text-xs font-medium flex items-center gap-2 transition">
+          ${t} <button type="button" onclick="removeTag('${t.replace(/'/g, "\\'")}')" class="hover:text-rose-400 text-sm leading-none cursor-pointer">&times;</button>
         </span>
-      `).join('') || '<span class="text-gray-500 text-[11px] italic">ยังไม่ได้เลือกแท็ก...</span>';
+      `).join('') || '<span class="text-gray-500 text-xs italic">ยังไม่ได้เลือกหมวดหมู่...</span>';
+    }
+
+    // DATETIME HELPERS
+    function toLocalDatetimeInputValue(isoString) {
+      if (!isoString) return '';
+      const d = new Date(isoString);
+      if (isNaN(d.getTime())) return '';
+      const pad = n => String(n).padStart(2, '0');
+      return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    }
+
+    function formatThaiDateTime(isoString) {
+      if (!isoString) return '-';
+      const d = new Date(isoString);
+      if (isNaN(d.getTime())) return '-';
+      return d.toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' });
+    }
+
+    function clearScheduleTimes() {
+      document.getElementById('admOpenAt').value = '';
+      document.getElementById('admCloseAt').value = '';
+      showToast('ล้างเวลาแล้ว', 'ตั้งค่าให้โจทย์เปิดตลอดเวลา');
     }
 
     // HANDLE PDF FILE SELECTION & POP-OUT
@@ -428,9 +606,9 @@
         document.getElementById('currentPdfUrl').value = selectedPdfDataUrl;
         badge.classList.remove('hidden');
         badge.innerHTML = `
-          <div class="flex items-center justify-between bg-cyan-500/10 border border-cyan-500/30 rounded-xl px-3 py-2 text-xs">
+          <div class="flex items-center justify-between bg-cyan-500/10 border border-cyan-500/30 rounded-xl px-3.5 py-2.5 text-xs">
             <span class="text-cyan-300 truncate"><i class="fa-solid fa-file-pdf text-rose-400 mr-1.5"></i> ไฟล์ที่เลือก: <b>${file.name}</b></span>
-            <button type="button" onclick="openPdfInNewTab('${selectedPdfDataUrl}')" class="text-[11px] bg-cyan-500 text-black font-bold px-2.5 py-1 rounded-lg hover:bg-cyan-400 transition cursor-pointer shrink-0 ml-2">
+            <button type="button" onclick="openPdfInNewTab('${selectedPdfDataUrl}')" class="text-xs bg-cyan-500 text-black font-bold px-3 py-1 rounded-lg hover:bg-cyan-400 transition cursor-pointer shrink-0 ml-2">
               Pop-out ดูไฟล์ <i class="fa-solid fa-arrow-up-right-from-square ml-1"></i>
             </button>
           </div>
@@ -476,13 +654,13 @@
       if (tab === 'edit') {
         editArea.classList.remove('hidden');
         previewArea.classList.add('hidden');
-        btnEdit.className = 'px-3 py-1 rounded-lg text-[11px] font-semibold bg-cyan-500 text-black transition cursor-pointer';
-        btnPreview.className = 'px-3 py-1 rounded-lg text-[11px] font-semibold text-gray-300 hover:text-white transition cursor-pointer';
+        btnEdit.className = 'px-3 py-1 rounded-lg text-xs font-semibold bg-cyan-500 text-black transition cursor-pointer';
+        btnPreview.className = 'px-3 py-1 rounded-lg text-xs font-semibold text-gray-300 hover:text-white transition cursor-pointer';
       } else {
         editArea.classList.add('hidden');
         previewArea.classList.remove('hidden');
-        btnPreview.className = 'px-3 py-1 rounded-lg text-[11px] font-semibold bg-cyan-500 text-black transition cursor-pointer';
-        btnEdit.className = 'px-3 py-1 rounded-lg text-[11px] font-semibold text-gray-300 hover:text-white transition cursor-pointer';
+        btnPreview.className = 'px-3 py-1 rounded-lg text-xs font-semibold bg-cyan-500 text-black transition cursor-pointer';
+        btnEdit.className = 'px-3 py-1 rounded-lg text-xs font-semibold text-gray-300 hover:text-white transition cursor-pointer';
         
         renderMarkdownPreviewContent();
 
@@ -529,7 +707,6 @@
 
     // OPEN PROBLEM MODAL (CREATE / EDIT)
     function openProblemModal(mode, index = null) {
-      const modal = document.getElementById('problemModal');
       const form = document.getElementById('problemForm');
       const modeInput = document.getElementById('formMode');
       const titleText = document.getElementById('modalTitleText');
@@ -542,6 +719,7 @@
       form.reset();
       activeTags = [];
       renderTags();
+      toggleCategoryDropdown(false);
       selectedPdfDataUrl = '';
       selectedPdfFileName = '';
       selectedZipDataUrl = '';
@@ -556,7 +734,7 @@
         modeInput.value = 'create';
         document.getElementById('editProblemId').value = '';
         titleText.innerHTML = '<i class="fa-solid fa-cloud-arrow-up text-cyan-400 mr-2"></i> สร้าง / อัปโหลดโจทย์ใหม่';
-        descText.textContent = 'กรอกรหัสโจทย์ (Unique Code), ชื่อโจทย์, และรายละเอียดทั้งหมด';
+        descText.textContent = 'กรอกรหัสโจทย์ (Unique Code), ชื่อโจทย์, กำหนดเวลาเปิด-ปิด และรายละเอียดทั้งหมด';
         submitBtn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up mr-1.5"></i> บันทึกและเผยแพร่โจทย์เข้าสู่ระบบทันที';
         
         document.getElementById('formTestCasesList').innerHTML = '';
@@ -575,6 +753,8 @@
         document.getElementById('admTimeLimit').value = p.time_limit || 1.0;
         document.getElementById('admMemoryLimit').value = p.memory_limit || 256;
         document.getElementById('admStatementText').value = p.statement || '';
+        document.getElementById('admOpenAt').value = toLocalDatetimeInputValue(p.open_at);
+        document.getElementById('admCloseAt').value = toLocalDatetimeInputValue(p.close_at);
 
         if (p.tags) {
           activeTags = p.tags.split(',').map(t => t.trim()).filter(Boolean);
@@ -595,15 +775,15 @@
           document.getElementById('currentPdfUrl').value = p.statement_pdf_url;
           const pdfName = p.statement_pdf_name || 'statement.pdf';
           existingPdfContainer.innerHTML = `
-            <button type="button" onclick="openPdfInNewTab('${p.statement_pdf_url}')" class="text-[11px] text-cyan-300 bg-cyan-500/15 px-3 py-1 rounded-lg border border-cyan-500/40 hover:bg-cyan-500/25 flex items-center gap-1.5 transition cursor-pointer">
-              <i class="fa-solid fa-file-pdf text-rose-400"></i> ไฟล์เดิม: ${pdfName} <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>
+            <button type="button" onclick="openPdfInNewTab('${p.statement_pdf_url}')" class="text-xs text-cyan-300 bg-cyan-500/15 px-3 py-1 rounded-lg border border-cyan-500/40 hover:bg-cyan-500/25 flex items-center gap-1.5 transition cursor-pointer">
+              <i class="fa-solid fa-file-pdf text-rose-400"></i> ไฟล์เดิม: ${pdfName} <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
             </button>
           `;
           selectedPdfBadge.classList.remove('hidden');
           selectedPdfBadge.innerHTML = `
-            <div class="flex items-center justify-between bg-emerald-500/10 border border-emerald-500/30 rounded-xl px-3 py-2 text-xs">
+            <div class="flex items-center justify-between bg-emerald-500/10 border border-emerald-500/30 rounded-xl px-3.5 py-2.5 text-xs">
               <span class="text-emerald-300 truncate"><i class="fa-solid fa-circle-check mr-1.5"></i> มีไฟล์ PDF อัปโหลดไว้แล้ว: <b>${pdfName}</b></span>
-              <button type="button" onclick="openPdfInNewTab('${p.statement_pdf_url}')" class="text-[11px] bg-emerald-500 text-black font-bold px-2.5 py-1 rounded-lg hover:bg-emerald-400 transition cursor-pointer shrink-0 ml-2">
+              <button type="button" onclick="openPdfInNewTab('${p.statement_pdf_url}')" class="text-xs bg-emerald-500 text-black font-bold px-3 py-1 rounded-lg hover:bg-emerald-400 transition cursor-pointer shrink-0 ml-2">
                 เปิดดู PDF (Pop-out) <i class="fa-solid fa-arrow-up-right-from-square ml-1"></i>
               </button>
             </div>
@@ -613,22 +793,22 @@
         if (p.testcases_zip_url) {
           document.getElementById('currentZipUrl').value = p.testcases_zip_url;
           existingZipContainer.innerHTML = `
-            <a href="${p.testcases_zip_url}" download="testcases_${p.problem_code || p.id}.zip" target="_blank" class="text-[11px] text-yellow-300 bg-yellow-500/10 px-2.5 py-1 rounded-lg border border-yellow-500/30 hover:bg-yellow-500/20 flex items-center gap-1.5 transition">
-              <i class="fa-solid fa-file-zipper text-yellow-400"></i> โหลด ZIP เดิม <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>
+            <a href="${p.testcases_zip_url}" download="testcases_${p.problem_code || p.id}.zip" target="_blank" class="text-xs text-yellow-300 bg-yellow-500/10 px-2.5 py-1 rounded-lg border border-yellow-500/30 hover:bg-yellow-500/20 flex items-center gap-1.5 transition">
+              <i class="fa-solid fa-file-zipper text-yellow-400"></i> โหลด ZIP เดิม <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
             </a>
           `;
         }
 
         titleText.innerHTML = `<i class="fa-solid fa-pen-to-square text-cyan-400 mr-2"></i> แก้ไขโจทย์: ${p.problem_code || '#PROB-' + p.id}`;
-        descText.textContent = 'แก้ไขรายละเอียด รหัสโจทย์ ไฟล์ PDF และ Test Cases ได้ที่นี่';
+        descText.textContent = 'แก้ไขรายละเอียด รหัสโจทย์ เวลาเปิด-ปิด ไฟล์ PDF และ Test Cases ได้ที่นี่';
         submitBtn.innerHTML = '<i class="fa-solid fa-floppy-disk mr-1.5"></i> บันทึกการแก้ไขโจทย์';
       }
 
-      modal.classList.remove('opacity-0', 'pointer-events-none');
+      openSmoothModal('problemModal');
     }
 
     function closeProblemModal() {
-      document.getElementById('problemModal').classList.add('opacity-0', 'pointer-events-none');
+      closeSmoothModal('problemModal');
     }
 
     async function checkAdminAuth() {
@@ -652,8 +832,8 @@
       document.getElementById('adminTabVerify').classList.add('hidden');
       document.getElementById('adminTabContests').classList.add('hidden');
 
-      const activeStyle = 'shrink-0 text-left px-4 py-3 rounded-xl bg-cyan-500/20 border border-cyan-500/40 text-cyan-300 text-xs font-semibold flex items-center gap-2.5 transition cursor-pointer';
-      const normalStyle = 'shrink-0 text-left px-4 py-3 rounded-xl tech-glass text-gray-300 hover:text-cyan-300 border border-cyan-500/15 text-xs font-semibold flex items-center gap-2.5 transition cursor-pointer';
+      const activeStyle = 'shrink-0 text-left px-4 py-3 rounded-xl bg-cyan-500/20 border border-cyan-500/40 text-cyan-300 text-xs font-semibold flex items-center gap-2.5 transition-all duration-200 cursor-pointer';
+      const normalStyle = 'shrink-0 text-left px-4 py-3 rounded-xl tech-glass text-gray-300 hover:text-cyan-300 hover:bg-cyan-500/10 border border-cyan-500/15 text-xs font-semibold flex items-center gap-2.5 transition-all duration-200 cursor-pointer';
 
       document.getElementById('drawerBtnProblems').className = normalStyle;
       document.getElementById('drawerBtnVerify').className = normalStyle;
@@ -674,14 +854,14 @@
       }
     }
 
-    // TEST CASE ROW WITH YELLOW STAR
+    // TEST CASE ROW WITH YELLOW STAR & "Output (.sol)" LABEL
     function addFormTestCaseRow(inputVal = '', outputVal = '', isSample = false) {
       const list = document.getElementById('formTestCasesList');
       const count = list.children.length + 1;
       const div = document.createElement('div');
       div.className = 'tech-glass rounded-xl border border-cyan-500/20 overflow-hidden tc-card';
       div.innerHTML = `
-        <div onclick="toggleTestCaseCard(this)" class="bg-black/50 px-3 py-2 flex justify-between items-center cursor-pointer hover:bg-cyan-500/10 transition">
+        <div onclick="toggleTestCaseCard(this)" class="bg-black/50 px-3.5 py-2.5 flex justify-between items-center cursor-pointer hover:bg-cyan-500/10 transition">
           <div class="flex items-center gap-2 text-xs text-cyan-300 font-bold">
             <i class="fa-solid fa-chevron-down transition-transform duration-200"></i>
             <span class="tc-label">Test Case #${count}</span>
@@ -694,9 +874,9 @@
           </div>
         </div>
         <div class="tc-body p-3 space-y-2 border-t border-cyan-500/10">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
-            <div><span class="text-[10px] text-gray-400">Input (.in)</span><textarea rows="2" class="tc-input w-full bg-black/60 border border-cyan-500/20 rounded-lg p-2 text-xs text-white font-mono">${inputVal}</textarea></div>
-            <div><span class="text-[10px] text-gray-400">Solution (.sol)</span><textarea rows="2" class="tc-output w-full bg-black/60 border border-cyan-500/20 rounded-lg p-2 text-xs text-white font-mono">${outputVal}</textarea></div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+            <div><span class="text-xs text-gray-400 block mb-1">Input (.in)</span><textarea rows="2" class="tc-input w-full bg-black/60 border border-cyan-500/20 focus:border-cyan-400 focus:outline-none rounded-lg p-2 text-xs text-white font-mono">${inputVal}</textarea></div>
+            <div><span class="text-xs text-gray-400 block mb-1">Output (.sol)</span><textarea rows="2" class="tc-output w-full bg-black/60 border border-cyan-500/20 focus:border-cyan-400 focus:outline-none rounded-lg p-2 text-xs text-white font-mono">${outputVal}</textarea></div>
           </div>
         </div>
       `;
@@ -785,12 +965,34 @@
       }
     }
 
+    function getScheduleBadge(p) {
+      const now = new Date();
+      const openDate = p.open_at ? new Date(p.open_at) : null;
+      const closeDate = p.close_at ? new Date(p.close_at) : null;
+
+      if (!openDate && !closeDate) {
+        return `<span class="text-[11px] text-emerald-400 bg-emerald-500/10 border border-emerald-500/25 px-2.5 py-0.5 rounded-full">เปิดตลอดเวลา</span>`;
+      }
+      if (openDate && now < openDate) {
+        return `<span class="text-[11px] text-amber-300 bg-amber-500/15 border border-amber-500/30 px-2.5 py-0.5 rounded-full block w-fit">รอเปิด: ${formatThaiDateTime(p.open_at)}</span>`;
+      }
+      if (closeDate && now > closeDate) {
+        return `<span class="text-[11px] text-rose-400 bg-rose-500/15 border border-rose-500/30 px-2.5 py-0.5 rounded-full block w-fit">ปิดแล้ว: ${formatThaiDateTime(p.close_at)}</span>`;
+      }
+      return `
+        <div class="text-[11px] space-y-0.5">
+          <span class="text-cyan-300 block">เปิด: ${openDate ? formatThaiDateTime(p.open_at) : 'ทันที'}</span>
+          <span class="text-gray-400 block">ปิด: ${closeDate ? formatThaiDateTime(p.close_at) : 'ไม่มีกำหนด'}</span>
+        </div>
+      `;
+    }
+
     async function fetchAllAdminProblems() {
       const { data: list, error } = await supabaseClient.from('problems').select('*').order('id', { ascending: false });
       const tableBody = document.getElementById('allAdminProblemsTableBody');
       
       if (error || !list || list.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-gray-400">ยังไม่มีโจทย์ในระบบ</td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-gray-400">ยังไม่มีโจทย์ในระบบ</td></tr>`;
         return;
       }
 
@@ -812,8 +1014,11 @@
               </div>
             </td>
             <td class="p-4">
-              <span class="text-cyan-300 block">${p.tags || '-'}</span>
+              <span class="text-cyan-300 block text-xs">${p.tags || '-'}</span>
               <span class="text-[10px] px-2 py-0.5 rounded-full inline-block mt-1 ${p.difficulty === 'Easy' ? 'bg-emerald-500/20 text-emerald-300' : p.difficulty === 'Medium' ? 'bg-amber-500/20 text-amber-300' : 'bg-rose-500/20 text-rose-300'}">${p.difficulty}</span>
+            </td>
+            <td class="p-4">
+              ${getScheduleBadge(p)}
             </td>
             <td class="p-4 text-center font-mono">
               <span class="text-emerald-400 font-bold">${acceptedSubs}</span> / <span class="text-gray-300">${totalSubs}</span>
@@ -826,7 +1031,7 @@
               </label>
             </td>
             <td class="p-4 text-right space-x-1.5 font-sans">
-              <button type="button" onclick="deleteProblem('${p.id}')" class="bg-rose-600/20 text-rose-400 hover:bg-rose-600 hover:text-white px-3 py-1.5 rounded-xl transition text-xs font-semibold cursor-pointer">
+              <button type="button" onclick="openDeleteConfirmModal('${p.id}')" class="bg-rose-600/20 text-rose-400 hover:bg-rose-600 hover:text-white px-3 py-1.5 rounded-xl transition text-xs font-semibold cursor-pointer">
                 <i class="fa-solid fa-trash mr-1"></i> ลบโจทย์
               </button>
             </td>
@@ -874,6 +1079,16 @@
       const zipUrl = document.getElementById('currentZipUrl').value;
       const test_cases = collectFormTestCases();
 
+      const openAtVal = document.getElementById('admOpenAt').value;
+      const closeAtVal = document.getElementById('admCloseAt').value;
+      const open_at = openAtVal ? new Date(openAtVal).toISOString() : null;
+      const close_at = closeAtVal ? new Date(closeAtVal).toISOString() : null;
+
+      if (open_at && close_at && new Date(close_at) <= new Date(open_at)) {
+        showToast('เวลาไม่ถูกต้อง', 'เวลาปิดโจทย์ต้องอยู่หลังเวลาเปิดโจทย์ครับ', true);
+        return;
+      }
+
       const problemData = {
         problem_code,
         title,
@@ -882,6 +1097,8 @@
         tags,
         max_score,
         author,
+        open_at,
+        close_at,
         is_verified: true
       };
 
@@ -938,19 +1155,34 @@
       }
     });
 
-    // FULLY FUNCTIONAL DELETE PROBLEM (HANDLES FOREIGN KEYS & RLS CHECK)
-    async function deleteProblem(id) {
-      if (!confirm(`คุณต้องการลบโจทย์รหัส #${id} ออกจากระบบอย่างถาวรใช่หรือไม่?`)) return;
+    // CUSTOM DELETE CONFIRMATION MODAL (NO CHROME NATIVE POPUP)
+    function openDeleteConfirmModal(id) {
+      pendingDeleteProblemId = id;
+      const prob = allLoadedProblems.find(p => String(p.id) === String(id));
+      const label = prob ? `${prob.problem_code || '#PROB-' + prob.id} : ${prob.title}` : `#${id}`;
+      document.getElementById('deleteTargetName').textContent = label;
+      openSmoothModal('deleteConfirmModal');
+    }
 
-      showToast('กำลังลบ', 'กำลังลบข้อมูลที่เกี่ยวข้องและตัวโจทย์...');
+    function closeDeleteConfirmModal() {
+      pendingDeleteProblemId = null;
+      closeSmoothModal('deleteConfirmModal');
+    }
+
+    async function executeDeleteProblem() {
+      const id = pendingDeleteProblemId;
+      if (!id) return;
+
+      const btn = document.getElementById('confirmDeleteActionBtn');
+      const originalHtml = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังลบ...';
 
       try {
-        // 1. ลบตารางลูกที่อาจผูก Foreign Key ไว้ก่อน
         await supabaseClient.from('submissions').delete().eq('problem_id', id);
         await supabaseClient.from('test_cases').delete().eq('problem_id', id);
         await supabaseClient.from('contest_problems').delete().eq('problem_id', id);
 
-        // 2. ลบโจทย์หลัก พร้อมขอ count กลับมาตรวจสอบว่าลบจริงไหม (ป้องกันเงียบหายจาก RLS)
         const { error, count } = await supabaseClient
           .from('problems')
           .delete({ count: 'exact' })
@@ -966,16 +1198,19 @@
           return;
         }
 
-        // 3. ลบออกจากหน้าจอทันทีและรีโหลดรายการ
         const rowEl = document.getElementById(`problemRow_${id}`);
         if (rowEl) rowEl.remove();
         allLoadedProblems = allLoadedProblems.filter(p => String(p.id) !== String(id));
 
+        closeDeleteConfirmModal();
         showToast('ลบโจทย์สำเร็จ', `ลบโจทย์รหัส #${id} ออกจากระบบเรียบร้อยแล้ว`);
         fetchAllAdminProblems();
         fetchPendingProblems();
       } catch (err) {
         showToast('เกิดข้อผิดพลาด', err.message, true);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalHtml;
       }
     }
 
@@ -994,7 +1229,7 @@
           </div>
           <div class="flex gap-2">
             <button type="button" onclick="approveProblem('${p.id}')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer">อนุมัติ</button>
-            <button type="button" onclick="deleteProblem('${p.id}')" class="bg-rose-600/20 text-rose-400 hover:bg-rose-600 hover:text-white px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer">ลบ</button>
+            <button type="button" onclick="openDeleteConfirmModal('${p.id}')" class="bg-rose-600/20 text-rose-400 hover:bg-rose-600 hover:text-white px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer">ลบ</button>
           </div>
         </div>
       `).join('');

@@ -34,6 +34,27 @@
       color: #facc15 !important;
       text-shadow: 0 0 10px rgba(250, 204, 21, 0.5);
     }
+
+    /* MARKDOWN PREVIEW STYLING */
+    .markdown-preview { line-height: 1.7; color: #e5e7eb; font-size: 0.875rem; }
+    .markdown-preview h1 { font-size: 1.4rem; font-weight: 700; color: #38bdf8; margin-top: 1rem; margin-bottom: 0.5rem; border-bottom: 1px solid rgba(56, 189, 248, 0.2); padding-bottom: 0.25rem; }
+    .markdown-preview h2 { font-size: 1.2rem; font-weight: 700; color: #7dd3fc; margin-top: 0.9rem; margin-bottom: 0.4rem; }
+    .markdown-preview h3 { font-size: 1.05rem; font-weight: 600; color: #bae6fd; margin-top: 0.75rem; margin-bottom: 0.3rem; }
+    .markdown-preview p { margin-bottom: 0.65rem; }
+    .markdown-preview strong, .markdown-preview b { color: #ffffff; font-weight: 700; }
+    .markdown-preview em { color: #fde047; font-style: italic; }
+    .markdown-preview ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 0.75rem; }
+    .markdown-preview ol { list-style-type: decimal; padding-left: 1.5rem; margin-bottom: 0.75rem; }
+    .markdown-preview li { margin-bottom: 0.25rem; }
+    .markdown-preview code { background: rgba(56, 189, 248, 0.15); color: #67e8f9; padding: 0.15rem 0.4rem; border-radius: 0.375rem; font-family: monospace; font-size: 0.8rem; }
+    .markdown-preview pre { background: #020617; border: 1px solid rgba(56, 189, 248, 0.25); padding: 0.85rem; border-radius: 0.75rem; overflow-x: auto; margin-bottom: 0.75rem; }
+    .markdown-preview pre code { background: transparent; color: #e2e8f0; padding: 0; }
+    .markdown-preview blockquote { border-left: 3px solid #38bdf8; background: rgba(56, 189, 248, 0.08); padding: 0.5rem 0.85rem; border-radius: 0 0.5rem 0.5rem 0; margin-bottom: 0.75rem; color: #cbd5e1; }
+    .markdown-preview table { width: 100%; border-collapse: collapse; margin-bottom: 0.75rem; font-size: 0.8rem; }
+    .markdown-preview th, .markdown-preview td { border: 1px solid rgba(56, 189, 248, 0.25); padding: 0.45rem 0.65rem; text-align: left; }
+    .markdown-preview th { background: rgba(56, 189, 248, 0.15); color: #7dd3fc; font-weight: 600; }
+    .markdown-preview hr { border-color: rgba(56, 189, 248, 0.2); margin: 1rem 0; }
+    .markdown-preview a { color: #38bdf8; text-decoration: underline; }
   </style>
 </head>
 <body class="min-h-screen flex flex-col relative overflow-x-hidden cyber-grid selection:bg-cyan-500 selection:text-black">
@@ -47,21 +68,15 @@
     </div>
   </div>
 
-  <!-- NAVIGATION BAR WITH PERMANENT HAMBURGER MENU -->
+  <!-- TOP NAVIGATION BAR -->
   <header class="sticky top-0 z-40 tech-glass border-b border-cyan-500/10 px-6 py-4 flex items-center justify-between">
-    <div class="flex items-center gap-4">
-      <button type="button" onclick="toggleHamburgerDrawer()" class="tech-glass p-2.5 rounded-xl text-cyan-300 border border-cyan-500/30 hover:bg-cyan-500/10 transition cursor-pointer" title="เปิดเมนูจัดการ">
-        <i class="fa-solid fa-bars text-base"></i>
-      </button>
-
-      <div class="flex items-center gap-3 cursor-pointer" onclick="window.location.href='index.html'">
-        <div class="bg-gradient-to-tr from-rose-600 to-amber-500 p-2.5 rounded-xl shadow-lg shadow-rose-500/20 text-white font-bold text-lg flex items-center justify-center w-10 h-10">
-          <i class="fa-solid fa-user-shield"></i>
-        </div>
-        <div>
-          <h1 class="font-bold text-sm tracking-widest text-rose-400 uppercase">ST8 CP-Grader</h1>
-          <p class="text-[9px] text-gray-400 tracking-wider">ADMIN CONTROL PANEL</p>
-        </div>
+    <div class="flex items-center gap-3 cursor-pointer" onclick="window.location.href='index.html'">
+      <div class="bg-gradient-to-tr from-rose-600 to-amber-500 p-2.5 rounded-xl shadow-lg shadow-rose-500/20 text-white font-bold text-lg flex items-center justify-center w-10 h-10">
+        <i class="fa-solid fa-user-shield"></i>
+      </div>
+      <div>
+        <h1 class="font-bold text-sm tracking-widest text-rose-400 uppercase">ST8 CP-Grader</h1>
+        <p class="text-[9px] text-gray-400 tracking-wider">ADMIN CONTROL PANEL</p>
       </div>
     </div>
 
@@ -75,87 +90,95 @@
     </div>
   </header>
 
-  <!-- HAMBURGER DRAWER MENU -->
-  <div id="hamburgerDrawer" onclick="if(event.target === this) toggleHamburgerDrawer()" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden flex flex-col justify-end md:justify-start md:items-start transition-all">
-    <div class="tech-modal rounded-t-3xl md:rounded-r-3xl md:rounded-t-none p-6 space-y-4 border-t md:border-t-0 md:border-r border-cyan-500/30 w-full md:w-80 md:h-full">
-      <div class="flex justify-between items-center border-b border-cyan-500/20 pb-3">
-        <h3 class="font-bold text-cyan-300 text-sm"><i class="fa-solid fa-bars mr-2"></i> เมนูการจัดการ Admin</h3>
-        <button type="button" onclick="toggleHamburgerDrawer()" class="text-gray-400 hover:text-white cursor-pointer"><i class="fa-solid fa-xmark text-base"></i></button>
-      </div>
-      <div class="flex flex-col gap-2.5">
-        <button type="button" id="drawerBtnProblems" onclick="switchAdminTab('problems'); toggleHamburgerDrawer();" class="text-left px-4 py-3 rounded-xl bg-cyan-500/20 border border-cyan-500/30 text-cyan-300 text-xs font-semibold flex items-center gap-2 cursor-pointer">
-          <i class="fa-solid fa-book-open"></i> จัดการโจทย์ทั้งหมดในระบบ
-        </button>
-        <button type="button" id="drawerBtnVerify" onclick="switchAdminTab('verify'); toggleHamburgerDrawer();" class="text-left px-4 py-3 rounded-xl tech-glass text-gray-300 text-xs font-semibold flex items-center gap-2 cursor-pointer">
-          <i class="fa-solid fa-clipboard-check"></i> ตรวจสอบโจทย์ที่ User เสนอมา
-        </button>
-        <button type="button" id="drawerBtnContests" onclick="switchAdminTab('contests'); toggleHamburgerDrawer();" class="text-left px-4 py-3 rounded-xl tech-glass text-gray-300 text-xs font-semibold flex items-center gap-2 cursor-pointer">
-          <i class="fa-solid fa-trophy"></i> จัดการ Contest
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- MAIN CONTAINER -->
-  <main class="flex-1 max-w-7xl mx-auto px-6 py-10 space-y-8 w-full relative z-10">
+  <!-- BODY LAYOUT: PERMANENT LEFT SIDEBAR + MAIN CONTENT -->
+  <div class="flex-1 flex flex-col md:flex-row relative z-10">
     
-    <!-- TAB 1: ALL PROBLEMS MANAGEMENT -->
-    <section id="adminTabProblems" class="space-y-6">
-      <div class="flex flex-wrap gap-4 justify-between items-center bg-gradient-to-r from-cyan-950/40 to-blue-950/20 p-6 rounded-3xl border border-cyan-500/20">
-        <div>
-          <h2 class="text-xl font-bold text-white mb-1"><i class="fa-solid fa-list-check text-cyan-400 mr-2"></i> คลังโจทย์ทั้งหมดในระบบ</h2>
-          <p class="text-xs text-gray-400">คลิกที่ "ชื่อโจทย์" เพื่อแก้ไขข้อมูล &bull; ควบคุมรหัสโจทย์, สถานะ, และดูสถิติ AC / Submissions</p>
-        </div>
-        <button type="button" onclick="openProblemModal('create')" class="bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-95 text-white px-5 py-3 rounded-2xl text-xs font-semibold shadow-lg shadow-cyan-500/20 transition flex items-center gap-2 cursor-pointer">
-          <i class="fa-solid fa-plus-circle"></i> อัปโหลด / สร้างโจทย์ใหม่
+    <!-- PERMANENT LEFT SIDEBAR MENU -->
+    <aside class="w-full md:w-64 lg:w-72 shrink-0 tech-glass border-b md:border-b-0 md:border-r border-cyan-500/20 p-4 md:p-5 space-y-4 md:min-h-[calc(100vh-73px)]">
+      <div class="flex items-center gap-2 text-cyan-300 font-bold text-xs tracking-wider uppercase px-2 pb-2 border-b border-cyan-500/20">
+        <i class="fa-solid fa-bars text-cyan-400"></i>
+        <span>เมนูการจัดการ Admin</span>
+      </div>
+
+      <nav class="flex flex-row md:flex-col gap-2 overflow-x-auto md:overflow-visible pb-1 md:pb-0">
+        <button type="button" id="drawerBtnProblems" onclick="switchAdminTab('problems')" class="shrink-0 text-left px-4 py-3 rounded-xl bg-cyan-500/20 border border-cyan-500/40 text-cyan-300 text-xs font-semibold flex items-center gap-2.5 transition cursor-pointer">
+          <i class="fa-solid fa-book-open w-4 text-center"></i>
+          <span>จัดการโจทย์ทั้งหมดในระบบ</span>
         </button>
-      </div>
 
-      <div class="tech-glass rounded-2xl overflow-x-auto border border-cyan-500/20">
-        <table class="w-full text-left text-xs font-mono">
-          <thead class="bg-cyan-950/40 text-cyan-300 border-b border-cyan-500/20 font-sans">
-            <tr>
-              <th class="p-4">รหัสโจทย์ & ชื่อโจทย์ (คลิกเพื่อแก้ไข)</th>
-              <th class="p-4">หมวดหมู่ / ความยาก</th>
-              <th class="p-4 text-center">สถิติ (AC / ส่ง)</th>
-              <th class="p-4 text-center">การแสดงผล</th>
-              <th class="p-4 text-right">จัดการ</th>
-            </tr>
-          </thead>
-          <tbody id="allAdminProblemsTableBody" class="divide-y divide-cyan-500/10 font-sans">
-            <tr><td colspan="5" class="p-6 text-center text-gray-400">กำลังโหลดรายการโจทย์...</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
+        <button type="button" id="drawerBtnVerify" onclick="switchAdminTab('verify')" class="shrink-0 text-left px-4 py-3 rounded-xl tech-glass text-gray-300 hover:text-cyan-300 border border-cyan-500/15 text-xs font-semibold flex items-center gap-2.5 transition cursor-pointer">
+          <i class="fa-solid fa-clipboard-check w-4 text-center"></i>
+          <span>ตรวจสอบโจทย์ที่ User เสนอ</span>
+        </button>
 
-    <!-- TAB 2: VERIFY PROBLEMS -->
-    <section id="adminTabVerify" class="space-y-4 hidden">
-      <div class="tech-glass rounded-3xl p-6 border border-cyan-500/20 space-y-4">
-        <h2 class="text-xl font-bold text-white"><i class="fa-solid fa-clipboard-check text-cyan-400 mr-2"></i> รายการโจทย์ที่รอการตรวจสอบจาก Admin</h2>
-        <div id="pendingProblemsContainer" class="space-y-3">
-          <div class="text-center text-gray-400 text-xs py-4">กำลังโหลดข้อมูล...</div>
-        </div>
-      </div>
-    </section>
+        <button type="button" id="drawerBtnContests" onclick="switchAdminTab('contests')" class="shrink-0 text-left px-4 py-3 rounded-xl tech-glass text-gray-300 hover:text-cyan-300 border border-cyan-500/15 text-xs font-semibold flex items-center gap-2.5 transition cursor-pointer">
+          <i class="fa-solid fa-trophy w-4 text-center"></i>
+          <span>จัดการ Contest</span>
+        </button>
+      </nav>
+    </aside>
 
-    <!-- TAB 3: CONTEST MANAGEMENT -->
-    <section id="adminTabContests" class="space-y-4 hidden">
-      <div class="tech-glass rounded-3xl p-6 border border-cyan-500/20 space-y-4">
-        <h2 class="text-xl font-bold text-white"><i class="fa-solid fa-trophy text-amber-400 mr-2"></i> จัดการการแข่งขัน (Contest Hub)</h2>
-        <form id="createContestForm" class="tech-glass p-5 rounded-2xl border border-cyan-500/10 space-y-3">
-          <h3 class="font-bold text-cyan-300 text-xs">สร้าง Contest ใหม่</h3>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <input type="text" id="contestTitleInput" required placeholder="ชื่อ Contest (เช่น ST8 Weekly Contest #05)" class="bg-black/60 border border-cyan-500/20 rounded-xl px-4 py-2 text-xs text-white">
-            <input type="text" id="contestDescInput" placeholder="รายละเอียดหรือกติกา" class="bg-black/60 border border-cyan-500/20 rounded-xl px-4 py-2 text-xs text-white">
+    <!-- MAIN CONTENT AREA -->
+    <main class="flex-1 max-w-6xl mx-auto px-6 py-8 space-y-8 w-full">
+      
+      <!-- TAB 1: ALL PROBLEMS MANAGEMENT -->
+      <section id="adminTabProblems" class="space-y-6">
+        <div class="flex flex-wrap gap-4 justify-between items-center bg-gradient-to-r from-cyan-950/40 to-blue-950/20 p-6 rounded-3xl border border-cyan-500/20">
+          <div>
+            <h2 class="text-xl font-bold text-white mb-1"><i class="fa-solid fa-list-check text-cyan-400 mr-2"></i> คลังโจทย์ทั้งหมดในระบบ</h2>
+            <p class="text-xs text-gray-400">คลิกที่ "ชื่อโจทย์" เพื่อแก้ไขข้อมูล &bull; ควบคุมรหัสโจทย์, สถานะ, และดูสถิติ AC / Submissions</p>
           </div>
-          <button type="submit" class="bg-gradient-to-r from-blue-600 to-cyan-500 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-md cursor-pointer">บันทึก Contest</button>
-        </form>
-        <div id="contestsListContainer" class="space-y-2"></div>
-      </div>
-    </section>
+          <button type="button" onclick="openProblemModal('create')" class="bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-95 text-white px-5 py-3 rounded-2xl text-xs font-semibold shadow-lg shadow-cyan-500/20 transition flex items-center gap-2 cursor-pointer">
+            <i class="fa-solid fa-plus-circle"></i> อัปโหลด / สร้างโจทย์ใหม่
+          </button>
+        </div>
 
-  </main>
+        <div class="tech-glass rounded-2xl overflow-x-auto border border-cyan-500/20">
+          <table class="w-full text-left text-xs font-mono">
+            <thead class="bg-cyan-950/40 text-cyan-300 border-b border-cyan-500/20 font-sans">
+              <tr>
+                <th class="p-4">รหัสโจทย์ & ชื่อโจทย์ (คลิกเพื่อแก้ไข)</th>
+                <th class="p-4">หมวดหมู่ / ความยาก</th>
+                <th class="p-4 text-center">สถิติ (AC / ส่ง)</th>
+                <th class="p-4 text-center">การแสดงผล</th>
+                <th class="p-4 text-right">จัดการ</th>
+              </tr>
+            </thead>
+            <tbody id="allAdminProblemsTableBody" class="divide-y divide-cyan-500/10 font-sans">
+              <tr><td colspan="5" class="p-6 text-center text-gray-400">กำลังโหลดรายการโจทย์...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- TAB 2: VERIFY PROBLEMS -->
+      <section id="adminTabVerify" class="space-y-4 hidden">
+        <div class="tech-glass rounded-3xl p-6 border border-cyan-500/20 space-y-4">
+          <h2 class="text-xl font-bold text-white"><i class="fa-solid fa-clipboard-check text-cyan-400 mr-2"></i> รายการโจทย์ที่รอการตรวจสอบจาก Admin</h2>
+          <div id="pendingProblemsContainer" class="space-y-3">
+            <div class="text-center text-gray-400 text-xs py-4">กำลังโหลดข้อมูล...</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 3: CONTEST MANAGEMENT -->
+      <section id="adminTabContests" class="space-y-4 hidden">
+        <div class="tech-glass rounded-3xl p-6 border border-cyan-500/20 space-y-4">
+          <h2 class="text-xl font-bold text-white"><i class="fa-solid fa-trophy text-amber-400 mr-2"></i> จัดการการแข่งขัน (Contest Hub)</h2>
+          <form id="createContestForm" class="tech-glass p-5 rounded-2xl border border-cyan-500/10 space-y-3">
+            <h3 class="font-bold text-cyan-300 text-xs">สร้าง Contest ใหม่</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <input type="text" id="contestTitleInput" required placeholder="ชื่อ Contest (เช่น ST8 Weekly Contest #05)" class="bg-black/60 border border-cyan-500/20 rounded-xl px-4 py-2 text-xs text-white">
+              <input type="text" id="contestDescInput" placeholder="รายละเอียดหรือกติกา" class="bg-black/60 border border-cyan-500/20 rounded-xl px-4 py-2 text-xs text-white">
+            </div>
+            <button type="submit" class="bg-gradient-to-r from-blue-600 to-cyan-500 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-md cursor-pointer">บันทึก Contest</button>
+          </form>
+          <div id="contestsListContainer" class="space-y-2"></div>
+        </div>
+      </section>
+
+    </main>
+  </div>
 
   <!-- UNIFIED MODAL: CREATE / EDIT PROBLEM -->
   <div id="problemModal" class="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/85 backdrop-blur-md opacity-0 pointer-events-none transition-all duration-300">
@@ -273,11 +296,11 @@
           </div>
 
           <div id="statementEditArea">
-            <textarea id="admStatementText" rows="6" placeholder="พิมพ์เนื้อหาโจทย์ในรูปแบบ Markdown (เช่น # หัวข้อ, **ตัวหนา**, `code`) ..." class="w-full bg-black/60 border border-cyan-500/20 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-cyan-400 font-sans resize-y"></textarea>
+            <textarea id="admStatementText" rows="6" placeholder="พิมพ์เนื้อหาโจทย์ในรูปแบบ Markdown (เช่น # หัวข้อ, **ตัวหนา**, `code`, - รายการ) ..." class="w-full bg-black/60 border border-cyan-500/20 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-cyan-400 font-mono resize-y"></textarea>
           </div>
 
           <div id="statementPreviewArea" class="hidden w-full bg-black/60 border border-cyan-500/20 rounded-xl p-4 text-xs text-white min-h-[150px] max-h-96 overflow-y-auto font-sans space-y-4">
-            <div id="markdownRenderOutput" class="prose prose-invert max-w-none"></div>
+            <div id="markdownRenderOutput" class="markdown-preview"></div>
             <div id="pdfEmbedPreviewContainer" class="hidden border-t border-cyan-500/20 pt-3">
               <p class="text-[11px] text-cyan-300 font-semibold mb-2"><i class="fa-solid fa-file-pdf text-rose-400 mr-1"></i> ตัวอย่างไฟล์ PDF ที่แนบไว้:</p>
               <iframe id="pdfPreviewIframe" class="w-full h-72 rounded-xl border border-cyan-500/30 bg-white"></iframe>
@@ -313,6 +336,10 @@
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhxbm1ma2Fmd3duamlxcGRoem9oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQyMTc0NzEsImV4cCI6MjEwOTc5MzQ3MX0.m6dHtNnXuQ108DvafyKWeFvAg_oySuQH3LRg0Jzaops';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+    if (typeof marked !== 'undefined') {
+      marked.setOptions({ breaks: true, gfm: true });
+    }
+
     let activeTags = [];
     let allLoadedProblems = [];
     let customTagsList = JSON.parse(localStorage.getItem('st8_custom_tags')) || ["Graph", "Dynamic Programming", "Sorting", "Math", "Greedy", "String", "Bitmask"];
@@ -329,11 +356,6 @@
       
       toast.classList.remove('translate-x-full');
       setTimeout(() => { toast.classList.add('translate-x-full'); }, 3000);
-    }
-
-    function toggleHamburgerDrawer() {
-      const drawer = document.getElementById('hamburgerDrawer');
-      drawer.classList.toggle('hidden');
     }
 
     // TAGS MANAGEMENT
@@ -428,13 +450,27 @@
       }
     }
 
+    // RENDER MARKDOWN PREVIEW
+    function renderMarkdownPreviewContent() {
+      const textVal = document.getElementById('admStatementText').value;
+      const mdOut = document.getElementById('markdownRenderOutput');
+      if (!textVal.trim()) {
+        mdOut.innerHTML = '<span class="text-gray-500 italic">ยังไม่มีข้อความ Markdown... ลองพิมพ์ # หัวข้อ หรือ **ตัวหนา** ในช่องแก้ไข</span>';
+        return;
+      }
+      if (typeof marked !== 'undefined') {
+        mdOut.innerHTML = marked.parse(textVal);
+      } else {
+        mdOut.textContent = textVal;
+      }
+    }
+
     // SWITCH STATEMENT TAB (EDIT VS PREVIEW)
     function switchStatementTab(tab) {
       const editArea = document.getElementById('statementEditArea');
       const previewArea = document.getElementById('statementPreviewArea');
       const btnEdit = document.getElementById('stmtTabEdit');
       const btnPreview = document.getElementById('stmtTabPreview');
-      const textVal = document.getElementById('admStatementText').value;
       const pdfUrl = document.getElementById('currentPdfUrl').value;
 
       if (tab === 'edit') {
@@ -448,8 +484,7 @@
         btnPreview.className = 'px-3 py-1 rounded-lg text-[11px] font-semibold bg-cyan-500 text-black transition cursor-pointer';
         btnEdit.className = 'px-3 py-1 rounded-lg text-[11px] font-semibold text-gray-300 hover:text-white transition cursor-pointer';
         
-        const mdOut = document.getElementById('markdownRenderOutput');
-        mdOut.innerHTML = textVal ? marked.parse(textVal) : '<span class="text-gray-500 italic">ยังไม่มีข้อความ Markdown...</span>';
+        renderMarkdownPreviewContent();
 
         const pdfContainer = document.getElementById('pdfEmbedPreviewContainer');
         const pdfIframe = document.getElementById('pdfPreviewIframe');
@@ -546,7 +581,6 @@
           renderTags();
         }
 
-        // โหลด Test Cases เดิม (ถ้ามีเก็บใน JSON)
         const list = document.getElementById('formTestCasesList');
         list.innerHTML = '';
         if (p.test_cases && Array.isArray(p.test_cases) && p.test_cases.length > 0) {
@@ -557,7 +591,6 @@
           addFormTestCaseRow('', '', true);
         }
 
-        // แสดงไฟล์ PDF เดิมที่อัปโหลดไว้ พร้อมปุ่ม Pop-out
         if (p.statement_pdf_url) {
           document.getElementById('currentPdfUrl').value = p.statement_pdf_url;
           const pdfName = p.statement_pdf_name || 'statement.pdf';
@@ -577,7 +610,6 @@
           `;
         }
 
-        // แสดงลิงก์โหลด ZIP เดิม (ถ้ามี)
         if (p.testcases_zip_url) {
           document.getElementById('currentZipUrl').value = p.testcases_zip_url;
           existingZipContainer.innerHTML = `
@@ -620,8 +652,8 @@
       document.getElementById('adminTabVerify').classList.add('hidden');
       document.getElementById('adminTabContests').classList.add('hidden');
 
-      const activeStyle = 'text-left px-4 py-3 rounded-xl bg-cyan-500/20 border border-cyan-500/30 text-cyan-300 text-xs font-semibold flex items-center gap-2 cursor-pointer';
-      const normalStyle = 'text-left px-4 py-3 rounded-xl tech-glass text-gray-300 text-xs font-semibold flex items-center gap-2 cursor-pointer';
+      const activeStyle = 'shrink-0 text-left px-4 py-3 rounded-xl bg-cyan-500/20 border border-cyan-500/40 text-cyan-300 text-xs font-semibold flex items-center gap-2.5 transition cursor-pointer';
+      const normalStyle = 'shrink-0 text-left px-4 py-3 rounded-xl tech-glass text-gray-300 hover:text-cyan-300 border border-cyan-500/15 text-xs font-semibold flex items-center gap-2.5 transition cursor-pointer';
 
       document.getElementById('drawerBtnProblems').className = normalStyle;
       document.getElementById('drawerBtnVerify').className = normalStyle;
@@ -771,7 +803,7 @@
         const acceptedSubs = pSubs.filter(s => s.status === 'Accepted' || s.status === 'AC').length;
 
         return `
-          <tr class="hover:bg-cyan-500/5 transition">
+          <tr id="problemRow_${p.id}" class="hover:bg-cyan-500/5 transition">
             <td class="p-4">
               <div class="flex items-center gap-2">
                 <span class="text-xs font-bold text-cyan-300 font-mono bg-cyan-500/10 px-2.5 py-1 rounded-lg border border-cyan-500/30">${p.problem_code || 'ST8-P' + p.id}</span>
@@ -789,12 +821,12 @@
             </td>
             <td class="p-4 text-center">
               <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" ${p.is_verified ? 'checked' : ''} onchange="toggleProblemVisibility(${p.id}, this.checked)" class="sr-only peer">
+                <input type="checkbox" ${p.is_verified ? 'checked' : ''} onchange="toggleProblemVisibility('${p.id}', this.checked)" class="sr-only peer">
                 <div class="w-9 h-5 bg-black/60 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-cyan-500"></div>
               </label>
             </td>
             <td class="p-4 text-right space-x-1.5 font-sans">
-              <button type="button" onclick="deleteProblem(${p.id})" class="bg-rose-600/20 text-rose-400 hover:bg-rose-600 hover:text-white px-3 py-1.5 rounded-xl transition text-xs font-semibold cursor-pointer">
+              <button type="button" onclick="deleteProblem('${p.id}')" class="bg-rose-600/20 text-rose-400 hover:bg-rose-600 hover:text-white px-3 py-1.5 rounded-xl transition text-xs font-semibold cursor-pointer">
                 <i class="fa-solid fa-trash mr-1"></i> ลบโจทย์
               </button>
             </td>
@@ -812,7 +844,6 @@
       }
     }
 
-    // COLLECT TEST CASES ARRAY FROM FORM
     function collectFormTestCases() {
       const cards = document.querySelectorAll('#formTestCasesList .tc-card');
       const result = [];
@@ -827,7 +858,6 @@
       return result;
     }
 
-    // SUBMIT UNIFIED FORM
     document.getElementById('problemForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const mode = document.getElementById('formMode').value;
@@ -855,7 +885,6 @@
         is_verified: true
       };
 
-      // บันทึกฟิลด์เสริม (รองรับกรณีคอลัมน์ใน Supabase มีหรือไม่มี)
       if (pdfUrl) {
         problemData.statement_pdf_url = pdfUrl;
         if (selectedPdfFileName) problemData.statement_pdf_name = selectedPdfFileName;
@@ -873,7 +902,6 @@
         showToast('กำลังบันทึก', 'กำลังอัปโหลดโจทย์เข้าสู่ระบบ...');
         let { error } = await supabaseClient.from('problems').insert([problemData]);
 
-        // Fallback หากบางคอลัมน์ยังไม่ได้สร้างในตาราง Supabase
         if (error && error.message && error.message.includes('column')) {
           const basicData = {
             problem_code, title, slug: problemData.slug, difficulty, statement, tags, max_score, is_verified: true, created_by: problemData.created_by
@@ -910,18 +938,44 @@
       }
     });
 
+    // FULLY FUNCTIONAL DELETE PROBLEM (HANDLES FOREIGN KEYS & RLS CHECK)
     async function deleteProblem(id) {
-      if (confirm(`คุณต้องการลบโจทย์รหัส #${id} ออกจากระบบอย่างถาวรใช่หรือไม่?`)) {
-        showToast('กำลังลบ', 'กำลังลบโจทย์ออกจากฐานข้อมูล...');
+      if (!confirm(`คุณต้องการลบโจทย์รหัส #${id} ออกจากระบบอย่างถาวรใช่หรือไม่?`)) return;
+
+      showToast('กำลังลบ', 'กำลังลบข้อมูลที่เกี่ยวข้องและตัวโจทย์...');
+
+      try {
+        // 1. ลบตารางลูกที่อาจผูก Foreign Key ไว้ก่อน
         await supabaseClient.from('submissions').delete().eq('problem_id', id);
-        const { error } = await supabaseClient.from('problems').delete().eq('id', id);
+        await supabaseClient.from('test_cases').delete().eq('problem_id', id);
+        await supabaseClient.from('contest_problems').delete().eq('problem_id', id);
+
+        // 2. ลบโจทย์หลัก พร้อมขอ count กลับมาตรวจสอบว่าลบจริงไหม (ป้องกันเงียบหายจาก RLS)
+        const { error, count } = await supabaseClient
+          .from('problems')
+          .delete({ count: 'exact' })
+          .eq('id', id);
+
         if (error) {
-          showToast('เกิดข้อผิดพลาด', error.message, true);
-        } else {
-          showToast('ลบโจทย์สำเร็จ', `ลบโจทย์รหัส #${id} ออกจากระบบเรียบร้อยแล้ว`);
-          fetchAllAdminProblems();
-          fetchPendingProblems();
+          showToast('ลบไม่สำเร็จ', error.message, true);
+          return;
         }
+
+        if (count === 0) {
+          showToast('ไม่มีสิทธิ์ลบ (RLS)', 'กรุณาเปิด Policy DELETE บนตาราง problems ใน Supabase', true);
+          return;
+        }
+
+        // 3. ลบออกจากหน้าจอทันทีและรีโหลดรายการ
+        const rowEl = document.getElementById(`problemRow_${id}`);
+        if (rowEl) rowEl.remove();
+        allLoadedProblems = allLoadedProblems.filter(p => String(p.id) !== String(id));
+
+        showToast('ลบโจทย์สำเร็จ', `ลบโจทย์รหัส #${id} ออกจากระบบเรียบร้อยแล้ว`);
+        fetchAllAdminProblems();
+        fetchPendingProblems();
+      } catch (err) {
+        showToast('เกิดข้อผิดพลาด', err.message, true);
       }
     }
 
@@ -939,8 +993,8 @@
             <span class="text-[10px] text-amber-400">ความยาก: ${p.difficulty}</span>
           </div>
           <div class="flex gap-2">
-            <button type="button" onclick="approveProblem(${p.id})" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer">อนุมัติ</button>
-            <button type="button" onclick="deleteProblem(${p.id})" class="bg-rose-600/20 text-rose-400 hover:bg-rose-600 hover:text-white px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer">ลบ</button>
+            <button type="button" onclick="approveProblem('${p.id}')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer">อนุมัติ</button>
+            <button type="button" onclick="deleteProblem('${p.id}')" class="bg-rose-600/20 text-rose-400 hover:bg-rose-600 hover:text-white px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer">ลบ</button>
           </div>
         </div>
       `).join('');

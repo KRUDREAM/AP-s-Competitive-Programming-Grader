@@ -11,6 +11,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <style>
+    html, body { max-width: 100%; overflow-x: hidden; }
     body { font-family: 'Kanit', sans-serif; background-color: #030712; color: #f3f4f6; }
     .kanit-font { font-family: 'Kanit', sans-serif !important; }
     .tech-glass {
@@ -90,9 +91,9 @@
   </div>
 
   <!-- TOP NAVIGATION BAR -->
-  <header class="sticky top-0 z-40 tech-glass border-b border-cyan-500/10 px-6 py-4 flex items-center justify-between">
+  <header class="sticky top-0 z-40 tech-glass border-b border-cyan-500/10 px-4 md:px-6 py-3.5 flex items-center justify-between w-full">
     <div class="flex items-center gap-3 cursor-pointer" onclick="window.location.href='index.html'">
-      <div class="bg-gradient-to-tr from-rose-600 to-amber-500 p-2.5 rounded-xl shadow-lg shadow-rose-500/20 text-white font-bold text-lg flex items-center justify-center w-10 h-10">
+      <div class="bg-gradient-to-tr from-rose-600 to-amber-500 p-2 rounded-xl shadow-lg shadow-rose-500/20 text-white font-bold text-base flex items-center justify-center w-9 h-9">
         <i class="fa-solid fa-user-shield"></i>
       </div>
       <div>
@@ -101,78 +102,78 @@
       </div>
     </div>
 
-    <div class="flex items-center gap-3">
-      <a href="index.html" class="tech-glass hover:bg-cyan-500/10 text-cyan-300 border border-cyan-500/30 px-4 py-2 rounded-xl text-xs transition flex items-center gap-1.5">
-        <i class="fa-solid fa-house"></i> หน้าหลัก
+    <div class="flex items-center gap-2.5">
+      <a href="index.html" class="tech-glass hover:bg-cyan-500/10 text-cyan-300 border border-cyan-500/30 px-3.5 py-2 rounded-xl text-xs transition flex items-center gap-1.5">
+        <i class="fa-solid fa-house"></i> <span class="hidden sm:inline">หน้าหลัก</span>
       </a>
-      <button type="button" onclick="handleAdminLogout()" class="bg-rose-600/20 text-rose-400 hover:bg-rose-600 hover:text-white px-4 py-2 rounded-xl text-xs transition font-semibold cursor-pointer">
+      <button type="button" onclick="handleAdminLogout()" class="bg-rose-600/20 text-rose-400 hover:bg-rose-600 hover:text-white px-3.5 py-2 rounded-xl text-xs transition font-semibold cursor-pointer">
         <i class="fa-solid fa-right-from-bracket mr-1"></i> ออกจากระบบ
       </button>
     </div>
   </header>
 
-  <!-- BODY LAYOUT: PERMANENT LEFT SIDEBAR + MAIN CONTENT -->
-  <div class="flex-1 flex flex-col md:flex-row relative z-10">
+  <!-- BODY LAYOUT: PERMANENT LEFT SIDEBAR + MAIN CONTENT (MIN-W-0 FIXES OVERFLOW) -->
+  <div class="flex-1 flex flex-col lg:flex-row relative z-10 w-full min-w-0">
     
     <!-- PERMANENT LEFT SIDEBAR MENU -->
-    <aside class="w-full md:w-64 lg:w-72 shrink-0 tech-glass border-b md:border-b-0 md:border-r border-cyan-500/20 p-4 md:p-5 space-y-4 md:min-h-[calc(100vh-73px)]">
-      <div class="flex items-center gap-2 text-cyan-300 font-bold text-xs tracking-wider uppercase px-2 pb-2.5 border-b border-cyan-500/20">
+    <aside class="w-full lg:w-60 shrink-0 tech-glass border-b lg:border-b-0 lg:border-r border-cyan-500/20 p-4 space-y-3 lg:min-h-[calc(100vh-69px)]">
+      <div class="flex items-center gap-2 text-cyan-300 font-bold text-xs tracking-wider uppercase px-2 pb-2 border-b border-cyan-500/20">
         <i class="fa-solid fa-bars text-cyan-400"></i>
         <span>เมนูการจัดการ Admin</span>
       </div>
 
-      <nav class="flex flex-row md:flex-col gap-2 overflow-x-auto md:overflow-visible pb-1 md:pb-0">
-        <button type="button" id="drawerBtnProblems" onclick="switchAdminTab('problems')" class="shrink-0 text-left px-4 py-3 rounded-xl bg-cyan-500/20 border border-cyan-500/40 text-cyan-300 text-xs font-semibold flex items-center gap-2.5 transition-all duration-200 cursor-pointer">
+      <nav class="flex flex-row lg:flex-col gap-2 overflow-x-auto lg:overflow-visible pb-1 lg:pb-0">
+        <button type="button" id="drawerBtnProblems" onclick="switchAdminTab('problems')" class="shrink-0 text-left px-3.5 py-2.5 rounded-xl bg-cyan-500/20 border border-cyan-500/40 text-cyan-300 text-xs font-semibold flex items-center gap-2.5 transition-all duration-200 cursor-pointer">
           <i class="fa-solid fa-book-open w-4 text-center"></i>
           <span>จัดการโจทย์ทั้งหมดในระบบ</span>
         </button>
 
-        <button type="button" id="drawerBtnVerify" onclick="switchAdminTab('verify')" class="shrink-0 text-left px-4 py-3 rounded-xl tech-glass text-gray-300 hover:text-cyan-300 hover:bg-cyan-500/10 border border-cyan-500/15 text-xs font-semibold flex items-center gap-2.5 transition-all duration-200 cursor-pointer">
+        <button type="button" id="drawerBtnVerify" onclick="switchAdminTab('verify')" class="shrink-0 text-left px-3.5 py-2.5 rounded-xl tech-glass text-gray-300 hover:text-cyan-300 hover:bg-cyan-500/10 border border-cyan-500/15 text-xs font-semibold flex items-center gap-2.5 transition-all duration-200 cursor-pointer">
           <i class="fa-solid fa-clipboard-check w-4 text-center"></i>
           <span>ตรวจสอบโจทย์ที่ User เสนอ</span>
         </button>
 
-        <button type="button" id="drawerBtnContests" onclick="switchAdminTab('contests')" class="shrink-0 text-left px-4 py-3 rounded-xl tech-glass text-gray-300 hover:text-cyan-300 hover:bg-cyan-500/10 border border-cyan-500/15 text-xs font-semibold flex items-center gap-2.5 transition-all duration-200 cursor-pointer">
+        <button type="button" id="drawerBtnContests" onclick="switchAdminTab('contests')" class="shrink-0 text-left px-3.5 py-2.5 rounded-xl tech-glass text-gray-300 hover:text-cyan-300 hover:bg-cyan-500/10 border border-cyan-500/15 text-xs font-semibold flex items-center gap-2.5 transition-all duration-200 cursor-pointer">
           <i class="fa-solid fa-trophy w-4 text-center"></i>
           <span>จัดการ Contest</span>
         </button>
       </nav>
     </aside>
 
-    <!-- MAIN CONTENT AREA -->
-    <main class="flex-1 max-w-7xl mx-auto px-5 md:px-7 py-8 space-y-6 w-full">
+    <!-- MAIN CONTENT AREA (MIN-W-0 PREVENTS FLEX CHILD FROM EXPANDING BEYOND VIEWPORT) -->
+    <main class="flex-1 min-w-0 px-4 md:px-6 py-6 space-y-5">
       
       <!-- TAB 1: ALL PROBLEMS MANAGEMENT -->
-      <section id="adminTabProblems" class="space-y-5">
-        <div class="flex flex-wrap gap-4 justify-between items-center bg-gradient-to-r from-cyan-950/40 to-blue-950/20 p-6 rounded-3xl border border-cyan-500/20">
+      <section id="adminTabProblems" class="space-y-4 min-w-0">
+        <div class="flex flex-wrap gap-3 justify-between items-center bg-gradient-to-r from-cyan-950/40 to-blue-950/20 p-5 rounded-2xl border border-cyan-500/20">
           <div>
-            <h2 class="text-xl font-bold text-white mb-1"><i class="fa-solid fa-list-check text-cyan-400 mr-2"></i> คลังโจทย์ทั้งหมดในระบบ</h2>
+            <h2 class="text-lg md:text-xl font-bold text-white mb-0.5"><i class="fa-solid fa-list-check text-cyan-400 mr-2"></i> คลังโจทย์ทั้งหมดในระบบ</h2>
             <p class="text-xs text-gray-400">คลิกที่ "ชื่อโจทย์" เพื่อแก้ไขข้อมูล &bull; เลือกกรองหลายแท็กพร้อมกัน, แยกรูปแบบฟังก์ชัน / Standard I/O และเรียงลำดับโจทย์ได้ทันที</p>
           </div>
-          <button type="button" onclick="openProblemModal('create')" class="bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-95 hover:scale-[1.01] active:scale-[0.99] text-white px-5 py-3 rounded-2xl text-sm font-semibold shadow-lg shadow-cyan-500/20 transition-all duration-200 flex items-center gap-2 cursor-pointer">
+          <button type="button" onclick="openProblemModal('create')" class="bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-95 hover:scale-[1.01] active:scale-[0.99] text-white px-4 py-2.5 rounded-xl text-xs md:text-sm font-semibold shadow-lg shadow-cyan-500/20 transition-all duration-200 flex items-center gap-2 cursor-pointer shrink-0">
             <i class="fa-solid fa-plus-circle"></i> อัปโหลด / สร้างโจทย์ใหม่
           </button>
         </div>
 
         <!-- SEARCH, SOURCE FILTER, SORT & MULTI-SELECT QUICK TAGS BAR -->
-        <div class="tech-glass rounded-2xl p-4 border border-cyan-500/20 space-y-3.5">
-          <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
+        <div class="tech-glass rounded-2xl p-4 border border-cyan-500/20 space-y-3">
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-2.5">
             <!-- Search Input -->
             <div class="md:col-span-5 relative">
               <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-cyan-400 text-xs"></i>
-              <input type="text" id="adminSearchInput" oninput="applyProblemFiltersAndRender()" placeholder="ค้นหารหัสโจทย์, ชื่อโจทย์, หรือแท็ก..." class="w-full bg-black/60 border border-cyan-500/25 focus:border-cyan-400 focus:outline-none rounded-xl pl-9 pr-4 py-2.5 text-sm text-white kanit-font transition">
+              <input type="text" id="adminSearchInput" oninput="applyProblemFiltersAndRender()" placeholder="ค้นหารหัสโจทย์, ชื่อโจทย์, หรือแท็ก..." class="w-full bg-black/60 border border-cyan-500/25 focus:border-cyan-400 focus:outline-none rounded-xl pl-9 pr-4 py-2 text-sm text-white kanit-font transition">
             </div>
 
             <!-- Source Filter (Admin vs Community) -->
             <div class="md:col-span-4 flex bg-black/60 p-1 rounded-xl border border-cyan-500/20">
-              <button type="button" onclick="setSourceFilter('all')" id="srcBtnAll" class="flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold bg-cyan-500 text-black transition cursor-pointer">ทั้งหมด</button>
-              <button type="button" onclick="setSourceFilter('admin')" id="srcBtnAdmin" class="flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold text-gray-300 hover:text-white transition cursor-pointer">แอดมิน</button>
-              <button type="button" onclick="setSourceFilter('community')" id="srcBtnCommunity" class="flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold text-gray-300 hover:text-white transition cursor-pointer">ทางบ้าน</button>
+              <button type="button" onclick="setSourceFilter('all')" id="srcBtnAll" class="flex-1 py-1 px-2 rounded-lg text-xs font-semibold bg-cyan-500 text-black transition cursor-pointer">ทั้งหมด</button>
+              <button type="button" onclick="setSourceFilter('admin')" id="srcBtnAdmin" class="flex-1 py-1 px-2 rounded-lg text-xs font-semibold text-gray-300 hover:text-white transition cursor-pointer">แอดมิน</button>
+              <button type="button" onclick="setSourceFilter('community')" id="srcBtnCommunity" class="flex-1 py-1 px-2 rounded-lg text-xs font-semibold text-gray-300 hover:text-white transition cursor-pointer">ทางบ้าน</button>
             </div>
 
             <!-- Sort Dropdown -->
             <div class="md:col-span-3">
-              <select id="adminSortSelect" onchange="applyProblemFiltersAndRender()" class="w-full bg-black/60 border border-cyan-500/25 focus:border-cyan-400 focus:outline-none rounded-xl px-3.5 py-2.5 text-sm text-white kanit-font transition cursor-pointer">
+              <select id="adminSortSelect" onchange="applyProblemFiltersAndRender()" class="w-full bg-black/60 border border-cyan-500/25 focus:border-cyan-400 focus:outline-none rounded-xl px-3 py-2 text-sm text-white kanit-font transition cursor-pointer">
                 <option value="newest">เรียง: ล่าสุด</option>
                 <option value="code_asc">เรียง: รหัสโจทย์ (A - Z)</option>
                 <option value="code_desc">เรียง: รหัสโจทย์ (Z - A)</option>
@@ -185,8 +186,8 @@
 
           <!-- Multi-Select Quick Tag Filter Bar -->
           <div class="flex items-center justify-between gap-2 flex-wrap pt-2 border-t border-cyan-500/15">
-            <div class="flex items-center gap-2 flex-wrap">
-              <span class="text-xs text-gray-400 font-medium mr-1"><i class="fa-solid fa-tags text-amber-400 mr-1"></i> แท็กด่วน (เลือกได้หลายแท็ก):</span>
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <span class="text-xs text-gray-400 font-medium mr-1"><i class="fa-solid fa-tags text-amber-400 mr-1"></i> แท็กด่วน:</span>
               <div id="quickTagsFilterContainer" class="flex items-center gap-1.5 flex-wrap"></div>
             </div>
 
@@ -201,25 +202,24 @@
           </div>
         </div>
 
-        <!-- MAIN PROBLEMS TABLE (KANIT FONT + SEPARATE COLUMNS) -->
-        <div class="tech-glass rounded-2xl overflow-x-auto border border-cyan-500/20">
+        <!-- MAIN PROBLEMS TABLE (COMPACT 8 COLUMNS FIT SCREEN WIDTH CLEANLY) -->
+        <div class="tech-glass rounded-2xl overflow-x-auto border border-cyan-500/20 w-full">
           <table class="w-full text-left text-sm kanit-font">
             <thead class="bg-cyan-950/50 text-cyan-300 border-b border-cyan-500/20 text-xs uppercase tracking-wide">
               <tr>
-                <th class="p-4 whitespace-nowrap">รหัสโจทย์</th>
-                <th class="p-4">ชื่อโจทย์ (คลิกเพื่อแก้ไข)</th>
-                <th class="p-4 whitespace-nowrap">รูปแบบ</th>
-                <th class="p-4 whitespace-nowrap">แหล่งที่มา</th>
-                <th class="p-4">หมวดหมู่</th>
-                <th class="p-4 whitespace-nowrap text-center">ระดับความยาก</th>
-                <th class="p-4 whitespace-nowrap">กำหนดเวลา</th>
-                <th class="p-4 whitespace-nowrap text-center">สถิติ (AC / ส่ง)</th>
-                <th class="p-4 whitespace-nowrap text-center">แสดงผล</th>
-                <th class="p-4 whitespace-nowrap text-right">จัดการ</th>
+                <th class="px-3.5 py-3.5 whitespace-nowrap">รหัสโจทย์</th>
+                <th class="px-3.5 py-3.5 min-w-[200px]">ชื่อโจทย์ &amp; รูปแบบ</th>
+                <th class="px-3.5 py-3.5 whitespace-nowrap">ที่มา</th>
+                <th class="px-3.5 py-3.5 min-w-[140px]">หมวดหมู่</th>
+                <th class="px-3.5 py-3.5 whitespace-nowrap text-center">ความยาก</th>
+                <th class="px-3.5 py-3.5 whitespace-nowrap">กำหนดเวลา</th>
+                <th class="px-3.5 py-3.5 whitespace-nowrap text-center">สถิติ AC</th>
+                <th class="px-3.5 py-3.5 whitespace-nowrap text-center">แสดงผล</th>
+                <th class="px-3.5 py-3.5 whitespace-nowrap text-right">จัดการ</th>
               </tr>
             </thead>
             <tbody id="allAdminProblemsTableBody" class="divide-y divide-cyan-500/10 kanit-font">
-              <tr><td colspan="10" class="p-6 text-center text-gray-400">กำลังโหลดรายการโจทย์...</td></tr>
+              <tr><td colspan="9" class="p-6 text-center text-gray-400">กำลังโหลดรายการโจทย์...</td></tr>
             </tbody>
           </table>
         </div>
@@ -227,8 +227,8 @@
 
       <!-- TAB 2: VERIFY PROBLEMS -->
       <section id="adminTabVerify" class="space-y-4 hidden">
-        <div class="tech-glass rounded-3xl p-6 border border-cyan-500/20 space-y-4">
-          <h2 class="text-xl font-bold text-white"><i class="fa-solid fa-clipboard-check text-cyan-400 mr-2"></i> รายการโจทย์ที่รอการตรวจสอบจาก Admin</h2>
+        <div class="tech-glass rounded-2xl p-5 border border-cyan-500/20 space-y-4">
+          <h2 class="text-lg font-bold text-white"><i class="fa-solid fa-clipboard-check text-cyan-400 mr-2"></i> รายการโจทย์ที่รอการตรวจสอบจาก Admin</h2>
           <div id="pendingProblemsContainer" class="space-y-3">
             <div class="text-center text-gray-400 text-xs py-4">กำลังโหลดข้อมูล...</div>
           </div>
@@ -237,15 +237,15 @@
 
       <!-- TAB 3: CONTEST MANAGEMENT -->
       <section id="adminTabContests" class="space-y-4 hidden">
-        <div class="tech-glass rounded-3xl p-6 border border-cyan-500/20 space-y-4">
-          <h2 class="text-xl font-bold text-white"><i class="fa-solid fa-trophy text-amber-400 mr-2"></i> จัดการการแข่งขัน (Contest Hub)</h2>
-          <form id="createContestForm" class="tech-glass p-5 rounded-2xl border border-cyan-500/10 space-y-3">
+        <div class="tech-glass rounded-2xl p-5 border border-cyan-500/20 space-y-4">
+          <h2 class="text-lg font-bold text-white"><i class="fa-solid fa-trophy text-amber-400 mr-2"></i> จัดการการแข่งขัน (Contest Hub)</h2>
+          <form id="createContestForm" class="tech-glass p-4 rounded-2xl border border-cyan-500/10 space-y-3">
             <h3 class="font-bold text-cyan-300 text-sm">สร้าง Contest ใหม่</h3>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <input type="text" id="contestTitleInput" required placeholder="ชื่อ Contest (เช่น ST8 Weekly Contest #05)" class="bg-black/60 border border-cyan-500/20 rounded-xl px-4 py-2.5 text-sm text-white">
-              <input type="text" id="contestDescInput" placeholder="รายละเอียดหรือกติกา" class="bg-black/60 border border-cyan-500/20 rounded-xl px-4 py-2.5 text-sm text-white">
+              <input type="text" id="contestTitleInput" required placeholder="ชื่อ Contest (เช่น ST8 Weekly Contest #05)" class="bg-black/60 border border-cyan-500/20 rounded-xl px-4 py-2 text-sm text-white">
+              <input type="text" id="contestDescInput" placeholder="รายละเอียดหรือกติกา" class="bg-black/60 border border-cyan-500/20 rounded-xl px-4 py-2 text-sm text-white">
             </div>
-            <button type="submit" class="bg-gradient-to-r from-blue-600 to-cyan-500 text-white px-5 py-2.5 rounded-xl text-xs font-semibold shadow-md cursor-pointer transition hover:opacity-95">บันทึก Contest</button>
+            <button type="submit" class="bg-gradient-to-r from-blue-600 to-cyan-500 text-white px-5 py-2 rounded-xl text-xs font-semibold shadow-md cursor-pointer transition hover:opacity-95">บันทึก Contest</button>
           </form>
           <div id="contestsListContainer" class="space-y-2"></div>
         </div>
@@ -256,7 +256,7 @@
 
   <!-- UNIFIED MODAL: CREATE / EDIT PROBLEM -->
   <div id="problemModal" onclick="if(event.target === this) closeProblemModal()" class="modal-backdrop modal-closed fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/85 backdrop-blur-md opacity-0 pointer-events-none">
-    <div class="modal-box tech-modal rounded-3xl p-7 md:p-8 max-w-3xl w-full max-h-[92vh] overflow-y-auto relative border border-cyan-500/30 space-y-6">
+    <div class="modal-box tech-modal rounded-3xl p-6 md:p-8 max-w-3xl w-full max-h-[92vh] overflow-y-auto relative border border-cyan-500/30 space-y-6">
       <button type="button" onclick="closeProblemModal()" class="absolute top-5 right-5 text-gray-400 hover:text-white w-9 h-9 rounded-full bg-cyan-500/10 hover:bg-cyan-500/20 flex items-center justify-center transition cursor-pointer">
         <i class="fa-solid fa-xmark text-sm"></i>
       </button>
@@ -284,10 +284,10 @@
           </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3.5">
           <div>
             <label class="block text-sm font-medium text-cyan-300 mb-1.5">ความยาก</label>
-            <select id="admDifficulty" class="w-full bg-black/60 border border-cyan-500/20 focus:border-cyan-400 focus:outline-none rounded-xl px-3.5 py-2.5 text-sm text-white transition">
+            <select id="admDifficulty" class="w-full bg-black/60 border border-cyan-500/20 focus:border-cyan-400 focus:outline-none rounded-xl px-3 py-2.5 text-sm text-white transition">
               <option value="Easy">Easy</option>
               <option value="Medium" selected>Medium</option>
               <option value="Hard">Hard</option>
@@ -295,18 +295,18 @@
           </div>
           <div>
             <label class="block text-sm font-medium text-cyan-300 mb-1.5">แหล่งที่มาโจทย์</label>
-            <select id="admSource" class="w-full bg-black/60 border border-cyan-500/20 focus:border-cyan-400 focus:outline-none rounded-xl px-3.5 py-2.5 text-sm text-white transition">
+            <select id="admSource" class="w-full bg-black/60 border border-cyan-500/20 focus:border-cyan-400 focus:outline-none rounded-xl px-3 py-2.5 text-sm text-white transition">
               <option value="admin">แอดมิน (Admin)</option>
               <option value="community">ทางบ้าน (Community)</option>
             </select>
           </div>
           <div>
             <label class="block text-sm font-medium text-cyan-300 mb-1.5">คะแนน</label>
-            <input type="number" id="admMaxScore" value="100" class="w-full bg-black/60 border border-cyan-500/20 focus:border-cyan-400 focus:outline-none rounded-xl px-3.5 py-2.5 text-sm text-white transition">
+            <input type="number" id="admMaxScore" value="100" class="w-full bg-black/60 border border-cyan-500/20 focus:border-cyan-400 focus:outline-none rounded-xl px-3 py-2.5 text-sm text-white transition">
           </div>
           <div>
             <label class="block text-sm font-medium text-cyan-300 mb-1.5">ผู้แต่งโจทย์ (Author)</label>
-            <input type="text" id="admAuthor" placeholder="AP" class="w-full bg-black/60 border border-cyan-500/20 focus:border-cyan-400 focus:outline-none rounded-xl px-4 py-2.5 text-sm text-white transition">
+            <input type="text" id="admAuthor" placeholder="AP" class="w-full bg-black/60 border border-cyan-500/20 focus:border-cyan-400 focus:outline-none rounded-xl px-3.5 py-2.5 text-sm text-white transition">
           </div>
         </div>
 
@@ -596,7 +596,7 @@
     </div>
   </div>
 
-  <footer class="tech-glass border-t border-cyan-500/20 py-6 text-center text-xs text-gray-400 mt-auto relative z-10">
+  <footer class="tech-glass border-t border-cyan-500/20 py-5 text-center text-xs text-gray-400 mt-auto relative z-10 w-full">
     <p class="text-cyan-400 font-bold tracking-widest uppercase">ST8 CP-Grader &bull; Admin Panel</p>
   </footer>
 
@@ -618,14 +618,10 @@
     let selectedZipDataUrl = '';
     let pendingDeleteProblemId = null;
 
-    // Function Execution Mode State ('standard' | 'function_show_main' | 'function_hide_main')
     let currentProblemMode = 'standard';
-
-    // Test Case State Array for Modal Form
     let formTestCasesData = [];
     let currentEditingTcIndex = 0;
 
-    // Filter & Sort State (Supports Multi-Select Quick Tags)
     let currentSourceFilter = 'all';
     let selectedQuickTags = [];
     let quickTagMatchMode = 'OR';
@@ -690,7 +686,6 @@
           visTag.innerHTML = '<i class="fa-solid fa-eye-slash mr-1"></i> ปิดซ่อนจากผู้เล่น';
         }
 
-        // Auto-fill template if both fields are empty
         if (!document.getElementById('admStarterCode').value.trim() && !document.getElementById('admGraderMainCode').value.trim()) {
           insertFunctionTemplate(true);
         }
@@ -713,7 +708,7 @@
       insertFunctionTemplate(false);
     }
 
-    // CUSTOM CATEGORY DROPDOWN LOGIC (MULTI-SELECT)
+    // CUSTOM CATEGORY DROPDOWN LOGIC
     function toggleCategoryDropdown(forceState = null) {
       const menu = document.getElementById('categoryDropdownMenu');
       const chevron = document.getElementById('categoryDropdownChevron');
@@ -1102,7 +1097,6 @@
         document.getElementById('admOpenAt').value = toLocalDatetimeInputValue(p.open_at);
         document.getElementById('admCloseAt').value = toLocalDatetimeInputValue(p.close_at);
 
-        // Restore Function Mode fields
         const savedMode = p.problem_mode || (p.is_function_mode ? (p.show_main ? 'function_show_main' : 'function_hide_main') : 'standard');
         document.getElementById('admFuncLang').value = p.func_lang || 'cpp';
         document.getElementById('admStarterCode').value = p.starter_code || '';
@@ -1186,8 +1180,8 @@
       document.getElementById('adminTabVerify').classList.add('hidden');
       document.getElementById('adminTabContests').classList.add('hidden');
 
-      const activeStyle = 'shrink-0 text-left px-4 py-3 rounded-xl bg-cyan-500/20 border border-cyan-500/40 text-cyan-300 text-xs font-semibold flex items-center gap-2.5 transition-all duration-200 cursor-pointer';
-      const normalStyle = 'shrink-0 text-left px-4 py-3 rounded-xl tech-glass text-gray-300 hover:text-cyan-300 hover:bg-cyan-500/10 border border-cyan-500/15 text-xs font-semibold flex items-center gap-2.5 transition-all duration-200 cursor-pointer';
+      const activeStyle = 'shrink-0 text-left px-3.5 py-2.5 rounded-xl bg-cyan-500/20 border border-cyan-500/40 text-cyan-300 text-xs font-semibold flex items-center gap-2.5 transition-all duration-200 cursor-pointer';
+      const normalStyle = 'shrink-0 text-left px-3.5 py-2.5 rounded-xl tech-glass text-gray-300 hover:text-cyan-300 hover:bg-cyan-500/10 border border-cyan-500/15 text-xs font-semibold flex items-center gap-2.5 transition-all duration-200 cursor-pointer';
 
       document.getElementById('drawerBtnProblems').className = normalStyle;
       document.getElementById('drawerBtnVerify').className = normalStyle;
@@ -1262,8 +1256,8 @@
 
     function setSourceFilter(type) {
       currentSourceFilter = type;
-      const activeCls = 'flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold bg-cyan-500 text-black transition cursor-pointer';
-      const normalCls = 'flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold text-gray-300 hover:text-white transition cursor-pointer';
+      const activeCls = 'flex-1 py-1 px-2 rounded-lg text-xs font-semibold bg-cyan-500 text-black transition cursor-pointer';
+      const normalCls = 'flex-1 py-1 px-2 rounded-lg text-xs font-semibold text-gray-300 hover:text-white transition cursor-pointer';
 
       document.getElementById('srcBtnAll').className = type === 'all' ? activeCls : normalCls;
       document.getElementById('srcBtnAdmin').className = type === 'admin' ? activeCls : normalCls;
@@ -1332,18 +1326,18 @@
       const closeDate = p.close_at ? new Date(p.close_at) : null;
 
       if (!openDate && !closeDate) {
-        return `<span class="text-xs text-emerald-400 bg-emerald-500/10 border border-emerald-500/25 px-2.5 py-0.5 rounded-full whitespace-nowrap">เปิดตลอดเวลา</span>`;
+        return `<span class="text-[11px] text-emerald-400 bg-emerald-500/10 border border-emerald-500/25 px-2 py-0.5 rounded-full whitespace-nowrap">เปิดตลอด</span>`;
       }
       if (openDate && now < openDate) {
-        return `<span class="text-xs text-amber-300 bg-amber-500/15 border border-amber-500/30 px-2.5 py-0.5 rounded-full block w-fit whitespace-nowrap">รอเปิด: ${formatThaiDateTime(p.open_at)}</span>`;
+        return `<span class="text-[11px] text-amber-300 bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 rounded-full block w-fit whitespace-nowrap">รอ: ${formatThaiDateTime(p.open_at)}</span>`;
       }
       if (closeDate && now > closeDate) {
-        return `<span class="text-xs text-rose-400 bg-rose-500/15 border border-rose-500/30 px-2.5 py-0.5 rounded-full block w-fit whitespace-nowrap">ปิดแล้ว: ${formatThaiDateTime(p.close_at)}</span>`;
+        return `<span class="text-[11px] text-rose-400 bg-rose-500/15 border border-rose-500/30 px-2 py-0.5 rounded-full block w-fit whitespace-nowrap">ปิดแล้ว</span>`;
       }
       return `
-        <div class="text-xs space-y-0.5 whitespace-nowrap">
+        <div class="text-[11px] leading-tight whitespace-nowrap">
           <span class="text-cyan-300 block">เปิด: ${openDate ? formatThaiDateTime(p.open_at) : 'ทันที'}</span>
-          <span class="text-gray-400 block">ปิด: ${closeDate ? formatThaiDateTime(p.close_at) : 'ไม่มีกำหนด'}</span>
+          <span class="text-gray-400 block">ปิด: ${closeDate ? formatThaiDateTime(p.close_at) : '-'}</span>
         </div>
       `;
     }
@@ -1351,18 +1345,18 @@
     function getProblemModeBadge(p) {
       const mode = p.problem_mode || (p.is_function_mode ? (p.show_main ? 'function_show_main' : 'function_hide_main') : 'standard');
       if (mode === 'function_show_main') {
-        return `<span class="text-xs font-medium text-emerald-300 bg-emerald-500/15 border border-emerald-500/30 px-2.5 py-1 rounded-full inline-flex items-center gap-1 whitespace-nowrap" title="เขียนเฉพาะฟังก์ชัน (เปิดเห็น main)"><i class="fa-solid fa-eye text-[10px]"></i> ฟังก์ชัน (เห็น main)</span>`;
+        return `<span class="text-[11px] font-medium text-emerald-300 bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded-md inline-flex items-center gap-1 whitespace-nowrap"><i class="fa-solid fa-eye text-[9px]"></i> ฟังก์ชัน (เห็น main)</span>`;
       }
       if (mode === 'function_hide_main') {
-        return `<span class="text-xs font-medium text-purple-300 bg-purple-500/15 border border-purple-500/30 px-2.5 py-1 rounded-full inline-flex items-center gap-1 whitespace-nowrap" title="เขียนเฉพาะฟังก์ชัน (ปิดซ่อน main)"><i class="fa-solid fa-eye-slash text-[10px]"></i> ฟังก์ชัน (ปิด main)</span>`;
+        return `<span class="text-[11px] font-medium text-purple-300 bg-purple-500/15 border border-purple-500/30 px-2 py-0.5 rounded-md inline-flex items-center gap-1 whitespace-nowrap"><i class="fa-solid fa-eye-slash text-[9px]"></i> ฟังก์ชัน (ปิด main)</span>`;
       }
-      return `<span class="text-xs font-medium text-gray-300 bg-white/5 border border-white/15 px-2.5 py-1 rounded-full inline-flex items-center gap-1 whitespace-nowrap"><i class="fa-solid fa-terminal text-[10px] text-cyan-400"></i> Standard I/O</span>`;
+      return `<span class="text-[11px] font-medium text-gray-300 bg-white/5 border border-white/15 px-2 py-0.5 rounded-md inline-flex items-center gap-1 whitespace-nowrap"><i class="fa-solid fa-terminal text-[9px] text-cyan-400"></i> Standard I/O</span>`;
     }
 
     function applyProblemFiltersAndRender() {
       const tableBody = document.getElementById('allAdminProblemsTableBody');
       if (!allLoadedProblems || allLoadedProblems.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="10" class="p-6 text-center text-gray-400">ยังไม่มีโจทย์ในระบบ</td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="9" class="p-6 text-center text-gray-400">ยังไม่มีโจทย์ในระบบ</td></tr>`;
         return;
       }
 
@@ -1370,11 +1364,9 @@
       const sortBy = document.getElementById('adminSortSelect')?.value || 'newest';
 
       let filtered = allLoadedProblems.filter(p => {
-        // 1. Source Filter
         const srcType = getProblemSourceType(p);
         if (currentSourceFilter !== 'all' && srcType !== currentSourceFilter) return false;
 
-        // 2. Multi-Select Quick Tags Filter
         if (selectedQuickTags.length > 0) {
           const pTags = (p.tags || '').split(',').map(t => t.trim().toLowerCase()).filter(Boolean);
           if (quickTagMatchMode === 'AND') {
@@ -1386,7 +1378,6 @@
           }
         }
 
-        // 3. Search Query (Code, Title, Tags, Author)
         if (query) {
           const codeStr = (p.problem_code || 'ST8-P' + p.id).toLowerCase();
           const titleStr = (p.title || '').toLowerCase();
@@ -1428,69 +1419,69 @@
       });
 
       if (enriched.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="10" class="p-8 text-center text-gray-400">ไม่พบโจทย์ที่ตรงกับเงื่อนไขการค้นหา</td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="9" class="p-8 text-center text-gray-400">ไม่พบโจทย์ที่ตรงกับเงื่อนไขการค้นหา</td></tr>`;
         return;
       }
 
       tableBody.innerHTML = enriched.map(p => {
         const srcType = getProblemSourceType(p);
         const sourceBadge = srcType === 'community'
-          ? `<span class="text-xs font-medium text-amber-300 bg-amber-500/15 border border-amber-500/30 px-2.5 py-1 rounded-full inline-flex items-center gap-1 whitespace-nowrap"><i class="fa-solid fa-users text-[10px]"></i> ทางบ้าน</span>`
-          : `<span class="text-xs font-medium text-cyan-300 bg-cyan-500/15 border border-cyan-500/30 px-2.5 py-1 rounded-full inline-flex items-center gap-1 whitespace-nowrap"><i class="fa-solid fa-shield-halved text-[10px]"></i> แอดมิน</span>`;
+          ? `<span class="text-[11px] font-medium text-amber-300 bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 rounded-full inline-flex items-center gap-1 whitespace-nowrap"><i class="fa-solid fa-users text-[9px]"></i> ทางบ้าน</span>`
+          : `<span class="text-[11px] font-medium text-cyan-300 bg-cyan-500/15 border border-cyan-500/30 px-2 py-0.5 rounded-full inline-flex items-center gap-1 whitespace-nowrap"><i class="fa-solid fa-shield-halved text-[9px]"></i> แอดมิน</span>`;
 
         const diffBadge = p.difficulty === 'Easy'
-          ? `<span class="text-xs font-semibold px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Easy</span>`
+          ? `<span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Easy</span>`
           : p.difficulty === 'Medium'
-          ? `<span class="text-xs font-semibold px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">Medium</span>`
-          : `<span class="text-xs font-semibold px-3 py-1 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30">Hard</span>`;
+          ? `<span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">Medium</span>`
+          : `<span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30">Hard</span>`;
 
         const tagChips = p.tags
           ? p.tags.split(',').map(t => t.trim()).filter(Boolean).map(t => {
               const isHighlighted = selectedQuickTags.some(st => st.toLowerCase() === t.toLowerCase());
-              return `<span class="text-[11px] px-2 py-0.5 rounded-lg border ${isHighlighted ? 'bg-cyan-500/25 text-cyan-200 border-cyan-400/50 font-semibold' : 'bg-white/5 text-gray-300 border-white/10'}">${t}</span>`;
+              return `<span class="text-[11px] px-2 py-0.5 rounded-md border ${isHighlighted ? 'bg-cyan-500/25 text-cyan-200 border-cyan-400/50 font-semibold' : 'bg-white/5 text-gray-300 border-white/10'}">${t}</span>`;
             }).join(' ')
           : '<span class="text-gray-500 text-xs">-</span>';
 
         return `
           <tr id="problemRow_${p.id}" class="hover:bg-cyan-500/5 transition kanit-font">
-            <td class="p-4 whitespace-nowrap">
+            <td class="px-3.5 py-3 whitespace-nowrap">
               <span class="text-xs font-bold text-cyan-300 bg-cyan-500/10 px-2.5 py-1 rounded-lg border border-cyan-500/30">${p.problem_code || 'ST8-P' + p.id}</span>
             </td>
-            <td class="p-4">
-              <div class="flex items-center gap-2">
+            <td class="px-3.5 py-3">
+              <div class="flex items-center gap-1.5 flex-wrap">
                 <a href="javascript:void(0)" onclick="openProblemModal('edit', '${p.id}')" class="font-semibold text-white text-sm hover:text-cyan-400 underline decoration-cyan-500/40 transition">${p.title}</a>
                 ${p.statement_pdf_url ? '<i class="fa-solid fa-file-pdf text-rose-400 text-xs" title="มีไฟล์ PDF"></i>' : ''}
               </div>
-              ${p.author ? `<span class="text-[11px] text-gray-400 block mt-0.5">โดย: ${p.author}</span>` : ''}
+              <div class="flex items-center gap-2 mt-1 flex-wrap">
+                ${getProblemModeBadge(p)}
+                ${p.author ? `<span class="text-[11px] text-gray-400">โดย: ${p.author}</span>` : ''}
+              </div>
             </td>
-            <td class="p-4 whitespace-nowrap">
-              ${getProblemModeBadge(p)}
-            </td>
-            <td class="p-4 whitespace-nowrap">
+            <td class="px-3.5 py-3 whitespace-nowrap">
               ${sourceBadge}
             </td>
-            <td class="p-4">
+            <td class="px-3.5 py-3">
               <div class="flex flex-wrap gap-1">${tagChips}</div>
             </td>
-            <td class="p-4 text-center whitespace-nowrap">
+            <td class="px-3.5 py-3 text-center whitespace-nowrap">
               ${diffBadge}
             </td>
-            <td class="p-4">
+            <td class="px-3.5 py-3">
               ${getScheduleBadge(p)}
             </td>
-            <td class="p-4 text-center whitespace-nowrap">
-              <span class="text-emerald-400 font-bold">${p.acceptedSubs}</span> / <span class="text-gray-300">${p.totalSubs}</span>
-              <span class="text-[11px] text-gray-400 block">(${Math.round((p.acceptedSubs / (p.totalSubs || 1)) * 100)}% ผ่าน)</span>
+            <td class="px-3.5 py-3 text-center whitespace-nowrap">
+              <span class="text-emerald-400 font-bold text-xs">${p.acceptedSubs}</span><span class="text-gray-400 text-xs">/${p.totalSubs}</span>
+              <span class="text-[10px] text-gray-400 block">${Math.round((p.acceptedSubs / (p.totalSubs || 1)) * 100)}%</span>
             </td>
-            <td class="p-4 text-center">
+            <td class="px-3.5 py-3 text-center">
               <label class="relative inline-flex items-center cursor-pointer">
                 <input type="checkbox" ${p.is_verified ? 'checked' : ''} onchange="toggleProblemVisibility('${p.id}', this.checked)" class="sr-only peer">
                 <div class="w-9 h-5 bg-black/60 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-cyan-500"></div>
               </label>
             </td>
-            <td class="p-4 text-right whitespace-nowrap">
-              <button type="button" onclick="openDeleteConfirmModal('${p.id}')" class="bg-rose-600/20 text-rose-400 hover:bg-rose-600 hover:text-white px-3 py-1.5 rounded-xl transition text-xs font-semibold cursor-pointer">
-                <i class="fa-solid fa-trash mr-1"></i> ลบโจทย์
+            <td class="px-3.5 py-3 text-right whitespace-nowrap">
+              <button type="button" onclick="openDeleteConfirmModal('${p.id}')" class="bg-rose-600/20 text-rose-400 hover:bg-rose-600 hover:text-white px-2.5 py-1.5 rounded-lg transition text-xs font-semibold cursor-pointer">
+                <i class="fa-solid fa-trash"></i>
               </button>
             </td>
           </tr>
@@ -1504,7 +1495,7 @@
       
       if (error || !list || list.length === 0) {
         allLoadedProblems = [];
-        tableBody.innerHTML = `<tr><td colspan="10" class="p-6 text-center text-gray-400">ยังไม่มีโจทย์ในระบบ</td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="9" class="p-6 text-center text-gray-400">ยังไม่มีโจทย์ในระบบ</td></tr>`;
         renderQuickTagFilterBar();
         return;
       }
@@ -1544,7 +1535,6 @@
       const pdfUrl = document.getElementById('currentPdfUrl').value;
       const zipUrl = document.getElementById('currentZipUrl').value;
 
-      // Function Mode Payload
       const problem_mode = currentProblemMode;
       const is_function_mode = problem_mode !== 'standard';
       const show_main = problem_mode === 'function_show_main';

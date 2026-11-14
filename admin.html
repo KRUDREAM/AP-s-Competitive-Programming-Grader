@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Dashboard | ST8 CP-Grader</title>
+  <title>จัดการโจทย์ทั้งหมด | ST8 CP-Grader Admin</title>
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -32,51 +32,20 @@
                         linear-gradient(to bottom, rgba(56, 189, 248, 0.03) 1px, transparent 1px);
       background-size: 32px 32px;
     }
-    .star-yellow {
-      color: #facc15 !important;
-      text-shadow: 0 0 10px rgba(250, 204, 21, 0.5);
-    }
     input[type="datetime-local"]::-webkit-calendar-picker-indicator {
       filter: invert(0.8) sepia(1) saturate(4) hue-rotate(165deg);
       cursor: pointer;
     }
-
-    /* SMOOTH MODAL TRANSITIONS */
-    .modal-backdrop {
-      transition: opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    .modal-box {
-      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.28s ease;
-    }
-    .modal-open .modal-box {
-      transform: scale(1) translateY(0);
-      opacity: 1;
-    }
-    .modal-closed .modal-box {
-      transform: scale(0.95) translateY(12px);
-      opacity: 0;
-    }
-
-    /* MARKDOWN PREVIEW STYLING (KANIT FONT) */
+    .modal-backdrop { transition: opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1); }
+    .modal-box { transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.28s ease; }
+    .modal-open .modal-box { transform: scale(1) translateY(0); opacity: 1; }
+    .modal-closed .modal-box { transform: scale(0.95) translateY(12px); opacity: 0; }
     .markdown-preview { font-family: 'Kanit', sans-serif; line-height: 1.75; color: #e5e7eb; font-size: 0.95rem; }
     .markdown-preview h1 { font-size: 1.45rem; font-weight: 700; color: #38bdf8; margin-top: 1rem; margin-bottom: 0.5rem; border-bottom: 1px solid rgba(56, 189, 248, 0.2); padding-bottom: 0.25rem; }
     .markdown-preview h2 { font-size: 1.25rem; font-weight: 700; color: #7dd3fc; margin-top: 0.9rem; margin-bottom: 0.4rem; }
-    .markdown-preview h3 { font-size: 1.1rem; font-weight: 600; color: #bae6fd; margin-top: 0.75rem; margin-bottom: 0.3rem; }
     .markdown-preview p { margin-bottom: 0.65rem; }
-    .markdown-preview strong, .markdown-preview b { color: #ffffff; font-weight: 700; }
-    .markdown-preview em { color: #fde047; font-style: italic; }
-    .markdown-preview ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 0.75rem; }
-    .markdown-preview ol { list-style-type: decimal; padding-left: 1.5rem; margin-bottom: 0.75rem; }
-    .markdown-preview li { margin-bottom: 0.25rem; }
     .markdown-preview code { background: rgba(56, 189, 248, 0.15); color: #67e8f9; padding: 0.15rem 0.4rem; border-radius: 0.375rem; font-family: monospace; font-size: 0.85rem; }
     .markdown-preview pre { background: #020617; border: 1px solid rgba(56, 189, 248, 0.25); padding: 0.9rem; border-radius: 0.75rem; overflow-x: auto; margin-bottom: 0.75rem; }
-    .markdown-preview pre code { background: transparent; color: #e2e8f0; padding: 0; }
-    .markdown-preview blockquote { border-left: 3px solid #38bdf8; background: rgba(56, 189, 248, 0.08); padding: 0.55rem 0.9rem; border-radius: 0 0.5rem 0.5rem 0; margin-bottom: 0.75rem; color: #cbd5e1; }
-    .markdown-preview table { width: 100%; border-collapse: collapse; margin-bottom: 0.75rem; font-size: 0.85rem; }
-    .markdown-preview th, .markdown-preview td { border: 1px solid rgba(56, 189, 248, 0.25); padding: 0.5rem 0.7rem; text-align: left; }
-    .markdown-preview th { background: rgba(56, 189, 248, 0.15); color: #7dd3fc; font-weight: 600; }
-    .markdown-preview hr { border-color: rgba(56, 189, 248, 0.2); margin: 1rem 0; }
-    .markdown-preview a { color: #38bdf8; text-decoration: underline; }
   </style>
 </head>
 <body class="min-h-screen flex flex-col relative overflow-x-hidden cyber-grid selection:bg-cyan-500 selection:text-black">
@@ -90,171 +59,93 @@
     </div>
   </div>
 
-  <!-- TOP NAVIGATION BAR -->
-  <header class="sticky top-0 z-40 tech-glass border-b border-cyan-500/10 px-4 md:px-6 py-3.5 flex items-center justify-between w-full">
-    <div class="flex items-center gap-3 cursor-pointer" onclick="window.location.href='index.html'">
-      <div class="bg-gradient-to-tr from-rose-600 to-amber-500 p-2 rounded-xl shadow-lg shadow-rose-500/20 text-white font-bold text-base flex items-center justify-center w-9 h-9">
-        <i class="fa-solid fa-user-shield"></i>
-      </div>
-      <div>
-        <h1 class="font-bold text-sm tracking-widest text-rose-400 uppercase">ST8 CP-Grader</h1>
-        <p class="text-[10px] text-gray-400 tracking-wider">ADMIN CONTROL PANEL</p>
-      </div>
-    </div>
+  <!-- SHARED HEADER -->
+  <div id="adminHeaderMount"></div>
 
-    <div class="flex items-center gap-2.5">
-      <a href="index.html" class="tech-glass hover:bg-cyan-500/10 text-cyan-300 border border-cyan-500/30 px-3.5 py-2 rounded-xl text-xs transition flex items-center gap-1.5">
-        <i class="fa-solid fa-house"></i> <span class="hidden sm:inline">หน้าหลัก</span>
-      </a>
-      <button type="button" onclick="handleAdminLogout()" class="bg-rose-600/20 text-rose-400 hover:bg-rose-600 hover:text-white px-3.5 py-2 rounded-xl text-xs transition font-semibold cursor-pointer">
-        <i class="fa-solid fa-right-from-bracket mr-1"></i> ออกจากระบบ
-      </button>
-    </div>
-  </header>
-
-  <!-- BODY LAYOUT: PERMANENT LEFT SIDEBAR + MAIN CONTENT (MIN-W-0 FIXES OVERFLOW) -->
+  <!-- BODY LAYOUT -->
   <div class="flex-1 flex flex-col lg:flex-row relative z-10 w-full min-w-0">
-    
-    <!-- PERMANENT LEFT SIDEBAR MENU -->
-    <aside class="w-full lg:w-60 shrink-0 tech-glass border-b lg:border-b-0 lg:border-r border-cyan-500/20 p-4 space-y-3 lg:min-h-[calc(100vh-69px)]">
-      <div class="flex items-center gap-2 text-cyan-300 font-bold text-xs tracking-wider uppercase px-2 pb-2 border-b border-cyan-500/20">
-        <i class="fa-solid fa-bars text-cyan-400"></i>
-        <span>เมนูการจัดการ Admin</span>
+    <!-- SHARED SIDEBAR / HAMBURGER DRAWER -->
+    <div id="adminSidebarMount"></div>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 min-w-0 px-4 md:px-6 py-6 space-y-5">
+      <div class="flex flex-wrap gap-3 justify-between items-center bg-gradient-to-r from-cyan-950/40 to-blue-950/20 p-5 rounded-2xl border border-cyan-500/20">
+        <div>
+          <h2 class="text-lg md:text-xl font-bold text-white mb-0.5"><i class="fa-solid fa-list-check text-cyan-400 mr-2"></i> คลังโจทย์ทั้งหมดในระบบ</h2>
+          <p class="text-xs text-gray-400">คลิกที่ "ชื่อโจทย์" เพื่อแก้ไขข้อมูล &bull; เลือกกรองหลายแท็กพร้อมกัน, แยกรูปแบบฟังก์ชัน / Standard I/O และเรียงลำดับโจทย์ได้ทันที</p>
+        </div>
+        <button type="button" onclick="openProblemModal('create')" class="bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-95 text-white px-4 py-2.5 rounded-xl text-xs md:text-sm font-semibold shadow-lg shadow-cyan-500/20 transition flex items-center gap-2 cursor-pointer shrink-0">
+          <i class="fa-solid fa-plus-circle"></i> อัปโหลด / สร้างโจทย์ใหม่
+        </button>
       </div>
 
-      <nav class="flex flex-row lg:flex-col gap-2 overflow-x-auto lg:overflow-visible pb-1 lg:pb-0">
-        <button type="button" id="drawerBtnProblems" onclick="switchAdminTab('problems')" class="shrink-0 text-left px-3.5 py-2.5 rounded-xl bg-cyan-500/20 border border-cyan-500/40 text-cyan-300 text-xs font-semibold flex items-center gap-2.5 transition-all duration-200 cursor-pointer">
-          <i class="fa-solid fa-book-open w-4 text-center"></i>
-          <span>จัดการโจทย์ทั้งหมดในระบบ</span>
-        </button>
-
-        <button type="button" id="drawerBtnVerify" onclick="switchAdminTab('verify')" class="shrink-0 text-left px-3.5 py-2.5 rounded-xl tech-glass text-gray-300 hover:text-cyan-300 hover:bg-cyan-500/10 border border-cyan-500/15 text-xs font-semibold flex items-center gap-2.5 transition-all duration-200 cursor-pointer">
-          <i class="fa-solid fa-clipboard-check w-4 text-center"></i>
-          <span>ตรวจสอบโจทย์ที่ User เสนอ</span>
-        </button>
-
-        <button type="button" id="drawerBtnContests" onclick="switchAdminTab('contests')" class="shrink-0 text-left px-3.5 py-2.5 rounded-xl tech-glass text-gray-300 hover:text-cyan-300 hover:bg-cyan-500/10 border border-cyan-500/15 text-xs font-semibold flex items-center gap-2.5 transition-all duration-200 cursor-pointer">
-          <i class="fa-solid fa-trophy w-4 text-center"></i>
-          <span>จัดการ Contest</span>
-        </button>
-      </nav>
-    </aside>
-
-    <!-- MAIN CONTENT AREA (MIN-W-0 PREVENTS FLEX CHILD FROM EXPANDING BEYOND VIEWPORT) -->
-    <main class="flex-1 min-w-0 px-4 md:px-6 py-6 space-y-5">
-      
-      <!-- TAB 1: ALL PROBLEMS MANAGEMENT -->
-      <section id="adminTabProblems" class="space-y-4 min-w-0">
-        <div class="flex flex-wrap gap-3 justify-between items-center bg-gradient-to-r from-cyan-950/40 to-blue-950/20 p-5 rounded-2xl border border-cyan-500/20">
-          <div>
-            <h2 class="text-lg md:text-xl font-bold text-white mb-0.5"><i class="fa-solid fa-list-check text-cyan-400 mr-2"></i> คลังโจทย์ทั้งหมดในระบบ</h2>
-            <p class="text-xs text-gray-400">คลิกที่ "ชื่อโจทย์" เพื่อแก้ไขข้อมูล &bull; เลือกกรองหลายแท็กพร้อมกัน, แยกรูปแบบฟังก์ชัน / Standard I/O และเรียงลำดับโจทย์ได้ทันที</p>
-          </div>
-          <button type="button" onclick="openProblemModal('create')" class="bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-95 hover:scale-[1.01] active:scale-[0.99] text-white px-4 py-2.5 rounded-xl text-xs md:text-sm font-semibold shadow-lg shadow-cyan-500/20 transition-all duration-200 flex items-center gap-2 cursor-pointer shrink-0">
-            <i class="fa-solid fa-plus-circle"></i> อัปโหลด / สร้างโจทย์ใหม่
-          </button>
-        </div>
-
-        <!-- SEARCH, SOURCE FILTER, SORT & MULTI-SELECT QUICK TAGS BAR -->
-        <div class="tech-glass rounded-2xl p-4 border border-cyan-500/20 space-y-3">
-          <div class="grid grid-cols-1 md:grid-cols-12 gap-2.5">
-            <!-- Search Input -->
-            <div class="md:col-span-5 relative">
-              <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-cyan-400 text-xs"></i>
-              <input type="text" id="adminSearchInput" oninput="applyProblemFiltersAndRender()" placeholder="ค้นหารหัสโจทย์, ชื่อโจทย์, หรือแท็ก..." class="w-full bg-black/60 border border-cyan-500/25 focus:border-cyan-400 focus:outline-none rounded-xl pl-9 pr-4 py-2 text-sm text-white kanit-font transition">
-            </div>
-
-            <!-- Source Filter (Admin vs Community) -->
-            <div class="md:col-span-4 flex bg-black/60 p-1 rounded-xl border border-cyan-500/20">
-              <button type="button" onclick="setSourceFilter('all')" id="srcBtnAll" class="flex-1 py-1 px-2 rounded-lg text-xs font-semibold bg-cyan-500 text-black transition cursor-pointer">ทั้งหมด</button>
-              <button type="button" onclick="setSourceFilter('admin')" id="srcBtnAdmin" class="flex-1 py-1 px-2 rounded-lg text-xs font-semibold text-gray-300 hover:text-white transition cursor-pointer">แอดมิน</button>
-              <button type="button" onclick="setSourceFilter('community')" id="srcBtnCommunity" class="flex-1 py-1 px-2 rounded-lg text-xs font-semibold text-gray-300 hover:text-white transition cursor-pointer">ทางบ้าน</button>
-            </div>
-
-            <!-- Sort Dropdown -->
-            <div class="md:col-span-3">
-              <select id="adminSortSelect" onchange="applyProblemFiltersAndRender()" class="w-full bg-black/60 border border-cyan-500/25 focus:border-cyan-400 focus:outline-none rounded-xl px-3 py-2 text-sm text-white kanit-font transition cursor-pointer">
-                <option value="newest">เรียง: ล่าสุด</option>
-                <option value="code_asc">เรียง: รหัสโจทย์ (A - Z)</option>
-                <option value="code_desc">เรียง: รหัสโจทย์ (Z - A)</option>
-                <option value="diff_asc">เรียง: ความยาก (Easy → Hard)</option>
-                <option value="diff_desc">เรียง: ความยาก (Hard → Easy)</option>
-                <option value="ac_desc">เรียง: จำนวนคนผ่าน (มาก - น้อย)</option>
-              </select>
-            </div>
+      <!-- SEARCH, SOURCE FILTER, SORT & MULTI-SELECT QUICK TAGS BAR -->
+      <div class="tech-glass rounded-2xl p-4 border border-cyan-500/20 space-y-3">
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-2.5">
+          <div class="md:col-span-5 relative">
+            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-cyan-400 text-xs"></i>
+            <input type="text" id="adminSearchInput" oninput="applyProblemFiltersAndRender()" placeholder="ค้นหารหัสโจทย์, ชื่อโจทย์, หรือแท็ก..." class="w-full bg-black/60 border border-cyan-500/25 focus:border-cyan-400 focus:outline-none rounded-xl pl-9 pr-4 py-2 text-sm text-white kanit-font transition">
           </div>
 
-          <!-- Multi-Select Quick Tag Filter Bar -->
-          <div class="flex items-center justify-between gap-2 flex-wrap pt-2 border-t border-cyan-500/15">
-            <div class="flex items-center gap-1.5 flex-wrap">
-              <span class="text-xs text-gray-400 font-medium mr-1"><i class="fa-solid fa-tags text-amber-400 mr-1"></i> แท็กด่วน:</span>
-              <div id="quickTagsFilterContainer" class="flex items-center gap-1.5 flex-wrap"></div>
-            </div>
+          <div class="md:col-span-4 flex bg-black/60 p-1 rounded-xl border border-cyan-500/20">
+            <button type="button" onclick="setSourceFilter('all')" id="srcBtnAll" class="flex-1 py-1 px-2 rounded-lg text-xs font-semibold bg-cyan-500 text-black transition cursor-pointer">ทั้งหมด</button>
+            <button type="button" onclick="setSourceFilter('admin')" id="srcBtnAdmin" class="flex-1 py-1 px-2 rounded-lg text-xs font-semibold text-gray-300 hover:text-white transition cursor-pointer">แอดมิน</button>
+            <button type="button" onclick="setSourceFilter('community')" id="srcBtnCommunity" class="flex-1 py-1 px-2 rounded-lg text-xs font-semibold text-gray-300 hover:text-white transition cursor-pointer">ทางบ้าน</button>
+          </div>
 
-            <!-- Match Mode Toggle (OR / AND) when multiple tags selected -->
-            <div id="tagMatchModeWrapper" class="hidden items-center gap-2">
-              <span class="text-[11px] text-gray-400">เงื่อนไข:</span>
-              <div class="flex bg-black/70 p-0.5 rounded-lg border border-cyan-500/25">
-                <button type="button" id="tagModeOrBtn" onclick="setQuickTagMatchMode('OR')" class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-cyan-500 text-black transition cursor-pointer">มีแท็กใดก็ได้ (OR)</button>
-                <button type="button" id="tagModeAndBtn" onclick="setQuickTagMatchMode('AND')" class="px-2 py-0.5 rounded-md text-[11px] font-semibold text-gray-300 hover:text-white transition cursor-pointer">มีครบทุกแท็ก (AND)</button>
-              </div>
-            </div>
+          <div class="md:col-span-3">
+            <select id="adminSortSelect" onchange="applyProblemFiltersAndRender()" class="w-full bg-black/60 border border-cyan-500/25 focus:border-cyan-400 focus:outline-none rounded-xl px-3 py-2 text-sm text-white kanit-font transition cursor-pointer">
+              <option value="newest">เรียง: ล่าสุด</option>
+              <option value="code_asc">เรียง: รหัสโจทย์ (A - Z)</option>
+              <option value="code_desc">เรียง: รหัสโจทย์ (Z - A)</option>
+              <option value="diff_asc">เรียง: ความยาก (Easy → Hard)</option>
+              <option value="diff_desc">เรียง: ความยาก (Hard → Easy)</option>
+              <option value="ac_desc">เรียง: จำนวนคนผ่าน (มาก - น้อย)</option>
+            </select>
           </div>
         </div>
 
-        <!-- MAIN PROBLEMS TABLE (COMPACT 8 COLUMNS FIT SCREEN WIDTH CLEANLY) -->
-        <div class="tech-glass rounded-2xl overflow-x-auto border border-cyan-500/20 w-full">
-          <table class="w-full text-left text-sm kanit-font">
-            <thead class="bg-cyan-950/50 text-cyan-300 border-b border-cyan-500/20 text-xs uppercase tracking-wide">
-              <tr>
-                <th class="px-3.5 py-3.5 whitespace-nowrap">รหัสโจทย์</th>
-                <th class="px-3.5 py-3.5 min-w-[200px]">ชื่อโจทย์ &amp; รูปแบบ</th>
-                <th class="px-3.5 py-3.5 whitespace-nowrap">ที่มา</th>
-                <th class="px-3.5 py-3.5 min-w-[140px]">หมวดหมู่</th>
-                <th class="px-3.5 py-3.5 whitespace-nowrap text-center">ความยาก</th>
-                <th class="px-3.5 py-3.5 whitespace-nowrap">กำหนดเวลา</th>
-                <th class="px-3.5 py-3.5 whitespace-nowrap text-center">สถิติ AC</th>
-                <th class="px-3.5 py-3.5 whitespace-nowrap text-center">แสดงผล</th>
-                <th class="px-3.5 py-3.5 whitespace-nowrap text-right">จัดการ</th>
-              </tr>
-            </thead>
-            <tbody id="allAdminProblemsTableBody" class="divide-y divide-cyan-500/10 kanit-font">
-              <tr><td colspan="9" class="p-6 text-center text-gray-400">กำลังโหลดรายการโจทย์...</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
+        <div class="flex items-center justify-between gap-2 flex-wrap pt-2 border-t border-cyan-500/15">
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <span class="text-xs text-gray-400 font-medium mr-1"><i class="fa-solid fa-tags text-amber-400 mr-1"></i> แท็กด่วน:</span>
+            <div id="quickTagsFilterContainer" class="flex items-center gap-1.5 flex-wrap"></div>
+          </div>
 
-      <!-- TAB 2: VERIFY PROBLEMS -->
-      <section id="adminTabVerify" class="space-y-4 hidden">
-        <div class="tech-glass rounded-2xl p-5 border border-cyan-500/20 space-y-4">
-          <h2 class="text-lg font-bold text-white"><i class="fa-solid fa-clipboard-check text-cyan-400 mr-2"></i> รายการโจทย์ที่รอการตรวจสอบจาก Admin</h2>
-          <div id="pendingProblemsContainer" class="space-y-3">
-            <div class="text-center text-gray-400 text-xs py-4">กำลังโหลดข้อมูล...</div>
+          <div id="tagMatchModeWrapper" class="hidden items-center gap-2">
+            <span class="text-[11px] text-gray-400">เงื่อนไข:</span>
+            <div class="flex bg-black/70 p-0.5 rounded-lg border border-cyan-500/25">
+              <button type="button" id="tagModeOrBtn" onclick="setQuickTagMatchMode('OR')" class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-cyan-500 text-black transition cursor-pointer">มีแท็กใดก็ได้ (OR)</button>
+              <button type="button" id="tagModeAndBtn" onclick="setQuickTagMatchMode('AND')" class="px-2 py-0.5 rounded-md text-[11px] font-semibold text-gray-300 hover:text-white transition cursor-pointer">มีครบทุกแท็ก (AND)</button>
+            </div>
           </div>
         </div>
-      </section>
+      </div>
 
-      <!-- TAB 3: CONTEST MANAGEMENT -->
-      <section id="adminTabContests" class="space-y-4 hidden">
-        <div class="tech-glass rounded-2xl p-5 border border-cyan-500/20 space-y-4">
-          <h2 class="text-lg font-bold text-white"><i class="fa-solid fa-trophy text-amber-400 mr-2"></i> จัดการการแข่งขัน (Contest Hub)</h2>
-          <form id="createContestForm" class="tech-glass p-4 rounded-2xl border border-cyan-500/10 space-y-3">
-            <h3 class="font-bold text-cyan-300 text-sm">สร้าง Contest ใหม่</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <input type="text" id="contestTitleInput" required placeholder="ชื่อ Contest (เช่น ST8 Weekly Contest #05)" class="bg-black/60 border border-cyan-500/20 rounded-xl px-4 py-2 text-sm text-white">
-              <input type="text" id="contestDescInput" placeholder="รายละเอียดหรือกติกา" class="bg-black/60 border border-cyan-500/20 rounded-xl px-4 py-2 text-sm text-white">
-            </div>
-            <button type="submit" class="bg-gradient-to-r from-blue-600 to-cyan-500 text-white px-5 py-2 rounded-xl text-xs font-semibold shadow-md cursor-pointer transition hover:opacity-95">บันทึก Contest</button>
-          </form>
-          <div id="contestsListContainer" class="space-y-2"></div>
-        </div>
-      </section>
-
+      <!-- MAIN PROBLEMS TABLE -->
+      <div class="tech-glass rounded-2xl overflow-x-auto border border-cyan-500/20 w-full">
+        <table class="w-full text-left text-sm kanit-font">
+          <thead class="bg-cyan-950/50 text-cyan-300 border-b border-cyan-500/20 text-xs uppercase tracking-wide">
+            <tr>
+              <th class="px-3.5 py-3.5 whitespace-nowrap">รหัสโจทย์</th>
+              <th class="px-3.5 py-3.5 min-w-[200px]">ชื่อโจทย์ &amp; รูปแบบ</th>
+              <th class="px-3.5 py-3.5 whitespace-nowrap">ที่มา</th>
+              <th class="px-3.5 py-3.5 min-w-[140px]">หมวดหมู่</th>
+              <th class="px-3.5 py-3.5 whitespace-nowrap text-center">ความยาก</th>
+              <th class="px-3.5 py-3.5 whitespace-nowrap">กำหนดเวลา</th>
+              <th class="px-3.5 py-3.5 whitespace-nowrap text-center">สถิติ AC</th>
+              <th class="px-3.5 py-3.5 whitespace-nowrap text-center">แสดงผล</th>
+              <th class="px-3.5 py-3.5 whitespace-nowrap text-right">จัดการ</th>
+            </tr>
+          </thead>
+          <tbody id="allAdminProblemsTableBody" class="divide-y divide-cyan-500/10 kanit-font">
+            <tr><td colspan="9" class="p-6 text-center text-gray-400">กำลังโหลดรายการโจทย์...</td></tr>
+          </tbody>
+        </table>
+      </div>
     </main>
   </div>
 
-  <!-- UNIFIED MODAL: CREATE / EDIT PROBLEM -->
+  <!-- MODAL: CREATE / EDIT PROBLEM -->
   <div id="problemModal" onclick="if(event.target === this) closeProblemModal()" class="modal-backdrop modal-closed fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/85 backdrop-blur-md opacity-0 pointer-events-none">
     <div class="modal-box tech-modal rounded-3xl p-6 md:p-8 max-w-3xl w-full max-h-[92vh] overflow-y-auto relative border border-cyan-500/30 space-y-6">
       <button type="button" onclick="closeProblemModal()" class="absolute top-5 right-5 text-gray-400 hover:text-white w-9 h-9 rounded-full bg-cyan-500/10 hover:bg-cyan-500/20 flex items-center justify-center transition cursor-pointer">
@@ -263,7 +154,7 @@
 
       <div class="text-center">
         <h3 id="modalTitleText" class="text-xl font-bold text-white mb-1"><i class="fa-solid fa-cloud-arrow-up text-cyan-400 mr-2"></i> สร้าง / อัปโหลดโจทย์ใหม่</h3>
-        <p id="modalDescText" class="text-xs text-gray-400">กรอกรหัสโจทย์ (Unique Code), ชื่อโจทย์, รูปแบบโจทย์ และรายละเอียดทั้งหมด</p>
+        <p id="modalDescText" class="text-xs text-gray-400">กรอกรหัสโจทย์, ชื่อโจทย์, รูปแบบฟังก์ชัน และรายละเอียดทั้งหมด</p>
       </div>
 
       <form id="problemForm" class="space-y-5">
@@ -272,7 +163,6 @@
         <input type="hidden" id="currentPdfUrl" value="">
         <input type="hidden" id="currentZipUrl" value="">
 
-        <!-- รหัสโจทย์ กับ ชื่อโจทย์ แยกชัดเจน -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div class="md:col-span-1">
             <label class="block text-sm font-medium text-cyan-300 mb-1.5">รหัสโจทย์ (Code) *</label>
@@ -310,7 +200,7 @@
           </div>
         </div>
 
-        <!-- PROBLEM TYPE: STANDARD I/O VS FUNCTION ONLY (SHOW MAIN / HIDE MAIN) -->
+        <!-- PROBLEM TYPE: STANDARD I/O VS FUNCTION ONLY -->
         <div class="tech-glass rounded-2xl p-4 border border-cyan-500/25 space-y-3.5">
           <div class="flex flex-wrap justify-between items-center gap-2">
             <label class="text-sm font-bold text-cyan-300"><i class="fa-solid fa-code mr-1.5"></i> รูปแบบการเขียนโค้ด (Problem Mode)</label>
@@ -340,17 +230,16 @@
             </button>
           </div>
 
-          <!-- Function Mode Code Configuration Area -->
           <div id="functionModeConfigArea" class="hidden space-y-3 pt-2 border-t border-cyan-500/20">
             <div class="flex flex-wrap justify-between items-center gap-2">
               <div class="flex items-center gap-2">
                 <span class="text-xs font-semibold text-gray-300">ภาษาแม่แบบ:</span>
-                <select id="admFuncLang" onchange="onFuncLangChange()" class="bg-black/70 border border-cyan-500/30 rounded-lg px-2.5 py-1 text-xs text-white cursor-pointer">
+                <select id="admFuncLang" onchange="insertFunctionTemplate(false)" class="bg-black/70 border border-cyan-500/30 rounded-lg px-2.5 py-1 text-xs text-white cursor-pointer">
                   <option value="cpp">C++ (G++17/20)</option>
                   <option value="python">Python 3</option>
                 </select>
               </div>
-              <button type="button" onclick="insertFunctionTemplate()" class="text-xs bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 border border-cyan-500/35 px-3 py-1 rounded-lg transition cursor-pointer">
+              <button type="button" onclick="insertFunctionTemplate(false)" class="text-xs bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 border border-cyan-500/35 px-3 py-1 rounded-lg transition cursor-pointer">
                 <i class="fa-solid fa-wand-magic-sparkles mr-1"></i> โหลดโค้ดตัวอย่างอัตโนมัติ
               </button>
             </div>
@@ -359,23 +248,23 @@
               <div class="space-y-1">
                 <div class="flex justify-between items-center">
                   <label class="text-xs font-semibold text-cyan-300">1. โค้ดเริ่มต้นให้ผู้เล่น (Function Signature)</label>
-                  <span class="text-[10px] text-gray-400">แสดงใน Editor ผู้เล่น</span>
+                  <span class="text-[10px] text-gray-400">แสดงใน Editor</span>
                 </div>
-                <textarea id="admStarterCode" rows="8" placeholder="เช่น int solve(int a, int b) {&#10;    // เขียนโค้ดตรงนี้&#10;}" class="w-full bg-black/75 border border-cyan-500/25 focus:border-cyan-400 focus:outline-none rounded-xl p-3 text-xs text-white font-mono leading-relaxed resize-y"></textarea>
+                <textarea id="admStarterCode" rows="7" class="w-full bg-black/75 border border-cyan-500/25 focus:border-cyan-400 focus:outline-none rounded-xl p-3 text-xs text-white font-mono leading-relaxed resize-y"></textarea>
               </div>
 
               <div class="space-y-1">
                 <div class="flex justify-between items-center">
-                  <label id="graderMainLabel" class="text-xs font-semibold text-emerald-300">2. โค้ดฟังก์ชัน main() ของ Grader</label>
+                  <label class="text-xs font-semibold text-emerald-300">2. โค้ดฟังก์ชัน main() ของ Grader</label>
                   <span id="graderMainVisibilityTag" class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300">ผู้เล่นมองเห็นได้</span>
                 </div>
-                <textarea id="admGraderMainCode" rows="8" placeholder="เช่น int main() {&#10;    int a, b; cin >> a >> b;&#10;    cout << solve(a, b);&#10;}" class="w-full bg-black/75 border border-cyan-500/25 focus:border-emerald-400 focus:outline-none rounded-xl p-3 text-xs text-white font-mono leading-relaxed resize-y"></textarea>
+                <textarea id="admGraderMainCode" rows="7" class="w-full bg-black/75 border border-cyan-500/25 focus:border-emerald-400 focus:outline-none rounded-xl p-3 text-xs text-white font-mono leading-relaxed resize-y"></textarea>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- CUSTOM DROPDOWN หมวดหมู่ / แท็ก -->
+        <!-- MULTI-TAG SELECTOR -->
         <div class="space-y-2 relative" id="categoryDropdownWrapper">
           <div class="flex flex-wrap gap-2 justify-between items-center">
             <label class="text-sm font-medium text-cyan-300">หมวดหมู่ / แท็ก (เลือกได้หลายแท็ก)</label>
@@ -430,10 +319,9 @@
               <input type="datetime-local" id="admCloseAt" class="w-full bg-black/60 border border-cyan-500/20 focus:border-rose-400 focus:outline-none rounded-xl px-3.5 py-2.5 text-sm text-white transition">
             </div>
           </div>
-          <p class="text-[11px] text-gray-400">* หากปล่อยว่างไว้ โจทย์จะเปิดให้เข้าทำได้ทันทีและไม่มีวันหมดอายุ</p>
         </div>
 
-        <!-- TEST CASES SECTION: COMPACT CHIPS + POPUP EDITOR -->
+        <!-- TEST CASES CHIPS + POPUP -->
         <div class="tech-glass rounded-2xl p-4 border border-cyan-500/20 space-y-3">
           <div class="flex flex-wrap gap-2 justify-between items-center">
             <div>
@@ -471,32 +359,30 @@
           </div>
 
           <div class="space-y-2">
-            <span class="text-xs text-gray-400 block">ไฟล์ Statement PDF (เลือกไฟล์เพื่ออัปโหลด หรือดูไฟล์เดิมด้านบน):</span>
             <input type="file" id="admStatementPdf" accept=".pdf" onchange="handlePdfFileSelect(event)" class="w-full bg-black/60 border border-cyan-500/20 rounded-xl p-2 text-xs text-gray-300 file:mr-2.5 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-cyan-500/20 file:text-cyan-300 cursor-pointer">
             <div id="selectedPdfBadge" class="hidden"></div>
           </div>
 
           <div id="statementEditArea">
-            <textarea id="admStatementText" rows="7" placeholder="พิมพ์เนื้อหาโจทย์ในรูปแบบ Markdown (เช่น # หัวข้อ, **ตัวหนา**, `code`, - รายการ) ..." style="font-family: 'Kanit', sans-serif;" class="w-full bg-black/60 border border-cyan-500/20 focus:border-cyan-400 focus:outline-none rounded-xl p-3.5 text-sm text-white leading-relaxed resize-y transition"></textarea>
+            <textarea id="admStatementText" rows="6" placeholder="พิมพ์เนื้อหาโจทย์ในรูปแบบ Markdown..." class="w-full bg-black/60 border border-cyan-500/20 focus:border-cyan-400 focus:outline-none rounded-xl p-3.5 text-sm text-white leading-relaxed resize-y transition"></textarea>
           </div>
 
           <div id="statementPreviewArea" class="hidden w-full bg-black/60 border border-cyan-500/20 rounded-xl p-4 text-sm text-white min-h-[160px] max-h-96 overflow-y-auto space-y-4">
             <div id="markdownRenderOutput" class="markdown-preview"></div>
             <div id="pdfEmbedPreviewContainer" class="hidden border-t border-cyan-500/20 pt-3">
-              <p class="text-xs text-cyan-300 font-semibold mb-2"><i class="fa-solid fa-file-pdf text-rose-400 mr-1"></i> ตัวอย่างไฟล์ PDF ที่แนบไว้:</p>
               <iframe id="pdfPreviewIframe" class="w-full h-72 rounded-xl border border-cyan-500/30 bg-white"></iframe>
             </div>
           </div>
         </div>
 
-        <button type="submit" id="submitBtnText" class="w-full bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-95 hover:scale-[1.005] active:scale-[0.995] text-white font-bold py-3.5 rounded-xl text-sm transition-all duration-200 shadow-lg shadow-cyan-500/25 cursor-pointer">
+        <button type="submit" id="submitBtnText" class="w-full bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-95 text-white font-bold py-3.5 rounded-xl text-sm transition shadow-lg shadow-cyan-500/25 cursor-pointer">
           <i class="fa-solid fa-cloud-arrow-up mr-1.5"></i> บันทึกและเผยแพร่โจทย์เข้าสู่ระบบทันที
         </button>
       </form>
     </div>
   </div>
 
-  <!-- POPUP: VIEW / EDIT SINGLE TEST CASE WITH PREV / NEXT NAVIGATION -->
+  <!-- POPUP: VIEW / EDIT SINGLE TEST CASE -->
   <div id="singleTestCaseModal" onclick="if(event.target === this) closeSingleTestCaseModal()" class="modal-backdrop modal-closed fixed inset-0 z-[60] flex items-center justify-center px-4 bg-black/85 backdrop-blur-md opacity-0 pointer-events-none">
     <div class="modal-box tech-modal rounded-3xl p-6 md:p-7 max-w-2xl w-full relative space-y-5 border border-cyan-500/35">
       <div class="flex flex-wrap justify-between items-center gap-3 border-b border-cyan-500/20 pb-3.5">
@@ -522,18 +408,11 @@
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div class="space-y-1.5">
-          <div class="flex justify-between items-center">
-            <label class="text-xs font-semibold text-cyan-300">Input (.in)</label>
-            <span class="text-[11px] text-gray-400">ข้อมูลนำเข้า</span>
-          </div>
+          <label class="text-xs font-semibold text-cyan-300 block">Input (.in)</label>
           <textarea id="tcPopupInputArea" oninput="syncCurrentPopupTestCase()" rows="8" placeholder="ใส่ข้อมูล Input..." class="w-full bg-black/70 border border-cyan-500/25 focus:border-cyan-400 focus:outline-none rounded-2xl p-3.5 text-xs text-white font-mono leading-relaxed resize-y"></textarea>
         </div>
-
         <div class="space-y-1.5">
-          <div class="flex justify-between items-center">
-            <label class="text-xs font-semibold text-emerald-300">Output (.sol)</label>
-            <span class="text-[11px] text-gray-400">ผลลัพธ์เฉลย</span>
-          </div>
+          <label class="text-xs font-semibold text-emerald-300 block">Output (.sol)</label>
           <textarea id="tcPopupOutputArea" oninput="syncCurrentPopupTestCase()" rows="8" placeholder="ใส่ข้อมูล Output..." class="w-full bg-black/70 border border-cyan-500/25 focus:border-emerald-400 focus:outline-none rounded-2xl p-3.5 text-xs text-white font-mono leading-relaxed resize-y"></textarea>
         </div>
       </div>
@@ -542,7 +421,6 @@
         <button type="button" onclick="deleteCurrentPopupTestCase()" class="bg-rose-600/20 text-rose-400 hover:bg-rose-600 hover:text-white px-4 py-2 rounded-xl text-xs font-semibold transition cursor-pointer flex items-center gap-1.5">
           <i class="fa-solid fa-trash"></i> ลบ Test Case นี้
         </button>
-
         <div class="flex items-center gap-2">
           <button type="button" onclick="addNewTestCaseAndOpenPopup()" class="bg-cyan-500/15 text-cyan-300 hover:bg-cyan-500/25 border border-cyan-500/35 px-4 py-2 rounded-xl text-xs font-semibold transition cursor-pointer">
             <i class="fa-solid fa-plus mr-1"></i> เพิ่มเคสใหม่
@@ -555,7 +433,7 @@
     </div>
   </div>
 
-  <!-- POPUP: เพิ่มหมวดหมู่ใหม่ -->
+  <!-- POPUP: NEW TAG -->
   <div id="newTagPopupModal" onclick="if(event.target === this) closeNewTagPopup()" class="modal-backdrop modal-closed fixed inset-0 z-[65] flex items-center justify-center px-4 bg-black/80 backdrop-blur-md opacity-0 pointer-events-none">
     <div class="modal-box tech-modal rounded-3xl p-6 max-w-sm w-full relative space-y-4 border border-cyan-500/30">
       <h3 class="text-base font-bold text-white"><i class="fa-solid fa-folder-plus text-cyan-400 mr-1.5"></i> เพิ่มหมวดหมู่ใหม่</h3>
@@ -567,7 +445,7 @@
     </div>
   </div>
 
-  <!-- CUSTOM POPUP: ยืนยันการลบโจทย์ -->
+  <!-- POPUP: DELETE CONFIRM -->
   <div id="deleteConfirmModal" onclick="if(event.target === this) closeDeleteConfirmModal()" class="modal-backdrop modal-closed fixed inset-0 z-[70] flex items-center justify-center px-4 bg-black/85 backdrop-blur-md opacity-0 pointer-events-none">
     <div class="modal-box tech-modal rounded-3xl p-6 max-w-md w-full relative space-y-5 border border-rose-500/40">
       <div class="flex items-center gap-3.5">
@@ -579,16 +457,12 @@
           <p class="text-xs text-gray-400">การดำเนินการนี้ไม่สามารถย้อนกลับได้</p>
         </div>
       </div>
-
       <div class="bg-black/50 border border-rose-500/20 rounded-2xl p-4 space-y-1">
         <p class="text-xs text-gray-400">โจทย์ที่กำลังจะลบ:</p>
         <p id="deleteTargetName" class="text-sm font-bold text-rose-300">#ID : ชื่อโจทย์</p>
       </div>
-
       <div class="flex gap-3 justify-end">
-        <button type="button" onclick="closeDeleteConfirmModal()" class="px-4 py-2.5 rounded-xl text-xs font-semibold text-gray-300 bg-white/5 hover:bg-white/10 transition cursor-pointer">
-          ยกเลิก
-        </button>
+        <button type="button" onclick="closeDeleteConfirmModal()" class="px-4 py-2.5 rounded-xl text-xs font-semibold text-gray-300 bg-white/5 hover:bg-white/10 transition cursor-pointer">ยกเลิก</button>
         <button type="button" id="confirmDeleteActionBtn" onclick="executeDeleteProblem()" class="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-rose-600 to-red-500 hover:opacity-95 shadow-lg shadow-rose-500/25 transition cursor-pointer flex items-center gap-1.5">
           <i class="fa-solid fa-trash"></i> ยืนยันการลบถาวร
         </button>
@@ -600,14 +474,10 @@
     <p class="text-cyan-400 font-bold tracking-widest uppercase">ST8 CP-Grader &bull; Admin Panel</p>
   </footer>
 
+  <script src="admin-common.js"></script>
   <script>
-    const SUPABASE_URL = 'https://hqnmfkafwwnjiqpdhzoh.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhxbm1ma2Fmd3duamlxcGRoem9oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQyMTc0NzEsImV4cCI6MjEwOTc5MzQ3MX0.m6dHtNnXuQ108DvafyKWeFvAg_oySuQH3LRg0Jzaops';
-    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    if (typeof marked !== 'undefined') {
-      marked.setOptions({ breaks: true, gfm: true });
-    }
+    renderAdminShell('problems');
+    if (typeof marked !== 'undefined') marked.setOptions({ breaks: true, gfm: true });
 
     let activeTags = [];
     let allLoadedProblems = [];
@@ -632,7 +502,6 @@
       el.classList.remove('opacity-0', 'pointer-events-none', 'modal-closed');
       el.classList.add('modal-open');
     }
-
     function closeSmoothModal(id) {
       const el = document.getElementById(id);
       if (!el) return;
@@ -640,29 +509,12 @@
       el.classList.add('modal-closed', 'opacity-0', 'pointer-events-none');
     }
 
-    function showToast(title, desc, isError = false) {
-      const toast = document.getElementById('systemToast');
-      document.getElementById('toastTitle').textContent = title;
-      document.getElementById('toastDesc').textContent = desc;
-      const icon = document.getElementById('toastIcon');
-      icon.className = isError ? 'fa-solid fa-circle-exclamation text-rose-400 text-lg' : 'fa-solid fa-circle-check text-cyan-400 text-lg';
-      
-      toast.classList.remove('translate-x-[120%]');
-      setTimeout(() => { toast.classList.add('translate-x-[120%]'); }, 3200);
-    }
-
-    // PROBLEM EXECUTION MODE (STANDARD VS FUNCTION WITH SHOW/HIDE MAIN)
     function setProblemExecutionMode(mode) {
       currentProblemMode = mode;
-
       const baseCls = 'p-3 rounded-xl border text-left transition cursor-pointer bg-black/50 border-cyan-500/20 text-gray-300 hover:border-cyan-400/50';
-      const activeStandardCls = 'p-3 rounded-xl border text-left transition cursor-pointer bg-cyan-500/20 border-cyan-400 text-white';
-      const activeShowCls = 'p-3 rounded-xl border text-left transition cursor-pointer bg-emerald-500/20 border-emerald-400 text-white';
-      const activeHideCls = 'p-3 rounded-xl border text-left transition cursor-pointer bg-amber-500/20 border-amber-400 text-white';
-
-      document.getElementById('modeBtnStandard').className = mode === 'standard' ? activeStandardCls : baseCls;
-      document.getElementById('modeBtnFuncShow').className = mode === 'function_show_main' ? activeShowCls : baseCls;
-      document.getElementById('modeBtnFuncHide').className = mode === 'function_hide_main' ? activeHideCls : baseCls;
+      document.getElementById('modeBtnStandard').className = mode === 'standard' ? 'p-3 rounded-xl border text-left transition cursor-pointer bg-cyan-500/20 border-cyan-400 text-white' : baseCls;
+      document.getElementById('modeBtnFuncShow').className = mode === 'function_show_main' ? 'p-3 rounded-xl border text-left transition cursor-pointer bg-emerald-500/20 border-emerald-400 text-white' : baseCls;
+      document.getElementById('modeBtnFuncHide').className = mode === 'function_hide_main' ? 'p-3 rounded-xl border text-left transition cursor-pointer bg-amber-500/20 border-amber-400 text-white' : baseCls;
 
       const configArea = document.getElementById('functionModeConfigArea');
       const badge = document.getElementById('functionModeBadge');
@@ -685,7 +537,6 @@
           visTag.className = 'text-[10px] px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30';
           visTag.innerHTML = '<i class="fa-solid fa-eye-slash mr-1"></i> ปิดซ่อนจากผู้เล่น';
         }
-
         if (!document.getElementById('admStarterCode').value.trim() && !document.getElementById('admGraderMainCode').value.trim()) {
           insertFunctionTemplate(true);
         }
@@ -704,17 +555,11 @@
       if (!silent) showToast('โหลดแม่แบบแล้ว', `ใส่โค้ดตัวอย่างสำหรับ ${lang.toUpperCase()} เรียบร้อย`);
     }
 
-    function onFuncLangChange() {
-      insertFunctionTemplate(false);
-    }
-
-    // CUSTOM CATEGORY DROPDOWN LOGIC
     function toggleCategoryDropdown(forceState = null) {
       const menu = document.getElementById('categoryDropdownMenu');
       const chevron = document.getElementById('categoryDropdownChevron');
       const isHidden = menu.classList.contains('hidden');
       const shouldOpen = forceState !== null ? forceState : isHidden;
-
       if (shouldOpen) {
         menu.classList.remove('hidden');
         chevron.classList.add('rotate-180');
@@ -729,24 +574,18 @@
 
     document.addEventListener('click', (e) => {
       const wrapper = document.getElementById('categoryDropdownWrapper');
-      if (wrapper && !wrapper.contains(e.target)) {
-        toggleCategoryDropdown(false);
-      }
+      if (wrapper && !wrapper.contains(e.target)) toggleCategoryDropdown(false);
     });
 
-    function filterCategoryOptions(query) {
-      renderCategoryOptions(query.trim().toLowerCase());
-    }
+    function filterCategoryOptions(query) { renderCategoryOptions(query.trim().toLowerCase()); }
 
     function renderCategoryOptions(filterText = '') {
       const container = document.getElementById('categoryOptionsList');
       const filtered = customTagsList.filter(t => t.toLowerCase().includes(filterText));
-
       if (filtered.length === 0) {
-        container.innerHTML = `<div class="text-xs text-gray-400 text-center py-3">ไม่พบหมวดหมู่ "${filterText}" กดปุ่ม "+ เพิ่มหมวดหมู่ใหม่" ด้านบนได้</div>`;
+        container.innerHTML = `<div class="text-xs text-gray-400 text-center py-3">ไม่พบหมวดหมู่ "${filterText}"</div>`;
         return;
       }
-
       container.innerHTML = filtered.map(tag => {
         const isSelected = activeTags.includes(tag);
         return `
@@ -759,23 +598,13 @@
     }
 
     function toggleTagSelection(tag) {
-      if (activeTags.includes(tag)) {
-        activeTags = activeTags.filter(t => t !== tag);
-      } else {
-        activeTags.push(tag);
-      }
+      activeTags = activeTags.includes(tag) ? activeTags.filter(t => t !== tag) : [...activeTags, tag];
       renderTags();
       renderCategoryOptions(document.getElementById('categorySearchInput').value.trim().toLowerCase());
     }
 
-    function openNewTagPopup() {
-      toggleCategoryDropdown(false);
-      openSmoothModal('newTagPopupModal');
-      setTimeout(() => document.getElementById('customNewTagInput').focus(), 80);
-    }
-    function closeNewTagPopup() {
-      closeSmoothModal('newTagPopupModal');
-    }
+    function openNewTagPopup() { toggleCategoryDropdown(false); openSmoothModal('newTagPopupModal'); }
+    function closeNewTagPopup() { closeSmoothModal('newTagPopupModal'); }
     function saveNewTagToSystem() {
       const val = document.getElementById('customNewTagInput').value.trim();
       if (val && !customTagsList.includes(val)) {
@@ -785,9 +614,6 @@
         renderTags();
         renderQuickTagFilterBar();
         showToast('เพิ่มหมวดหมู่สำเร็จ', `บันทึกแท็ก "${val}" เรียบร้อย`);
-      } else if (val && !activeTags.includes(val)) {
-        activeTags.push(val);
-        renderTags();
       }
       document.getElementById('customNewTagInput').value = '';
       closeNewTagPopup();
@@ -795,18 +621,13 @@
     function removeTag(tag) {
       activeTags = activeTags.filter(t => t !== tag);
       renderTags();
-      if (!document.getElementById('categoryDropdownMenu').classList.contains('hidden')) {
-        renderCategoryOptions(document.getElementById('categorySearchInput').value.trim().toLowerCase());
-      }
     }
     function renderTags() {
       const container = document.getElementById('selectedTagsContainer');
       const placeholder = document.getElementById('categoryDropdownPlaceholder');
-      if (activeTags.length > 0) {
-        placeholder.innerHTML = `<i class="fa-solid fa-tags text-cyan-400 mr-2"></i> เลือกแล้ว ${activeTags.length} หมวดหมู่ (คลิกเพื่อเลือกเพิ่ม)`;
-      } else {
-        placeholder.innerHTML = `<i class="fa-solid fa-tags text-cyan-400 mr-2"></i> คลิกเพื่อเลือกหลายหมวดหมู่พร้อมกัน...`;
-      }
+      placeholder.innerHTML = activeTags.length > 0
+        ? `<i class="fa-solid fa-tags text-cyan-400 mr-2"></i> เลือกแล้ว ${activeTags.length} หมวดหมู่`
+        : `<i class="fa-solid fa-tags text-cyan-400 mr-2"></i> คลิกเพื่อเลือกหลายหมวดหมู่พร้อมกัน...`;
 
       container.innerHTML = activeTags.map(t => `
         <span class="bg-cyan-500/20 text-cyan-300 border border-cyan-500/35 px-3 py-1 rounded-xl text-xs font-medium flex items-center gap-2 transition">
@@ -815,22 +636,20 @@
       `).join('') || '<span class="text-gray-500 text-xs italic">ยังไม่ได้เลือกหมวดหมู่...</span>';
     }
 
-    // TEST CASE CHIPS + POPUP EDITOR LOGIC
     function renderTestCaseChips() {
       const container = document.getElementById('testCaseChipsContainer');
       if (!formTestCasesData || formTestCasesData.length === 0) {
-        container.innerHTML = `<span class="text-gray-500 text-xs italic">ยังไม่มี Test Case กดปุ่ม "+ เพิ่ม Test Case" หรืออัปโหลดไฟล์ ZIP</span>`;
+        container.innerHTML = `<span class="text-gray-500 text-xs italic">ยังไม่มี Test Case กดปุ่ม "+ เพิ่ม Test Case"</span>`;
         return;
       }
-
       container.innerHTML = formTestCasesData.map((tc, idx) => {
         const isSample = !!tc.is_sample;
         const hasData = (tc.input && tc.input.trim() !== '') || (tc.output && tc.output.trim() !== '');
         return `
-          <button type="button" onclick="openSingleTestCaseModal(${idx})" class="group px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all duration-150 flex items-center gap-2 cursor-pointer ${isSample ? 'bg-yellow-500/15 border-yellow-500/45 text-yellow-200 hover:bg-yellow-500/25' : 'bg-cyan-500/10 border-cyan-500/30 text-cyan-200 hover:bg-cyan-500/25'}">
+          <button type="button" onclick="openSingleTestCaseModal(${idx})" class="px-3.5 py-2 rounded-xl text-xs font-semibold border transition flex items-center gap-2 cursor-pointer ${isSample ? 'bg-yellow-500/15 border-yellow-500/45 text-yellow-200 hover:bg-yellow-500/25' : 'bg-cyan-500/10 border-cyan-500/30 text-cyan-200 hover:bg-cyan-500/25'}">
             <i class="${isSample ? 'fa-solid fa-star text-yellow-400' : 'fa-regular fa-file-lines text-cyan-400'}"></i>
             <span>Test Case #${idx + 1}</span>
-            ${!hasData ? '<span class="w-1.5 h-1.5 rounded-full bg-rose-400" title="ยังไม่ได้กรอกข้อมูล"></span>' : ''}
+            ${!hasData ? '<span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span>' : ''}
           </button>
         `;
       }).join('');
@@ -840,7 +659,6 @@
       if (index < 0 || index >= formTestCasesData.length) return;
       currentEditingTcIndex = index;
       const tc = formTestCasesData[index];
-
       document.getElementById('tcModalHeaderTitle').textContent = `Test Case #${index + 1} / ${formTestCasesData.length}`;
       document.getElementById('tcPopupInputArea').value = tc.input || '';
       document.getElementById('tcPopupOutputArea').value = tc.output || '';
@@ -856,7 +674,6 @@
 
       document.getElementById('tcPrevBtn').disabled = index === 0;
       document.getElementById('tcNextBtn').disabled = index === formTestCasesData.length - 1;
-
       openSmoothModal('singleTestCaseModal');
     }
 
@@ -876,9 +693,7 @@
     function navigateTestCasePopup(step) {
       syncCurrentPopupTestCase();
       const target = currentEditingTcIndex + step;
-      if (target >= 0 && target < formTestCasesData.length) {
-        openSingleTestCaseModal(target);
-      }
+      if (target >= 0 && target < formTestCasesData.length) openSingleTestCaseModal(target);
     }
 
     function toggleCurrentPopupSampleStar() {
@@ -899,16 +714,10 @@
       if (formTestCasesData.length === 0) return;
       formTestCasesData.splice(currentEditingTcIndex, 1);
       renderTestCaseChips();
-
-      if (formTestCasesData.length === 0) {
-        closeSmoothModal('singleTestCaseModal');
-      } else {
-        const nextIdx = Math.min(currentEditingTcIndex, formTestCasesData.length - 1);
-        openSingleTestCaseModal(nextIdx);
-      }
+      if (formTestCasesData.length === 0) closeSmoothModal('singleTestCaseModal');
+      else openSingleTestCaseModal(Math.min(currentEditingTcIndex, formTestCasesData.length - 1));
     }
 
-    // DATETIME HELPERS
     function toLocalDatetimeInputValue(isoString) {
       if (!isoString) return '';
       const d = new Date(isoString);
@@ -930,31 +739,17 @@
       showToast('ล้างเวลาแล้ว', 'ตั้งค่าให้โจทย์เปิดตลอดเวลา');
     }
 
-    // HANDLE PDF FILE SELECTION & POP-OUT
     function handlePdfFileSelect(event) {
       const file = event.target.files[0];
       const badge = document.getElementById('selectedPdfBadge');
-      if (!file) {
-        selectedPdfDataUrl = '';
-        selectedPdfFileName = '';
-        badge.classList.add('hidden');
-        return;
-      }
+      if (!file) { badge.classList.add('hidden'); return; }
       selectedPdfFileName = file.name;
       const reader = new FileReader();
       reader.onload = function(e) {
         selectedPdfDataUrl = e.target.result;
         document.getElementById('currentPdfUrl').value = selectedPdfDataUrl;
         badge.classList.remove('hidden');
-        badge.innerHTML = `
-          <div class="flex items-center justify-between bg-cyan-500/10 border border-cyan-500/30 rounded-xl px-3.5 py-2.5 text-xs">
-            <span class="text-cyan-300 truncate"><i class="fa-solid fa-file-pdf text-rose-400 mr-1.5"></i> ไฟล์ที่เลือก: <b>${file.name}</b></span>
-            <button type="button" onclick="openPdfInNewTab('${selectedPdfDataUrl}')" class="text-xs bg-cyan-500 text-black font-bold px-3 py-1 rounded-lg hover:bg-cyan-400 transition cursor-pointer shrink-0 ml-2">
-              Pop-out ดูไฟล์ <i class="fa-solid fa-arrow-up-right-from-square ml-1"></i>
-            </button>
-          </div>
-        `;
-        showToast('เลือกไฟล์ PDF แล้ว', `พร้อมแสดงตัวอย่างไฟล์ ${file.name}`);
+        badge.innerHTML = `<div class="flex items-center justify-between bg-cyan-500/10 border border-cyan-500/30 rounded-xl px-3.5 py-2 text-xs"><span class="text-cyan-300 truncate"><i class="fa-solid fa-file-pdf text-rose-400 mr-1.5"></i> <b>${file.name}</b></span></div>`;
       };
       reader.readAsDataURL(file);
     }
@@ -962,29 +757,10 @@
     function openPdfInNewTab(url) {
       if (!url) return;
       const win = window.open();
-      if (win) {
-        win.document.write(`<iframe src="${url}" frameborder="0" style="border:0; top:0px; left:0px; bottom:0px; right:0px; width:100%; height:100%;" allowfullscreen></iframe>`);
-      } else {
-        window.open(url, '_blank');
-      }
+      if (win) win.document.write(`<iframe src="${url}" frameborder="0" style="width:100%;height:100%;"></iframe>`);
+      else window.open(url, '_blank');
     }
 
-    // RENDER MARKDOWN PREVIEW
-    function renderMarkdownPreviewContent() {
-      const textVal = document.getElementById('admStatementText').value;
-      const mdOut = document.getElementById('markdownRenderOutput');
-      if (!textVal.trim()) {
-        mdOut.innerHTML = '<span class="text-gray-500 italic">ยังไม่มีข้อความ Markdown... ลองพิมพ์ # หัวข้อ หรือ **ตัวหนา** ในช่องแก้ไข</span>';
-        return;
-      }
-      if (typeof marked !== 'undefined') {
-        mdOut.innerHTML = marked.parse(textVal);
-      } else {
-        mdOut.textContent = textVal;
-      }
-    }
-
-    // SWITCH STATEMENT TAB
     function switchStatementTab(tab) {
       const editArea = document.getElementById('statementEditArea');
       const previewArea = document.getElementById('statementPreviewArea');
@@ -1002,56 +778,65 @@
         previewArea.classList.remove('hidden');
         btnPreview.className = 'px-3 py-1 rounded-lg text-xs font-semibold bg-cyan-500 text-black transition cursor-pointer';
         btnEdit.className = 'px-3 py-1 rounded-lg text-xs font-semibold text-gray-300 hover:text-white transition cursor-pointer';
-        
-        renderMarkdownPreviewContent();
-
+        const textVal = document.getElementById('admStatementText').value;
+        document.getElementById('markdownRenderOutput').innerHTML = typeof marked !== 'undefined' ? marked.parse(textVal || '') : textVal;
         const pdfContainer = document.getElementById('pdfEmbedPreviewContainer');
-        const pdfIframe = document.getElementById('pdfPreviewIframe');
-        if (pdfUrl) {
-          pdfContainer.classList.remove('hidden');
-          pdfIframe.src = pdfUrl;
-        } else {
-          pdfContainer.classList.add('hidden');
-        }
+        if (pdfUrl) { pdfContainer.classList.remove('hidden'); document.getElementById('pdfPreviewIframe').src = pdfUrl; }
+        else { pdfContainer.classList.add('hidden'); }
       }
     }
 
-    // DOWNLOAD TEST CASES AS ZIP
     async function downloadTestCasesZip() {
-      if (!formTestCasesData || formTestCasesData.length === 0) {
-        showToast('ไม่มีข้อมูล', 'ยังไม่มี Test Case ในฟอร์ม', true);
-        return;
-      }
-
+      if (!formTestCasesData || formTestCasesData.length === 0) return;
       const zip = new JSZip();
       formTestCasesData.forEach((tc, idx) => {
         const num = String(idx + 1).padStart(2, '0');
         zip.file(`${num}.in`, tc.input || '');
         zip.file(`${num}.sol`, tc.output || '');
       });
-
       const content = await zip.generateAsync({ type: 'blob' });
       const url = URL.createObjectURL(content);
       const a = document.createElement('a');
       a.href = url;
-      const code = document.getElementById('admCode').value.trim() || 'problem';
-      a.download = `testcases_${code}.zip`;
+      a.download = `testcases_${document.getElementById('admCode').value.trim() || 'problem'}.zip`;
       a.click();
       URL.revokeObjectURL(url);
-      showToast('ดาวน์โหลดสำเร็จ', `ดาวน์โหลดไฟล์ testcases_${code}.zip เรียบร้อยแล้ว`);
     }
 
-    // OPEN PROBLEM MODAL (CREATE / EDIT)
+    async function handleZipUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => { selectedZipDataUrl = e.target.result; document.getElementById('currentZipUrl').value = selectedZipDataUrl; };
+      reader.readAsDataURL(file);
+
+      const zip = new JSZip();
+      try {
+        const content = await zip.loadAsync(file);
+        const testCasesMap = {};
+        for (let filename of Object.keys(content.files)) {
+          if (content.files[filename].dir) continue;
+          const baseName = filename.split('/').pop();
+          const ext = baseName.split('.').pop().toLowerCase();
+          const nameWithoutExt = baseName.substring(0, baseName.lastIndexOf('.'));
+          if (ext === 'in' || ext === 'sol') {
+            if (!testCasesMap[nameWithoutExt]) testCasesMap[nameWithoutExt] = { input: '', output: '' };
+            const textContent = await content.files[filename].async('text');
+            if (ext === 'in') testCasesMap[nameWithoutExt].input = textContent;
+            if (ext === 'sol') testCasesMap[nameWithoutExt].output = textContent;
+          }
+        }
+        const keys = Object.keys(testCasesMap).sort();
+        formTestCasesData = keys.map((key, idx) => ({ input: testCasesMap[key].input, output: testCasesMap[key].output, is_sample: idx === 0 }));
+        renderTestCaseChips();
+        showToast('อัปโหลด ZIP สำเร็จ', `โหลด Test Cases แล้ว ${formTestCasesData.length} ชุด`);
+      } catch (err) {
+        showToast('เกิดข้อผิดพลาด', err.message, true);
+      }
+    }
+
     function openProblemModal(mode, problemId = null) {
       const form = document.getElementById('problemForm');
-      const modeInput = document.getElementById('formMode');
-      const titleText = document.getElementById('modalTitleText');
-      const descText = document.getElementById('modalDescText');
-      const submitBtn = document.getElementById('submitBtnText');
-      const existingPdfContainer = document.getElementById('existingPdfContainer');
-      const existingZipContainer = document.getElementById('existingZipContainer');
-      const selectedPdfBadge = document.getElementById('selectedPdfBadge');
-
       form.reset();
       activeTags = [];
       renderTags();
@@ -1063,27 +848,24 @@
       document.getElementById('currentZipUrl').value = '';
       document.getElementById('admStarterCode').value = '';
       document.getElementById('admGraderMainCode').value = '';
-      existingPdfContainer.innerHTML = '';
-      existingZipContainer.innerHTML = '';
-      selectedPdfBadge.classList.add('hidden');
+      document.getElementById('existingPdfContainer').innerHTML = '';
+      document.getElementById('existingZipContainer').innerHTML = '';
+      document.getElementById('selectedPdfBadge').classList.add('hidden');
       switchStatementTab('edit');
 
       if (mode === 'create') {
-        modeInput.value = 'create';
+        document.getElementById('formMode').value = 'create';
         document.getElementById('editProblemId').value = '';
         document.getElementById('admSource').value = 'admin';
         setProblemExecutionMode('standard');
-        titleText.innerHTML = '<i class="fa-solid fa-cloud-arrow-up text-cyan-400 mr-2"></i> สร้าง / อัปโหลดโจทย์ใหม่';
-        descText.textContent = 'กรอกรหัสโจทย์ (Unique Code), ชื่อโจทย์, รูปแบบโจทย์ และรายละเอียดทั้งหมด';
-        submitBtn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up mr-1.5"></i> บันทึกและเผยแพร่โจทย์เข้าสู่ระบบทันที';
-        
+        document.getElementById('modalTitleText').innerHTML = '<i class="fa-solid fa-cloud-arrow-up text-cyan-400 mr-2"></i> สร้าง / อัปโหลดโจทย์ใหม่';
+        document.getElementById('submitBtnText').innerHTML = '<i class="fa-solid fa-cloud-arrow-up mr-1.5"></i> บันทึกและเผยแพร่โจทย์เข้าสู่ระบบทันที';
         formTestCasesData = [{ input: '', output: '', is_sample: true }];
         renderTestCaseChips();
-      } else if (mode === 'edit' && problemId !== null) {
+      } else {
         const p = allLoadedProblems.find(item => String(item.id) === String(problemId));
         if (!p) return;
-
-        modeInput.value = 'edit';
+        document.getElementById('formMode').value = 'edit';
         document.getElementById('editProblemId').value = p.id;
         document.getElementById('admCode').value = p.problem_code || '';
         document.getElementById('admTitle').value = p.title || '';
@@ -1103,178 +885,44 @@
         document.getElementById('admGraderMainCode').value = p.grader_main_code || '';
         setProblemExecutionMode(savedMode);
 
-        if (p.tags) {
-          activeTags = p.tags.split(',').map(t => t.trim()).filter(Boolean);
-          renderTags();
-        }
-
-        if (p.test_cases && Array.isArray(p.test_cases) && p.test_cases.length > 0) {
-          formTestCasesData = p.test_cases.map(tc => ({
-            input: tc.input || '',
-            output: tc.output || '',
-            is_sample: !!tc.is_sample
-          }));
-        } else {
-          formTestCasesData = [{ input: '', output: '', is_sample: true }];
-        }
+        if (p.tags) { activeTags = p.tags.split(',').map(t => t.trim()).filter(Boolean); renderTags(); }
+        formTestCasesData = (p.test_cases && Array.isArray(p.test_cases) && p.test_cases.length > 0)
+          ? p.test_cases.map(tc => ({ input: tc.input || '', output: tc.output || '', is_sample: !!tc.is_sample }))
+          : [{ input: '', output: '', is_sample: true }];
         renderTestCaseChips();
 
         if (p.statement_pdf_url) {
           document.getElementById('currentPdfUrl').value = p.statement_pdf_url;
-          const pdfName = p.statement_pdf_name || 'statement.pdf';
-          existingPdfContainer.innerHTML = `
-            <button type="button" onclick="openPdfInNewTab('${p.statement_pdf_url}')" class="text-xs text-cyan-300 bg-cyan-500/15 px-3 py-1 rounded-lg border border-cyan-500/40 hover:bg-cyan-500/25 flex items-center gap-1.5 transition cursor-pointer">
-              <i class="fa-solid fa-file-pdf text-rose-400"></i> ไฟล์เดิม: ${pdfName} <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
-            </button>
-          `;
-          selectedPdfBadge.classList.remove('hidden');
-          selectedPdfBadge.innerHTML = `
-            <div class="flex items-center justify-between bg-emerald-500/10 border border-emerald-500/30 rounded-xl px-3.5 py-2.5 text-xs">
-              <span class="text-emerald-300 truncate"><i class="fa-solid fa-circle-check mr-1.5"></i> มีไฟล์ PDF อัปโหลดไว้แล้ว: <b>${pdfName}</b></span>
-              <button type="button" onclick="openPdfInNewTab('${p.statement_pdf_url}')" class="text-xs bg-emerald-500 text-black font-bold px-3 py-1 rounded-lg hover:bg-emerald-400 transition cursor-pointer shrink-0 ml-2">
-                เปิดดู PDF (Pop-out) <i class="fa-solid fa-arrow-up-right-from-square ml-1"></i>
-              </button>
-            </div>
-          `;
+          document.getElementById('existingPdfContainer').innerHTML = `<button type="button" onclick="openPdfInNewTab('${p.statement_pdf_url}')" class="text-xs text-cyan-300 bg-cyan-500/15 px-3 py-1 rounded-lg border border-cyan-500/40 cursor-pointer"><i class="fa-solid fa-file-pdf text-rose-400 mr-1"></i> ดู PDF เดิม</button>`;
         }
-
-        if (p.testcases_zip_url) {
-          document.getElementById('currentZipUrl').value = p.testcases_zip_url;
-          existingZipContainer.innerHTML = `
-            <a href="${p.testcases_zip_url}" download="testcases_${p.problem_code || p.id}.zip" target="_blank" class="text-xs text-yellow-300 bg-yellow-500/10 px-2.5 py-1 rounded-lg border border-yellow-500/30 hover:bg-yellow-500/20 flex items-center gap-1.5 transition">
-              <i class="fa-solid fa-file-zipper text-yellow-400"></i> โหลด ZIP เดิม <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
-            </a>
-          `;
-        }
-
-        titleText.innerHTML = `<i class="fa-solid fa-pen-to-square text-cyan-400 mr-2"></i> แก้ไขโจทย์: ${p.problem_code || '#PROB-' + p.id}`;
-        descText.textContent = 'แก้ไขรายละเอียด รหัสโจทย์ รูปแบบฟังก์ชัน เวลาเปิด-ปิด ไฟล์ PDF และ Test Cases ได้ที่นี่';
-        submitBtn.innerHTML = '<i class="fa-solid fa-floppy-disk mr-1.5"></i> บันทึกการแก้ไขโจทย์';
+        document.getElementById('modalTitleText').innerHTML = `<i class="fa-solid fa-pen-to-square text-cyan-400 mr-2"></i> แก้ไขโจทย์: ${p.problem_code || '#PROB-' + p.id}`;
+        document.getElementById('submitBtnText').innerHTML = '<i class="fa-solid fa-floppy-disk mr-1.5"></i> บันทึกการแก้ไขโจทย์';
       }
-
       openSmoothModal('problemModal');
     }
 
-    function closeProblemModal() {
-      closeSmoothModal('problemModal');
-    }
+    function closeProblemModal() { closeSmoothModal('problemModal'); }
 
-    async function checkAdminAuth() {
-      const { data: { session } } = await supabaseClient.auth.getSession();
-      if (!session) {
-        showToast('แจ้งเตือน', 'กรุณาเข้าสู่ระบบแอดมินก่อน', true);
-        setTimeout(() => { window.location.href = 'index.html'; }, 1500);
-      } else {
-        fetchAllAdminProblems();
-        renderContestsList();
-      }
-    }
-    checkAdminAuth();
-
-    function handleAdminLogout() {
-      supabaseClient.auth.signOut().then(() => { window.location.href = 'index.html'; });
-    }
-
-    function switchAdminTab(tabName) {
-      document.getElementById('adminTabProblems').classList.add('hidden');
-      document.getElementById('adminTabVerify').classList.add('hidden');
-      document.getElementById('adminTabContests').classList.add('hidden');
-
-      const activeStyle = 'shrink-0 text-left px-3.5 py-2.5 rounded-xl bg-cyan-500/20 border border-cyan-500/40 text-cyan-300 text-xs font-semibold flex items-center gap-2.5 transition-all duration-200 cursor-pointer';
-      const normalStyle = 'shrink-0 text-left px-3.5 py-2.5 rounded-xl tech-glass text-gray-300 hover:text-cyan-300 hover:bg-cyan-500/10 border border-cyan-500/15 text-xs font-semibold flex items-center gap-2.5 transition-all duration-200 cursor-pointer';
-
-      document.getElementById('drawerBtnProblems').className = normalStyle;
-      document.getElementById('drawerBtnVerify').className = normalStyle;
-      document.getElementById('drawerBtnContests').className = normalStyle;
-
-      if (tabName === 'problems') {
-        document.getElementById('adminTabProblems').classList.remove('hidden');
-        document.getElementById('drawerBtnProblems').className = activeStyle;
-        fetchAllAdminProblems();
-      } else if (tabName === 'verify') {
-        document.getElementById('adminTabVerify').classList.remove('hidden');
-        document.getElementById('drawerBtnVerify').className = activeStyle;
-        fetchPendingProblems();
-      } else if (tabName === 'contests') {
-        document.getElementById('adminTabContests').classList.remove('hidden');
-        document.getElementById('drawerBtnContests').className = activeStyle;
-        renderContestsList();
-      }
-    }
-
-    async function handleZipUpload(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        selectedZipDataUrl = e.target.result;
-        document.getElementById('currentZipUrl').value = selectedZipDataUrl;
-      };
-      reader.readAsDataURL(file);
-
-      const zip = new JSZip();
-      try {
-        const content = await zip.loadAsync(file);
-        const testCasesMap = {};
-
-        for (let filename of Object.keys(content.files)) {
-          if (content.files[filename].dir) continue;
-          const baseName = filename.split('/').pop();
-          const ext = baseName.split('.').pop().toLowerCase();
-          const nameWithoutExt = baseName.substring(0, baseName.lastIndexOf('.'));
-
-          if (ext === 'in' || ext === 'sol') {
-            if (!testCasesMap[nameWithoutExt]) testCasesMap[nameWithoutExt] = { input: '', output: '' };
-            const textContent = await content.files[filename].async('text');
-            if (ext === 'in') testCasesMap[nameWithoutExt].input = textContent;
-            if (ext === 'sol') testCasesMap[nameWithoutExt].output = textContent;
-          }
-        }
-
-        const keys = Object.keys(testCasesMap).sort();
-        formTestCasesData = keys.map((key, idx) => ({
-          input: testCasesMap[key].input,
-          output: testCasesMap[key].output,
-          is_sample: idx === 0
-        }));
-
-        renderTestCaseChips();
-        showToast('อัปโหลด ZIP สำเร็จ', `โหลด Test Cases แล้ว ${formTestCasesData.length} ชุด`);
-      } catch (err) {
-        showToast('เกิดข้อผิดพลาด', err.message, true);
-      }
-    }
-
-    // SOURCE TYPE HELPER (ADMIN VS COMMUNITY)
     function getProblemSourceType(p) {
       if (p.source === 'community' || p.source === 'user') return 'community';
       if (p.source === 'admin') return 'admin';
-      if (!p.is_verified) return 'community';
-      return 'admin';
+      return !p.is_verified ? 'community' : 'admin';
     }
 
     function setSourceFilter(type) {
       currentSourceFilter = type;
       const activeCls = 'flex-1 py-1 px-2 rounded-lg text-xs font-semibold bg-cyan-500 text-black transition cursor-pointer';
       const normalCls = 'flex-1 py-1 px-2 rounded-lg text-xs font-semibold text-gray-300 hover:text-white transition cursor-pointer';
-
       document.getElementById('srcBtnAll').className = type === 'all' ? activeCls : normalCls;
       document.getElementById('srcBtnAdmin').className = type === 'admin' ? activeCls : normalCls;
       document.getElementById('srcBtnCommunity').className = type === 'community' ? activeCls : normalCls;
-
       applyProblemFiltersAndRender();
     }
 
-    // MULTI-SELECT QUICK TAG FILTER
     function toggleQuickTagFilter(tag) {
-      if (tag === '') {
-        selectedQuickTags = [];
-      } else if (selectedQuickTags.includes(tag)) {
-        selectedQuickTags = selectedQuickTags.filter(t => t !== tag);
-      } else {
-        selectedQuickTags.push(tag);
-      }
+      if (tag === '') selectedQuickTags = [];
+      else if (selectedQuickTags.includes(tag)) selectedQuickTags = selectedQuickTags.filter(t => t !== tag);
+      else selectedQuickTags.push(tag);
       renderQuickTagFilterBar();
       applyProblemFiltersAndRender();
     }
@@ -1292,31 +940,14 @@
       const container = document.getElementById('quickTagsFilterContainer');
       const matchWrapper = document.getElementById('tagMatchModeWrapper');
       if (!container) return;
+      matchWrapper.classList.toggle('hidden', selectedQuickTags.length <= 1);
+      matchWrapper.classList.toggle('flex', selectedQuickTags.length > 1);
 
-      if (selectedQuickTags.length > 1) {
-        matchWrapper.classList.remove('hidden');
-        matchWrapper.classList.add('flex');
-      } else {
-        matchWrapper.classList.add('hidden');
-        matchWrapper.classList.remove('flex');
-      }
-
-      const allBtn = `
-        <button type="button" onclick="toggleQuickTagFilter('')" class="px-2.5 py-1 rounded-lg text-xs font-medium transition cursor-pointer ${selectedQuickTags.length === 0 ? 'bg-cyan-500 text-black font-semibold' : 'bg-white/5 text-gray-300 hover:bg-cyan-500/15 hover:text-cyan-300'}">
-          ทั้งหมด ${selectedQuickTags.length > 0 ? '(ล้าง)' : ''}
-        </button>
-      `;
-
+      const allBtn = `<button type="button" onclick="toggleQuickTagFilter('')" class="px-2.5 py-1 rounded-lg text-xs font-medium transition cursor-pointer ${selectedQuickTags.length === 0 ? 'bg-cyan-500 text-black font-semibold' : 'bg-white/5 text-gray-300 hover:bg-cyan-500/15'}">ทั้งหมด ${selectedQuickTags.length > 0 ? '(ล้าง)' : ''}</button>`;
       const tagBtns = customTagsList.map(tag => {
         const isActive = selectedQuickTags.includes(tag);
-        return `
-          <button type="button" onclick="toggleQuickTagFilter('${tag.replace(/'/g, "\\'")}')" class="px-2.5 py-1 rounded-lg text-xs font-medium transition cursor-pointer inline-flex items-center gap-1 ${isActive ? 'bg-cyan-500 text-black font-semibold shadow-sm shadow-cyan-500/30' : 'bg-white/5 text-gray-300 hover:bg-cyan-500/15 hover:text-cyan-300'}">
-            ${isActive ? '<i class="fa-solid fa-check text-[10px]"></i>' : ''}
-            <span>${tag}</span>
-          </button>
-        `;
+        return `<button type="button" onclick="toggleQuickTagFilter('${tag.replace(/'/g, "\\'")}')" class="px-2.5 py-1 rounded-lg text-xs font-medium transition cursor-pointer inline-flex items-center gap-1 ${isActive ? 'bg-cyan-500 text-black font-semibold' : 'bg-white/5 text-gray-300 hover:bg-cyan-500/15'}">${isActive ? '<i class="fa-solid fa-check text-[10px]"></i>' : ''}<span>${tag}</span></button>`;
       }).join('');
-
       container.innerHTML = allBtn + tagBtns;
     }
 
@@ -1324,33 +955,17 @@
       const now = new Date();
       const openDate = p.open_at ? new Date(p.open_at) : null;
       const closeDate = p.close_at ? new Date(p.close_at) : null;
-
-      if (!openDate && !closeDate) {
-        return `<span class="text-[11px] text-emerald-400 bg-emerald-500/10 border border-emerald-500/25 px-2 py-0.5 rounded-full whitespace-nowrap">เปิดตลอด</span>`;
-      }
-      if (openDate && now < openDate) {
-        return `<span class="text-[11px] text-amber-300 bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 rounded-full block w-fit whitespace-nowrap">รอ: ${formatThaiDateTime(p.open_at)}</span>`;
-      }
-      if (closeDate && now > closeDate) {
-        return `<span class="text-[11px] text-rose-400 bg-rose-500/15 border border-rose-500/30 px-2 py-0.5 rounded-full block w-fit whitespace-nowrap">ปิดแล้ว</span>`;
-      }
-      return `
-        <div class="text-[11px] leading-tight whitespace-nowrap">
-          <span class="text-cyan-300 block">เปิด: ${openDate ? formatThaiDateTime(p.open_at) : 'ทันที'}</span>
-          <span class="text-gray-400 block">ปิด: ${closeDate ? formatThaiDateTime(p.close_at) : '-'}</span>
-        </div>
-      `;
+      if (!openDate && !closeDate) return `<span class="text-[11px] text-emerald-400 bg-emerald-500/10 border border-emerald-500/25 px-2 py-0.5 rounded-full whitespace-nowrap">เปิดตลอด</span>`;
+      if (openDate && now < openDate) return `<span class="text-[11px] text-amber-300 bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 rounded-full whitespace-nowrap">รอ: ${formatThaiDateTime(p.open_at)}</span>`;
+      if (closeDate && now > closeDate) return `<span class="text-[11px] text-rose-400 bg-rose-500/15 border border-rose-500/30 px-2 py-0.5 rounded-full whitespace-nowrap">ปิดแล้ว</span>`;
+      return `<div class="text-[11px] leading-tight whitespace-nowrap"><span class="text-cyan-300 block">เปิด: ${openDate ? formatThaiDateTime(p.open_at) : 'ทันที'}</span><span class="text-gray-400 block">ปิด: ${closeDate ? formatThaiDateTime(p.close_at) : '-'}</span></div>`;
     }
 
     function getProblemModeBadge(p) {
       const mode = p.problem_mode || (p.is_function_mode ? (p.show_main ? 'function_show_main' : 'function_hide_main') : 'standard');
-      if (mode === 'function_show_main') {
-        return `<span class="text-[11px] font-medium text-emerald-300 bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded-md inline-flex items-center gap-1 whitespace-nowrap"><i class="fa-solid fa-eye text-[9px]"></i> ฟังก์ชัน (เห็น main)</span>`;
-      }
-      if (mode === 'function_hide_main') {
-        return `<span class="text-[11px] font-medium text-purple-300 bg-purple-500/15 border border-purple-500/30 px-2 py-0.5 rounded-md inline-flex items-center gap-1 whitespace-nowrap"><i class="fa-solid fa-eye-slash text-[9px]"></i> ฟังก์ชัน (ปิด main)</span>`;
-      }
-      return `<span class="text-[11px] font-medium text-gray-300 bg-white/5 border border-white/15 px-2 py-0.5 rounded-md inline-flex items-center gap-1 whitespace-nowrap"><i class="fa-solid fa-terminal text-[9px] text-cyan-400"></i> Standard I/O</span>`;
+      if (mode === 'function_show_main') return `<span class="text-[11px] font-medium text-emerald-300 bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded-md inline-flex items-center gap-1"><i class="fa-solid fa-eye text-[9px]"></i> ฟังก์ชัน (เห็น main)</span>`;
+      if (mode === 'function_hide_main') return `<span class="text-[11px] font-medium text-purple-300 bg-purple-500/15 border border-purple-500/30 px-2 py-0.5 rounded-md inline-flex items-center gap-1"><i class="fa-solid fa-eye-slash text-[9px]"></i> ฟังก์ชัน (ปิด main)</span>`;
+      return `<span class="text-[11px] font-medium text-gray-300 bg-white/5 border border-white/15 px-2 py-0.5 rounded-md inline-flex items-center gap-1"><i class="fa-solid fa-terminal text-[9px] text-cyan-400"></i> Standard I/O</span>`;
     }
 
     function applyProblemFiltersAndRender() {
@@ -1364,57 +979,33 @@
       const sortBy = document.getElementById('adminSortSelect')?.value || 'newest';
 
       let filtered = allLoadedProblems.filter(p => {
-        const srcType = getProblemSourceType(p);
-        if (currentSourceFilter !== 'all' && srcType !== currentSourceFilter) return false;
-
+        if (currentSourceFilter !== 'all' && getProblemSourceType(p) !== currentSourceFilter) return false;
         if (selectedQuickTags.length > 0) {
           const pTags = (p.tags || '').split(',').map(t => t.trim().toLowerCase()).filter(Boolean);
-          if (quickTagMatchMode === 'AND') {
-            const hasAll = selectedQuickTags.every(st => pTags.includes(st.toLowerCase()));
-            if (!hasAll) return false;
-          } else {
-            const hasAny = selectedQuickTags.some(st => pTags.includes(st.toLowerCase()));
-            if (!hasAny) return false;
-          }
+          const match = quickTagMatchMode === 'AND'
+            ? selectedQuickTags.every(st => pTags.includes(st.toLowerCase()))
+            : selectedQuickTags.some(st => pTags.includes(st.toLowerCase()));
+          if (!match) return false;
         }
-
         if (query) {
-          const codeStr = (p.problem_code || 'ST8-P' + p.id).toLowerCase();
-          const titleStr = (p.title || '').toLowerCase();
-          const tagsStr = (p.tags || '').toLowerCase();
-          const authorStr = (p.author || '').toLowerCase();
-          if (!codeStr.includes(query) && !titleStr.includes(query) && !tagsStr.includes(query) && !authorStr.includes(query)) {
-            return false;
-          }
+          const hay = `${p.problem_code || 'ST8-P' + p.id} ${p.title || ''} ${p.tags || ''} ${p.author || ''}`.toLowerCase();
+          if (!hay.includes(query)) return false;
         }
-
         return true;
       });
 
       const enriched = filtered.map(p => {
-        const pSubs = allSubmissionsCache ? allSubmissionsCache.filter(s => s.problem_id === p.id) : [];
-        const totalSubs = pSubs.length;
-        const acceptedSubs = pSubs.filter(s => s.status === 'Accepted' || s.status === 'AC').length;
-        return { ...p, totalSubs, acceptedSubs };
+        const pSubs = allSubmissionsCache.filter(s => s.problem_id === p.id);
+        return { ...p, totalSubs: pSubs.length, acceptedSubs: pSubs.filter(s => s.status === 'Accepted' || s.status === 'AC').length };
       });
 
       const diffRank = { Easy: 1, Medium: 2, Hard: 3 };
       enriched.sort((a, b) => {
-        if (sortBy === 'code_asc') {
-          return (a.problem_code || String(a.id)).localeCompare(b.problem_code || String(b.id), undefined, { numeric: true });
-        }
-        if (sortBy === 'code_desc') {
-          return (b.problem_code || String(b.id)).localeCompare(a.problem_code || String(a.id), undefined, { numeric: true });
-        }
-        if (sortBy === 'diff_asc') {
-          return (diffRank[a.difficulty] || 99) - (diffRank[b.difficulty] || 99);
-        }
-        if (sortBy === 'diff_desc') {
-          return (diffRank[b.difficulty] || 0) - (diffRank[a.difficulty] || 0);
-        }
-        if (sortBy === 'ac_desc') {
-          return b.acceptedSubs - a.acceptedSubs;
-        }
+        if (sortBy === 'code_asc') return (a.problem_code || String(a.id)).localeCompare(b.problem_code || String(b.id), undefined, { numeric: true });
+        if (sortBy === 'code_desc') return (b.problem_code || String(b.id)).localeCompare(a.problem_code || String(a.id), undefined, { numeric: true });
+        if (sortBy === 'diff_asc') return (diffRank[a.difficulty] || 99) - (diffRank[b.difficulty] || 99);
+        if (sortBy === 'diff_desc') return (diffRank[b.difficulty] || 0) - (diffRank[a.difficulty] || 0);
+        if (sortBy === 'ac_desc') return b.acceptedSubs - a.acceptedSubs;
         return b.id - a.id;
       });
 
@@ -1424,8 +1015,7 @@
       }
 
       tableBody.innerHTML = enriched.map(p => {
-        const srcType = getProblemSourceType(p);
-        const sourceBadge = srcType === 'community'
+        const sourceBadge = getProblemSourceType(p) === 'community'
           ? `<span class="text-[11px] font-medium text-amber-300 bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 rounded-full inline-flex items-center gap-1 whitespace-nowrap"><i class="fa-solid fa-users text-[9px]"></i> ทางบ้าน</span>`
           : `<span class="text-[11px] font-medium text-cyan-300 bg-cyan-500/15 border border-cyan-500/30 px-2 py-0.5 rounded-full inline-flex items-center gap-1 whitespace-nowrap"><i class="fa-solid fa-shield-halved text-[9px]"></i> แอดมิน</span>`;
 
@@ -1436,53 +1026,32 @@
           : `<span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30">Hard</span>`;
 
         const tagChips = p.tags
-          ? p.tags.split(',').map(t => t.trim()).filter(Boolean).map(t => {
-              const isHighlighted = selectedQuickTags.some(st => st.toLowerCase() === t.toLowerCase());
-              return `<span class="text-[11px] px-2 py-0.5 rounded-md border ${isHighlighted ? 'bg-cyan-500/25 text-cyan-200 border-cyan-400/50 font-semibold' : 'bg-white/5 text-gray-300 border-white/10'}">${t}</span>`;
-            }).join(' ')
+          ? p.tags.split(',').map(t => t.trim()).filter(Boolean).map(t => `<span class="text-[11px] px-2 py-0.5 rounded-md border bg-white/5 text-gray-300 border-white/10">${t}</span>`).join(' ')
           : '<span class="text-gray-500 text-xs">-</span>';
 
         return `
-          <tr id="problemRow_${p.id}" class="hover:bg-cyan-500/5 transition kanit-font">
-            <td class="px-3.5 py-3 whitespace-nowrap">
-              <span class="text-xs font-bold text-cyan-300 bg-cyan-500/10 px-2.5 py-1 rounded-lg border border-cyan-500/30">${p.problem_code || 'ST8-P' + p.id}</span>
-            </td>
+          <tr class="hover:bg-cyan-500/5 transition kanit-font">
+            <td class="px-3.5 py-3 whitespace-nowrap"><span class="text-xs font-bold text-cyan-300 bg-cyan-500/10 px-2.5 py-1 rounded-lg border border-cyan-500/30">${p.problem_code || 'ST8-P' + p.id}</span></td>
             <td class="px-3.5 py-3">
               <div class="flex items-center gap-1.5 flex-wrap">
                 <a href="javascript:void(0)" onclick="openProblemModal('edit', '${p.id}')" class="font-semibold text-white text-sm hover:text-cyan-400 underline decoration-cyan-500/40 transition">${p.title}</a>
-                ${p.statement_pdf_url ? '<i class="fa-solid fa-file-pdf text-rose-400 text-xs" title="มีไฟล์ PDF"></i>' : ''}
+                ${p.statement_pdf_url ? '<i class="fa-solid fa-file-pdf text-rose-400 text-xs"></i>' : ''}
               </div>
-              <div class="flex items-center gap-2 mt-1 flex-wrap">
-                ${getProblemModeBadge(p)}
-                ${p.author ? `<span class="text-[11px] text-gray-400">โดย: ${p.author}</span>` : ''}
-              </div>
+              <div class="flex items-center gap-2 mt-1 flex-wrap">${getProblemModeBadge(p)} ${p.author ? `<span class="text-[11px] text-gray-400">โดย: ${p.author}</span>` : ''}</div>
             </td>
-            <td class="px-3.5 py-3 whitespace-nowrap">
-              ${sourceBadge}
-            </td>
-            <td class="px-3.5 py-3">
-              <div class="flex flex-wrap gap-1">${tagChips}</div>
-            </td>
-            <td class="px-3.5 py-3 text-center whitespace-nowrap">
-              ${diffBadge}
-            </td>
-            <td class="px-3.5 py-3">
-              ${getScheduleBadge(p)}
-            </td>
-            <td class="px-3.5 py-3 text-center whitespace-nowrap">
-              <span class="text-emerald-400 font-bold text-xs">${p.acceptedSubs}</span><span class="text-gray-400 text-xs">/${p.totalSubs}</span>
-              <span class="text-[10px] text-gray-400 block">${Math.round((p.acceptedSubs / (p.totalSubs || 1)) * 100)}%</span>
-            </td>
+            <td class="px-3.5 py-3 whitespace-nowrap">${sourceBadge}</td>
+            <td class="px-3.5 py-3"><div class="flex flex-wrap gap-1">${tagChips}</div></td>
+            <td class="px-3.5 py-3 text-center whitespace-nowrap">${diffBadge}</td>
+            <td class="px-3.5 py-3">${getScheduleBadge(p)}</td>
+            <td class="px-3.5 py-3 text-center whitespace-nowrap"><span class="text-emerald-400 font-bold text-xs">${p.acceptedSubs}</span><span class="text-gray-400 text-xs">/${p.totalSubs}</span></td>
             <td class="px-3.5 py-3 text-center">
               <label class="relative inline-flex items-center cursor-pointer">
                 <input type="checkbox" ${p.is_verified ? 'checked' : ''} onchange="toggleProblemVisibility('${p.id}', this.checked)" class="sr-only peer">
-                <div class="w-9 h-5 bg-black/60 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-cyan-500"></div>
+                <div class="w-9 h-5 bg-black/60 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-cyan-500"></div>
               </label>
             </td>
             <td class="px-3.5 py-3 text-right whitespace-nowrap">
-              <button type="button" onclick="openDeleteConfirmModal('${p.id}')" class="bg-rose-600/20 text-rose-400 hover:bg-rose-600 hover:text-white px-2.5 py-1.5 rounded-lg transition text-xs font-semibold cursor-pointer">
-                <i class="fa-solid fa-trash"></i>
-              </button>
+              <button type="button" onclick="openDeleteConfirmModal('${p.id}')" class="bg-rose-600/20 text-rose-400 hover:bg-rose-600 hover:text-white px-2.5 py-1.5 rounded-lg transition text-xs font-semibold cursor-pointer"><i class="fa-solid fa-trash"></i></button>
             </td>
           </tr>
         `;
@@ -1491,32 +1060,18 @@
 
     async function fetchAllAdminProblems() {
       const { data: list, error } = await supabaseClient.from('problems').select('*').order('id', { ascending: false });
-      const tableBody = document.getElementById('allAdminProblemsTableBody');
-      
-      if (error || !list || list.length === 0) {
-        allLoadedProblems = [];
-        tableBody.innerHTML = `<tr><td colspan="9" class="p-6 text-center text-gray-400">ยังไม่มีโจทย์ในระบบ</td></tr>`;
-        renderQuickTagFilterBar();
-        return;
-      }
-
+      if (error || !list) { allLoadedProblems = []; renderQuickTagFilterBar(); applyProblemFiltersAndRender(); return; }
       allLoadedProblems = list;
       const { data: subs } = await supabaseClient.from('submissions').select('problem_id, status');
       allSubmissionsCache = subs || [];
-
       renderQuickTagFilterBar();
       applyProblemFiltersAndRender();
     }
 
     async function toggleProblemVisibility(id, status) {
       const { error } = await supabaseClient.from('problems').update({ is_verified: status }).eq('id', id);
-      if (error) {
-        showToast('เกิดข้อผิดพลาด', error.message, true);
-      } else {
-        const prob = allLoadedProblems.find(p => String(p.id) === String(id));
-        if (prob) prob.is_verified = status;
-        showToast('อัปเดตสถานะสำเร็จ', `ตั้งค่าการมองเห็นโจทย์ #${id} เรียบร้อย`);
-      }
+      if (error) showToast('เกิดข้อผิดพลาด', error.message, true);
+      else showToast('อัปเดตสถานะสำเร็จ', `ตั้งค่าการมองเห็นโจทย์ #${id} เรียบร้อย`);
     }
 
     document.getElementById('problemForm').addEventListener('submit', async (e) => {
@@ -1542,228 +1097,56 @@
       const starter_code = is_function_mode ? document.getElementById('admStarterCode').value : null;
       const grader_main_code = is_function_mode ? document.getElementById('admGraderMainCode').value : null;
 
-      if (is_function_mode && (!starter_code.trim() || !grader_main_code.trim())) {
-        showToast('ข้อมูลไม่ครบ', 'กรุณากรอกทั้ง Function Signature และโค้ด main() ของ Grader', true);
-        return;
-      }
-
-      const test_cases = (formTestCasesData || []).filter(
-        tc => (tc.input && tc.input.trim() !== '') || (tc.output && tc.output.trim() !== '')
-      );
-
+      const test_cases = (formTestCasesData || []).filter(tc => (tc.input && tc.input.trim() !== '') || (tc.output && tc.output.trim() !== ''));
       const openAtVal = document.getElementById('admOpenAt').value;
       const closeAtVal = document.getElementById('admCloseAt').value;
       const open_at = openAtVal ? new Date(openAtVal).toISOString() : null;
       const close_at = closeAtVal ? new Date(closeAtVal).toISOString() : null;
 
-      if (open_at && close_at && new Date(close_at) <= new Date(open_at)) {
-        showToast('เวลาไม่ถูกต้อง', 'เวลาปิดโจทย์ต้องอยู่หลังเวลาเปิดโจทย์ครับ', true);
-        return;
-      }
-
       const problemData = {
-        problem_code,
-        title,
-        difficulty,
-        source,
-        problem_mode,
-        is_function_mode,
-        show_main,
-        func_lang,
-        starter_code,
-        grader_main_code,
-        statement,
-        tags,
-        max_score,
-        author,
-        open_at,
-        close_at,
-        is_verified: true
+        problem_code, title, difficulty, source, problem_mode, is_function_mode, show_main, func_lang, starter_code, grader_main_code,
+        statement, tags, max_score, author, open_at, close_at, is_verified: true, test_cases, time_limit, memory_limit
       };
-
-      if (pdfUrl) {
-        problemData.statement_pdf_url = pdfUrl;
-        if (selectedPdfFileName) problemData.statement_pdf_name = selectedPdfFileName;
-      }
+      if (pdfUrl) { problemData.statement_pdf_url = pdfUrl; if (selectedPdfFileName) problemData.statement_pdf_name = selectedPdfFileName; }
       if (zipUrl) problemData.testcases_zip_url = zipUrl;
-      problemData.test_cases = test_cases;
-      problemData.time_limit = time_limit;
-      problemData.memory_limit = memory_limit;
 
       if (mode === 'create') {
         problemData.slug = problem_code.toLowerCase() + '-' + title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
         const { data: { session } } = await supabaseClient.auth.getSession();
         problemData.created_by = session ? session.user.id : null;
-
-        showToast('กำลังบันทึก', 'กำลังอัปโหลดโจทย์เข้าสู่ระบบ...');
-        let { error } = await supabaseClient.from('problems').insert([problemData]);
-
-        if (error && error.message && error.message.includes('column')) {
-          const basicData = {
-            problem_code, title, slug: problemData.slug, difficulty, statement, tags, max_score, is_verified: true, created_by: problemData.created_by
-          };
-          const retry = await supabaseClient.from('problems').insert([basicData]);
-          error = retry.error;
-        }
-
-        if (error) {
-          showToast('เกิดข้อผิดพลาด', error.message, true);
-        } else {
-          showToast('สำเร็จ!', 'สร้างและเผยแพร่โจทย์ใหม่เรียบร้อยแล้ว');
-          closeProblemModal();
-          fetchAllAdminProblems();
-        }
-      } else if (mode === 'edit') {
+        const { error } = await supabaseClient.from('problems').insert([problemData]);
+        if (error) showToast('เกิดข้อผิดพลาด', error.message, true);
+        else { showToast('สำเร็จ!', 'สร้างโจทย์ใหม่เรียบร้อย'); closeProblemModal(); fetchAllAdminProblems(); }
+      } else {
         const id = document.getElementById('editProblemId').value;
-        showToast('กำลังอัปเดต', 'กำลังบันทึกข้อมูลโจทย์...');
-        let { error } = await supabaseClient.from('problems').update(problemData).eq('id', id);
-
-        if (error && error.message && error.message.includes('column')) {
-          const basicData = { problem_code, title, difficulty, statement, tags, max_score };
-          const retry = await supabaseClient.from('problems').update(basicData).eq('id', id);
-          error = retry.error;
-        }
-
-        if (error) {
-          showToast('เกิดข้อผิดพลาด', error.message, true);
-        } else {
-          showToast('อัปเดตสำเร็จ', 'บันทึกการแก้ไขโจทย์เรียบร้อยแล้ว');
-          closeProblemModal();
-          fetchAllAdminProblems();
-        }
+        const { error } = await supabaseClient.from('problems').update(problemData).eq('id', id);
+        if (error) showToast('เกิดข้อผิดพลาด', error.message, true);
+        else { showToast('อัปเดตสำเร็จ', 'บันทึกการแก้ไขเรียบร้อย'); closeProblemModal(); fetchAllAdminProblems(); }
       }
     });
 
-    // CUSTOM DELETE CONFIRMATION MODAL
     function openDeleteConfirmModal(id) {
       pendingDeleteProblemId = id;
       const prob = allLoadedProblems.find(p => String(p.id) === String(id));
-      const label = prob ? `${prob.problem_code || '#PROB-' + prob.id} : ${prob.title}` : `#${id}`;
-      document.getElementById('deleteTargetName').textContent = label;
+      document.getElementById('deleteTargetName').textContent = prob ? `${prob.problem_code || '#PROB-' + prob.id} : ${prob.title}` : `#${id}`;
       openSmoothModal('deleteConfirmModal');
     }
-
-    function closeDeleteConfirmModal() {
-      pendingDeleteProblemId = null;
-      closeSmoothModal('deleteConfirmModal');
-    }
-
+    function closeDeleteConfirmModal() { pendingDeleteProblemId = null; closeSmoothModal('deleteConfirmModal'); }
     async function executeDeleteProblem() {
       const id = pendingDeleteProblemId;
       if (!id) return;
-
-      const btn = document.getElementById('confirmDeleteActionBtn');
-      const originalHtml = btn.innerHTML;
-      btn.disabled = true;
-      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังลบ...';
-
-      try {
-        await supabaseClient.from('submissions').delete().eq('problem_id', id);
-        await supabaseClient.from('test_cases').delete().eq('problem_id', id);
-        await supabaseClient.from('contest_problems').delete().eq('problem_id', id);
-
-        const { error, count } = await supabaseClient
-          .from('problems')
-          .delete({ count: 'exact' })
-          .eq('id', id);
-
-        if (error) {
-          showToast('ลบไม่สำเร็จ', error.message, true);
-          return;
-        }
-
-        if (count === 0) {
-          showToast('ไม่มีสิทธิ์ลบ (RLS)', 'กรุณาเปิด Policy DELETE บนตาราง problems ใน Supabase', true);
-          return;
-        }
-
+      await supabaseClient.from('submissions').delete().eq('problem_id', id);
+      const { error } = await supabaseClient.from('problems').delete().eq('id', id);
+      if (error) showToast('ลบไม่สำเร็จ', error.message, true);
+      else {
         allLoadedProblems = allLoadedProblems.filter(p => String(p.id) !== String(id));
         applyProblemFiltersAndRender();
-
         closeDeleteConfirmModal();
-        showToast('ลบโจทย์สำเร็จ', `ลบโจทย์รหัส #${id} ออกจากระบบเรียบร้อยแล้ว`);
-        fetchPendingProblems();
-      } catch (err) {
-        showToast('เกิดข้อผิดพลาด', err.message, true);
-      } finally {
-        btn.disabled = false;
-        btn.innerHTML = originalHtml;
+        showToast('ลบโจทย์สำเร็จ', `ลบโจทย์รหัส #${id} เรียบร้อย`);
       }
     }
 
-    async function fetchPendingProblems() {
-      const { data: list } = await supabaseClient.from('problems').select('*').eq('is_verified', false);
-      const container = document.getElementById('pendingProblemsContainer');
-      if (!list || list.length === 0) {
-        container.innerHTML = `<div class="text-center text-gray-400 text-xs py-4">ไม่มีโจทย์ที่รอตรวจสอบ</div>`;
-        return;
-      }
-      container.innerHTML = list.map(p => `
-        <div class="tech-glass p-4 rounded-xl flex justify-between items-center border border-cyan-500/20">
-          <div>
-            <h4 class="font-bold text-white text-sm">${p.problem_code || '#PROB-' + p.id} : ${p.title}</h4>
-            <span class="text-xs text-amber-400">ความยาก: ${p.difficulty} ${p.author ? '&bull; เสนอโดย: ' + p.author : ''}</span>
-          </div>
-          <div class="flex gap-2">
-            <button type="button" onclick="approveProblem('${p.id}')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer">อนุมัติ</button>
-            <button type="button" onclick="openDeleteConfirmModal('${p.id}')" class="bg-rose-600/20 text-rose-400 hover:bg-rose-600 hover:text-white px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer">ลบ</button>
-          </div>
-        </div>
-      `).join('');
-    }
-
-    async function approveProblem(id) {
-      const { error } = await supabaseClient.from('problems').update({ is_verified: true, source: 'community' }).eq('id', id);
-      if (error) {
-        showToast('เกิดข้อผิดพลาด', error.message, true);
-      } else {
-        showToast('อนุมัติสำเร็จ', `เปิดใช้งานโจทย์ #${id} เรียบร้อย`);
-        fetchPendingProblems();
-        fetchAllAdminProblems();
-      }
-    }
-
-    // CONTEST MANAGEMENT
-    document.getElementById('createContestForm').addEventListener('submit', (e) => {
-      e.preventDefault();
-      const title = document.getElementById('contestTitleInput').value.trim();
-      const desc = document.getElementById('contestDescInput').value.trim();
-      if (!title) return;
-
-      const contests = JSON.parse(localStorage.getItem('st8_contests')) || [];
-      contests.unshift({ id: Date.now(), title, desc, createdAt: new Date().toLocaleDateString('th-TH') });
-      localStorage.setItem('st8_contests', JSON.stringify(contests));
-      document.getElementById('createContestForm').reset();
-      renderContestsList();
-      showToast('สร้าง Contest สำเร็จ', `บันทึก "${title}" เรียบร้อยแล้ว`);
-    });
-
-    function deleteContest(id) {
-      const contests = (JSON.parse(localStorage.getItem('st8_contests')) || []).filter(c => c.id !== id);
-      localStorage.setItem('st8_contests', JSON.stringify(contests));
-      renderContestsList();
-      showToast('ลบ Contest แล้ว', 'นำรายการ Contest ออกจากระบบเรียบร้อย');
-    }
-
-    function renderContestsList() {
-      const container = document.getElementById('contestsListContainer');
-      const contests = JSON.parse(localStorage.getItem('st8_contests')) || [];
-      if (contests.length === 0) {
-        container.innerHTML = '<div class="text-center text-gray-500 text-xs py-3">ยังไม่มีรายการ Contest ที่สร้างไว้</div>';
-        return;
-      }
-      container.innerHTML = contests.map(c => `
-        <div class="tech-glass p-4 rounded-xl flex justify-between items-center border border-cyan-500/20">
-          <div>
-            <h4 class="font-bold text-white text-xs">${c.title}</h4>
-            <p class="text-[11px] text-gray-400">${c.desc || 'ไม่มีรายละเอียดเพิ่มเติม'} &bull; สร้างเมื่อ ${c.createdAt}</p>
-          </div>
-          <button type="button" onclick="deleteContest(${c.id})" class="bg-rose-600/20 text-rose-400 hover:bg-rose-600 hover:text-white px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer">
-            <i class="fa-solid fa-trash"></i> ลบ
-          </button>
-        </div>
-      `).join('');
-    }
+    ensureAdminSession(fetchAllAdminProblems);
   </script>
 </body>
 </html>

@@ -39,7 +39,7 @@
     .markdown-preview code { background: rgba(56, 189, 248, 0.15); color: #67e8f9; padding: 0.12rem 0.38rem; border-radius: 0.35rem; font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; }
     .markdown-preview pre { background: #020617; border: 1px solid rgba(56, 189, 248, 0.25); padding: 0.85rem; border-radius: 0.75rem; overflow-x: auto; margin-bottom: 0.75rem; }
 
-    /* สัดส่วนกระดาษ A4 แนวตั้ง (210mm x 297mm = 1 : 1.414) */
+    /* สัดส่วนกระดาษ A4 แนวตั้ง (1 : 1.414) */
     .a4-pdf-frame {
       width: 100%;
       aspect-ratio: 1 / 1.414;
@@ -102,6 +102,11 @@
     </div>
 
     <div class="flex items-center gap-2 shrink-0">
+      <!-- Engine Status Pill -->
+      <span id="engineStatusPill" class="hidden md:inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-xl bg-emerald-500/15 text-emerald-300 border border-emerald-500/30" title="ระบบตรวจความเร็วสูงพร้อมใช้งาน">
+        <i class="fa-solid fa-bolt text-amber-400"></i> Turbo Judge Ready
+      </span>
+
       <div class="hidden lg:flex items-center bg-black/50 p-1 rounded-xl border border-cyan-500/20 text-[11px]">
         <button type="button" onclick="setSplitRatio(28)" class="px-2 py-1 rounded-lg text-gray-300 hover:bg-cyan-500/20 hover:text-cyan-300 transition cursor-pointer" title="ย่อฝั่งโจทย์ (เน้นเขียนโค้ดกว้างๆ)">
           <i class="fa-solid fa-compress mr-1"></i> โค้ดกว้าง
@@ -265,9 +270,9 @@
       <div class="h-12 shrink-0 px-3.5 bg-[#080d1e] border-b border-cyan-500/15 flex items-center justify-between gap-2 overflow-x-auto">
         <div class="flex items-center gap-2">
           <select id="langSelect" onchange="handleLanguageChange()" class="bg-black/70 border border-cyan-500/30 focus:border-cyan-400 focus:outline-none rounded-xl px-3 py-1.5 text-xs font-semibold text-white cursor-pointer">
-            <option value="cpp">C++ 17 (GCC)</option>
-            <option value="c">C (GCC)</option>
-            <option value="python">Python 3</option>
+            <option value="cpp">C++ 17 (GCC Fast)</option>
+            <option value="c">C (GCC Fast)</option>
+            <option value="python">Python 3.11 (WASM In-Browser)</option>
           </select>
 
           <label class="bg-white/5 hover:bg-cyan-500/15 text-gray-200 hover:text-cyan-300 border border-white/15 px-3 py-1.5 rounded-xl text-xs font-medium transition cursor-pointer flex items-center gap-1.5 shrink-0" title="อัปโหลดไฟล์โค้ดจากเครื่อง">
@@ -289,7 +294,7 @@
             <i class="fa-solid fa-play"></i> รันทดสอบ
           </button>
           <button type="button" id="submitCodeBtn" onclick="submitSolution()" class="bg-gradient-to-r from-emerald-600 to-teal-500 hover:opacity-95 text-white px-4 py-1.5 rounded-xl text-xs font-bold shadow-lg shadow-emerald-500/20 transition cursor-pointer flex items-center gap-1.5">
-            <i class="fa-solid fa-paper-plane"></i> ส่งตรวจ (Submit)
+            <i class="fa-solid fa-bolt"></i> ส่งตรวจ (Submit)
           </button>
         </div>
       </div>
@@ -666,7 +671,6 @@
       const draft = localStorage.getItem(`st8_draft_${problemId}_${activeLang}`);
       editorInstance.setValue(draft || getStarterCodeForLang(activeLang));
 
-      // A4 PDF Attachment
       if (p.statement_pdf_url) {
         document.getElementById('stmtPdfSection').classList.remove('hidden');
         const pdfSrc = p.statement_pdf_url.includes('#')
@@ -730,7 +734,120 @@
 
     function loadSampleIntoCustomInput() { copySampleInput(0); }
 
-    // ==================== TURBO MULTI-ENGINE COMPILER (JUDGE0 + CODAPI + WANDBOX) ====================
+    // ==================== HYBRID ENGINE 1: IN-BROWSER PYTHON WASM WORKER ====================
+    let pyodideWorker = null;
+    let pyodideWorkerReady = false;
+    let pyodidePendingResolvers = {};
+    let pyodideReqCounter = 1;
+
+    function getPyodideWorker() {
+      if (pyodideWorker) return pyodideWorker;
+
+      const workerScript = `
+        importScripts('https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js');
+        let pyodideReadyPromise = loadPyodide({
+          indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.26.4/full/'
+        });
+
+        self.onmessage = async (e) => {
+          const { id, code, testCases } = e.data;
+          try {
+            const pyodide = await pyodideReadyPromise;
+            const results = [];
+            for (let i = 0; i < testCases.length; i++) {
+              const stdinText = testCases[i].input || '';
+              let stdoutChunks = [];
+              let stderrChunks = [];
+
+              pyodide.setStdin({
+                stdin: () => null,
+                isatty: false
+              });
+              // Feed stdin via io.StringIO inside Python for 100% compatibility with input() & sys.stdin
+              pyodide.globals.set('__st8_stdin_data', stdinText);
+              pyodide.globals.set('__st8_user_code', code);
+
+              const t0 = performance.now();
+              try {
+                const out = await pyodide.runPythonAsync(\`
+import sys, io, traceback
+sys.stdin = io.StringIO(__st8_stdin_data)
+_out_buf = io.StringIO()
+_err_buf = io.StringIO()
+_old_out, _old_err = sys.stdout, sys.stderr
+sys.stdout, sys.stderr = _out_buf, _err_buf
+_err_msg = ""
+try:
+    exec(compile(__st8_user_code, "solution.py", "exec"), {"__name__": "__main__"})
+except BaseException:
+    _err_msg = traceback.format_exc()
+finally:
+    sys.stdout, sys.stderr = _old_out, _old_err
+(_out_buf.getvalue(), _err_msg)
+\`);
+                const pyResult = out.toJs();
+                const elapsed = parseFloat(((performance.now() - t0) / 1000).toFixed(3));
+                const stdoutStr = pyResult[0] || '';
+                const errStr = pyResult[1] || '';
+                if (errStr) {
+                  results.push({ status: 'RE', stdout: stdoutStr, stderr: errStr, compilerError: '', elapsed });
+                } else {
+                  results.push({ status: 'OK', stdout: stdoutStr, stderr: '', compilerError: '', elapsed });
+                }
+              } catch (pyErr) {
+                const elapsed = parseFloat(((performance.now() - t0) / 1000).toFixed(3));
+                results.push({ status: 'RE', stdout: '', stderr: String(pyErr), compilerError: '', elapsed });
+              }
+            }
+            self.postMessage({ id, results });
+          } catch (fatalErr) {
+            self.postMessage({ id, error: String(fatalErr) });
+          }
+        };
+      `;
+
+      const blob = new Blob([workerScript], { type: 'application/javascript' });
+      pyodideWorker = new Worker(URL.createObjectURL(blob));
+      pyodideWorker.onmessage = (e) => {
+        const { id, results, error } = e.data;
+        if (pyodidePendingResolvers[id]) {
+          if (error) pyodidePendingResolvers[id].reject(new Error(error));
+          else pyodidePendingResolvers[id].resolve(results);
+          delete pyodidePendingResolvers[id];
+        }
+      };
+      return pyodideWorker;
+    }
+
+    function runPythonInBrowserWasm(code, testCases, timeLimitSec) {
+      return new Promise((resolve, reject) => {
+        const worker = getPyodideWorker();
+        const reqId = pyodideReqCounter++;
+        const maxTimeoutMs = Math.max(4000, (timeLimitSec * testCases.length * 1000) + 8000);
+
+        const timer = setTimeout(() => {
+          delete pyodidePendingResolvers[reqId];
+          worker.terminate();
+          pyodideWorker = null;
+          resolve(testCases.map(() => ({
+            status: 'TLE',
+            stdout: '',
+            stderr: 'Time Limit Exceeded (Infinite Loop Terminated)',
+            compilerError: '',
+            elapsed: timeLimitSec
+          })));
+        }, maxTimeoutMs);
+
+        pyodidePendingResolvers[reqId] = {
+          resolve: (res) => { clearTimeout(timer); resolve(res); },
+          reject: (err) => { clearTimeout(timer); reject(err); }
+        };
+
+        worker.postMessage({ id: reqId, code, testCases });
+      });
+    }
+
+    // ==================== HYBRID ENGINE 2: SINGLE-COMPILE C/C++ BATCH HARNESS ====================
     function buildFullRunnableCode(userCode) {
       if (!currentProblem || !currentProblem.is_function_mode || !currentProblem.grader_main_code) {
         return userCode;
@@ -738,129 +855,169 @@
       return `${userCode}\n\n// --- GRADER HARNESS ---\n${currentProblem.grader_main_code}`;
     }
 
-    function b64Encode(str) {
-      return btoa(unescape(encodeURIComponent(str || '')));
-    }
-
+    function b64Encode(str) { return btoa(unescape(encodeURIComponent(str || ''))); }
     function b64Decode(str) {
       if (!str) return '';
       try { return decodeURIComponent(escape(atob(str))); } catch { return str; }
     }
 
-    // ยิง Judge0 CE แบบรอผลในคำขอเดียว (?wait=true) -> เร็วมาก (~0.6-1.2s)
-    async function runWithJudge0Single(code, lang, stdin) {
-      const langIdMap = { cpp: 54, c: 50, python: 71 }; // 54 = C++ (GCC 9.2.0), 50 = C, 71 = Python 3.8
-      const cpuLimit = Math.min(5, Math.max(1, parseFloat(currentProblem?.time_limit) || 1.0));
-      const startTime = performance.now();
+    // คอมไพล์ C/C++ ครั้งเดียวแล้วรันทุก Test Case ใน 1 คำขอ (เร็วกว่ายิงทีละเคส 10 เท่า!)
+    function buildSingleCompileCppWrapper(userCode, testCases) {
+      const marker = '___ST8_CASE_END_991827___';
+      const inputsArray = testCases.map(tc => JSON.stringify(tc.input || '')).join(',\n        ');
 
-      const res = await fetch('https://ce.judge0.com/submissions/?base64_encoded=true&wait=true', {
+      return `
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <string>
+#include <vector>
+#include <unistd.h>
+#include <sys/wait.h>
+#include <sys/time.h>
+
+namespace __st8_user_ns {
+${userCode}
+}
+
+int main() {
+    std::vector<std::string> __inputs = {
+        ${inputsArray}
+    };
+    for (size_t i = 0; i < __inputs.size(); ++i) {
+        int in_pipe[2], out_pipe[2];
+        if (pipe(in_pipe) != 0 || pipe(out_pipe) != 0) break;
+
+        pid_t pid = fork();
+        if (pid == 0) {
+            close(in_pipe[1]);
+            close(out_pipe[0]);
+            dup2(in_pipe[0], STDIN_FILENO);
+            dup2(out_pipe[1], STDOUT_FILENO);
+            close(in_pipe[0]);
+            close(out_pipe[1]);
+            int rc = __st8_user_ns::main();
+            fflush(stdout);
+            _exit(rc);
+        } else if (pid > 0) {
+            close(in_pipe[0]);
+            close(out_pipe[1]);
+            if (!__inputs[i].empty()) {
+                ssize_t w = write(in_pipe[1], __inputs[i].data(), __inputs[i].size());
+                (void)w;
+            }
+            close(in_pipe[1]);
+
+            std::string captured;
+            char buf[4096];
+            ssize_t n;
+            while ((n = read(out_pipe[0], buf, sizeof(buf))) > 0) {
+                captured.append(buf, n);
+            }
+            close(out_pipe[0]);
+
+            int status = 0;
+            waitpid(pid, &status, 0);
+            int code = WIFEXITED(status) ? WEXITSTATUS(status) : -1;
+            printf("${marker}:%d\\n", code);
+            fwrite(captured.data(), 1, captured.size(), stdout);
+            printf("\\n${marker}_NEXT\\n");
+            fflush(stdout);
+        }
+    }
+    return 0;
+}
+`;
+    }
+
+    async function executeCppSingleCall(code, lang, stdin) {
+      const startTime = performance.now();
+      // ยิงตรงไปที่ Wandbox / Judge0 พร้อมกันแบบ Race เอาตัวที่ตอบเร็วที่สุด!
+      const wandboxPromise = fetch('https://wandbox.org/api/compile.json', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          compiler: lang === 'c' ? 'gcc-head-c' : 'gcc-head',
+          code,
+          stdin: stdin || '',
+          options: lang === 'cpp' ? 'gnu++17' : 'gnu11',
+          'compiler-option-raw': '-O2'
+        })
+      }).then(async r => {
+        if (!r.ok) throw new Error('Wandbox failed');
+        const wb = await r.json();
+        const elapsed = parseFloat(((performance.now() - startTime) / 1000).toFixed(2));
+        if (wb.compiler_error) return { status: 'CE', stdout: '', stderr: '', compilerError: wb.compiler_error, elapsed };
+        if (wb.status !== '0') return { status: 'RE', stdout: wb.program_output || '', stderr: wb.program_error || '', compilerError: '', elapsed };
+        return { status: 'OK', stdout: wb.program_output || '', stderr: wb.program_error || '', compilerError: '', elapsed };
+      });
+
+      const judge0Promise = fetch('https://ce.judge0.com/submissions/?base64_encoded=true&wait=true', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           source_code: b64Encode(code),
-          language_id: langIdMap[lang] || 54,
+          language_id: lang === 'c' ? 50 : 54,
           stdin: b64Encode(stdin || ''),
-          cpu_time_limit: cpuLimit
+          cpu_time_limit: Math.min(5, Math.max(1, parseFloat(currentProblem?.time_limit) || 1.0))
         })
+      }).then(async r => {
+        if (!r.ok) throw new Error('Judge0 failed');
+        const data = await r.json();
+        const elapsed = parseFloat(data.time) || parseFloat(((performance.now() - startTime) / 1000).toFixed(2));
+        const sid = data.status?.id;
+        if (sid === 6) return { status: 'CE', stdout: '', stderr: '', compilerError: b64Decode(data.compile_output), elapsed };
+        if (sid === 5) return { status: 'TLE', stdout: b64Decode(data.stdout), stderr: 'Time Limit Exceeded', compilerError: '', elapsed };
+        if (sid >= 7 && sid <= 12) return { status: 'RE', stdout: b64Decode(data.stdout), stderr: b64Decode(data.stderr), compilerError: '', elapsed };
+        return { status: 'OK', stdout: b64Decode(data.stdout), stderr: b64Decode(data.stderr), compilerError: '', elapsed };
       });
 
-      if (!res.ok) throw new Error('Judge0 unavailable');
-      const data = await res.json();
-      const elapsed = parseFloat(data.time) || parseFloat(((performance.now() - startTime) / 1000).toFixed(2));
-      const statusId = data.status?.id;
-
-      if (statusId === 6) {
-        return { status: 'CE', stdout: '', stderr: '', compilerError: b64Decode(data.compile_output), elapsed };
-      }
-      if (statusId === 5) {
-        return { status: 'TLE', stdout: b64Decode(data.stdout), stderr: 'Time Limit Exceeded', compilerError: '', elapsed };
-      }
-      if (statusId >= 7 && statusId <= 12) {
-        return { status: 'RE', stdout: b64Decode(data.stdout), stderr: b64Decode(data.stderr) || data.status?.description, compilerError: '', elapsed };
-      }
-      return {
-        status: 'OK',
-        stdout: b64Decode(data.stdout),
-        stderr: b64Decode(data.stderr),
-        compilerError: '',
-        elapsed
-      };
+      return await Promise.any([wandboxPromise, judge0Promise]);
     }
 
-    // ยิง Judge0 Batch Submissions รวดเดียวทุก Test Case
-    async function runWithJudge0Batch(code, lang, testCases) {
-      const langIdMap = { cpp: 54, c: 50, python: 71 };
-      const cpuLimit = Math.min(5, Math.max(1, parseFloat(currentProblem?.time_limit) || 1.0));
-      const encodedSrc = b64Encode(code);
-
-      const createRes = await fetch('https://ce.judge0.com/submissions/batch?base64_encoded=true', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          submissions: testCases.map(tc => ({
-            source_code: encodedSrc,
-            language_id: langIdMap[lang] || 54,
-            stdin: b64Encode(tc.input || ''),
-            cpu_time_limit: cpuLimit
-          }))
-        })
-      });
-
-      if (!createRes.ok) throw new Error('Judge0 batch failed');
-      const tokensArr = await createRes.json();
-      const tokens = tokensArr.map(t => t.token).join(',');
-
-      // Poll ทุก 350ms จนกว่าทุกเคสจะเสร็จ
-      for (let attempt = 0; attempt < 25; attempt++) {
-        await new Promise(r => setTimeout(r, 350));
-        const pollRes = await fetch(`https://ce.judge0.com/submissions/batch?tokens=${tokens}&base64_encoded=true&fields=token,stdout,stderr,status,compile_output,time`);
-        if (!pollRes.ok) continue;
-        const pollData = await pollRes.json();
-        const subs = pollData.submissions || [];
-        const allDone = subs.every(s => s.status && s.status.id >= 3);
-        if (allDone) {
-          return subs.map(data => {
-            const statusId = data.status?.id;
-            const elapsed = parseFloat(data.time) || 0.05;
-            if (statusId === 6) return { status: 'CE', stdout: '', stderr: '', compilerError: b64Decode(data.compile_output), elapsed };
-            if (statusId === 5) return { status: 'TLE', stdout: b64Decode(data.stdout), stderr: 'Time Limit Exceeded', compilerError: '', elapsed };
-            if (statusId >= 7 && statusId <= 12) return { status: 'RE', stdout: b64Decode(data.stdout), stderr: b64Decode(data.stderr) || data.status?.description, compilerError: '', elapsed };
-            return { status: 'OK', stdout: b64Decode(data.stdout), stderr: b64Decode(data.stderr), compilerError: '', elapsed };
-          });
-        }
-      }
-      throw new Error('Judge0 timeout');
-    }
-
-    // Fallback: Codapi / Wandbox
-    async function runWithFallbackSingle(code, lang, stdin) {
-      const startTime = performance.now();
-      const wandboxMap = { cpp: 'gcc-head', c: 'gcc-head-c', python: 'cpython-3.11.6' };
-      const wbRes = await fetch('https://wandbox.org/api/compile.json', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          compiler: wandboxMap[lang] || 'gcc-head',
-          code: code,
-          stdin: stdin || '',
-          options: lang === 'cpp' ? 'warning,gnu++17' : ''
-        })
-      });
-      const elapsed = parseFloat(((performance.now() - startTime) / 1000).toFixed(2));
-      const wb = await wbRes.json();
-      if (wb.compiler_error) return { status: 'CE', stdout: '', stderr: '', compilerError: wb.compiler_error, elapsed };
-      if (wb.status !== '0') return { status: 'RE', stdout: wb.program_output || '', stderr: wb.program_error || '', compilerError: '', elapsed };
-      return { status: 'OK', stdout: wb.program_output || '', stderr: wb.program_error || '', compilerError: '', elapsed };
-    }
-
-    async function executeCodeSingle(code, lang, stdin) {
+    async function runCppSingleCompileBatch(fullCode, lang, testCases) {
+      // ลองรวมทุกเคสคอมไพล์ครั้งเดียวก่อน (เร็วสุด ~0.6s สำหรับทุกเคสรวมกัน!)
       try {
-        return await runWithJudge0Single(code, lang, stdin);
+        const marker = '___ST8_CASE_END_991827___';
+        const wrapped = buildSingleCompileCppWrapper(fullCode, testCases);
+        const batchRes = await executeCppSingleCall(wrapped, lang, '');
+
+        if (batchRes.status === 'OK' && batchRes.stdout.includes(marker)) {
+          const blocks = batchRes.stdout.split(`\n${marker}_NEXT\n`);
+          const parsedResults = [];
+          const perCaseTime = parseFloat((batchRes.elapsed / Math.max(1, testCases.length)).toFixed(3));
+
+          for (let i = 0; i < testCases.length; i++) {
+            const blk = blocks[i] || '';
+            const firstLineEnd = blk.indexOf('\n');
+            const headerLine = firstLineEnd !== -1 ? blk.slice(0, firstLineEnd) : blk;
+            const body = firstLineEnd !== -1 ? blk.slice(firstLineEnd + 1) : '';
+            const exitCode = parseInt(headerLine.split(':')[1] || '0', 10);
+
+            if (exitCode !== 0) {
+              parsedResults.push({ status: 'RE', stdout: body, stderr: `Exit code ${exitCode}`, compilerError: '', elapsed: perCaseTime });
+            } else {
+              parsedResults.push({ status: 'OK', stdout: body, stderr: '', compilerError: '', elapsed: perCaseTime });
+            }
+          }
+          return parsedResults;
+        }
       } catch {
-        return await runWithFallbackSingle(code, lang, stdin);
+        // หากโค้ดมีโครงสร้างที่ไม่เข้ากับ namespace wrapper ให้สลับไปตรวจแบบ Parallel Race
       }
+
+      // Fallback: เช็กเคสแรกก่อนเพื่อ Fail-Fast กรณี Compilation Error
+      const first = await executeCppSingleCall(fullCode, lang, testCases[0].input || '');
+      if (first.status === 'CE') return [first];
+      if (testCases.length === 1) return [first];
+
+      const rest = await Promise.all(
+        testCases.slice(1).map(tc => executeCppSingleCall(fullCode, lang, tc.input || ''))
+      );
+      return [first, ...rest];
     }
 
+    // ==================== RUN & SUBMIT HANDLERS ====================
     async function runCustomTest() {
       const btn = document.getElementById('runSampleBtn');
       const outBox = document.getElementById('customOutputBox');
@@ -873,11 +1030,20 @@
       btn.disabled = true;
       btn.innerHTML = '<i class="fa-solid fa-bolt fa-spin"></i> กำลังรัน...';
       outBox.className = 'flex-1 w-full bg-black/70 border border-cyan-500/30 rounded-xl p-2 text-xs text-cyan-300 font-code overflow-auto whitespace-pre-wrap';
-      outBox.textContent = 'กำลังคอมไพล์และรันโปรแกรม...';
+      outBox.textContent = lang === 'python'
+        ? 'กำลังรัน Python WASM ในเบราว์เซอร์...'
+        : 'กำลังคอมไพล์และรันโปรแกรม...';
       statsEl.textContent = '';
 
       try {
-        const result = await executeCodeSingle(fullCode, lang, stdin);
+        let result;
+        if (lang === 'python') {
+          const pyRes = await runPythonInBrowserWasm(fullCode, [{ input: stdin }], parseFloat(currentProblem?.time_limit) || 2.0);
+          result = pyRes[0];
+        } else {
+          result = await executeCppSingleCall(fullCode, lang, stdin);
+        }
+
         statsEl.textContent = `Time: ${result.elapsed}s`;
 
         if (result.status === 'CE') {
@@ -914,6 +1080,7 @@
       const userCode = editorInstance.getValue();
       const fullCode = buildFullRunnableCode(userCode);
       const testCases = currentProblem.test_cases || [];
+      const timeLimitSec = parseFloat(currentProblem.time_limit) || 1.0;
 
       switchConsoleTab('verdict');
       btn.disabled = true;
@@ -921,7 +1088,7 @@
       verdictBox.innerHTML = `
         <div class="text-center space-y-2 py-4">
           <i class="fa-solid fa-bolt text-2xl text-cyan-400 animate-pulse"></i>
-          <p class="text-xs font-bold text-cyan-300">กำลังรันตรวจแบบ Batch (${testCases.length} Test Cases)...</p>
+          <p class="text-xs font-bold text-cyan-300">${lang === 'python' ? 'กำลังตรวจด้วย In-Browser WASM Engine' : 'กำลังคอมไพล์ครั้งเดียวและตรวจทุกเคส'} (${testCases.length} Test Cases)...</p>
         </div>
       `;
 
@@ -931,47 +1098,42 @@
         let maxExecTime = 0;
         let caseResults = [];
 
-        if (testCases.length === 0) {
-          const singleRes = await executeCodeSingle(fullCode, lang, '');
-          if (singleRes.status === 'CE') finalStatus = 'Compilation Error';
-          else if (singleRes.status !== 'OK') finalStatus = 'Runtime Error';
-          else passedCount = 1;
-        } else {
-          let rawResponses = null;
-          try {
-            rawResponses = await runWithJudge0Batch(fullCode, lang, testCases);
-          } catch {
-            // Fallback: รันขนานผ่าน single engine ถ้า batch API ไม่ว่าง
-            rawResponses = await Promise.all(
-              testCases.map(tc => executeCodeSingle(fullCode, lang, tc.input || ''))
-            );
-          }
+        const effectiveCases = testCases.length > 0 ? testCases : [{ input: '', output: '' }];
+        let rawResponses = [];
 
-          if (rawResponses[0] && rawResponses[0].status === 'CE') {
-            finalStatus = 'Compilation Error';
-            caseResults.push({ index: 1, verdict: 'CE', detail: rawResponses[0].compilerError });
-          } else {
-            rawResponses.forEach((res, idx) => {
-              maxExecTime = Math.max(maxExecTime, res.elapsed || 0);
-              if (res.status === 'TLE') {
-                if (finalStatus === 'Accepted') finalStatus = 'Time Limit Exceeded';
-                caseResults.push({ index: idx + 1, verdict: 'TLE', time: res.elapsed });
-              } else if (res.status !== 'OK') {
-                if (finalStatus === 'Accepted') finalStatus = 'Runtime Error';
-                caseResults.push({ index: idx + 1, verdict: 'RE', time: res.elapsed });
+        if (lang === 'python') {
+          rawResponses = await runPythonInBrowserWasm(fullCode, effectiveCases, timeLimitSec);
+        } else {
+          rawResponses = await runCppSingleCompileBatch(fullCode, lang, effectiveCases);
+        }
+
+        if (rawResponses[0] && rawResponses[0].status === 'CE') {
+          finalStatus = 'Compilation Error';
+          caseResults.push({ index: 1, verdict: 'CE', detail: rawResponses[0].compilerError });
+        } else {
+          rawResponses.forEach((res, idx) => {
+            maxExecTime = Math.max(maxExecTime, res.elapsed || 0);
+            if (res.status === 'TLE' || (res.elapsed && res.elapsed > timeLimitSec)) {
+              if (finalStatus === 'Accepted') finalStatus = 'Time Limit Exceeded';
+              caseResults.push({ index: idx + 1, verdict: 'TLE', time: res.elapsed });
+            } else if (res.status !== 'OK') {
+              if (finalStatus === 'Accepted') finalStatus = 'Runtime Error';
+              caseResults.push({ index: idx + 1, verdict: 'RE', time: res.elapsed });
+            } else if (testCases.length === 0) {
+              passedCount++;
+              caseResults.push({ index: 1, verdict: 'AC', time: res.elapsed });
+            } else {
+              const actual = normalizeOutput(res.stdout);
+              const expected = normalizeOutput(testCases[idx].output);
+              if (actual === expected) {
+                passedCount++;
+                caseResults.push({ index: idx + 1, verdict: 'AC', time: res.elapsed });
               } else {
-                const actual = normalizeOutput(res.stdout);
-                const expected = normalizeOutput(testCases[idx].output);
-                if (actual === expected) {
-                  passedCount++;
-                  caseResults.push({ index: idx + 1, verdict: 'AC', time: res.elapsed });
-                } else {
-                  if (finalStatus === 'Accepted') finalStatus = 'Wrong Answer';
-                  caseResults.push({ index: idx + 1, verdict: 'WA', time: res.elapsed });
-                }
+                if (finalStatus === 'Accepted') finalStatus = 'Wrong Answer';
+                caseResults.push({ index: idx + 1, verdict: 'WA', time: res.elapsed });
               }
-            });
-          }
+            }
+          });
         }
 
         const totalCases = Math.max(testCases.length, 1);
@@ -1032,7 +1194,7 @@
         verdictBox.innerHTML = `<p class="text-xs text-rose-400">เกิดข้อผิดพลาดระหว่างตรวจ: ${err.message}</p>`;
       } finally {
         btn.disabled = false;
-        btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> ส่งตรวจ (Submit)';
+        btn.innerHTML = '<i class="fa-solid fa-bolt"></i> ส่งตรวจ (Submit)';
       }
     }
 

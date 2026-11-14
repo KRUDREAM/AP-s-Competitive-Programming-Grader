@@ -33,8 +33,17 @@
 </head>
 <body class="min-h-screen flex flex-col relative overflow-x-hidden cyber-grid selection:bg-cyan-500 selection:text-black">
 
+  <!-- SYSTEM NOTIFICATION TOAST -->
+  <div id="systemToast" class="fixed top-5 right-5 z-50 transform translate-x-full transition-all duration-300 tech-glass px-5 py-3 rounded-2xl border border-cyan-500/40 shadow-2xl flex items-center gap-3">
+    <i id="toastIcon" class="fa-solid fa-circle-check text-cyan-400 text-lg"></i>
+    <div>
+      <h4 id="toastTitle" class="text-xs font-bold text-white">แจ้งเตือนระบบ</h4>
+      <p id="toastDesc" class="text-[11px] text-gray-300">ดำเนินการสำเร็จ</p>
+    </div>
+  </div>
+
   <!-- NAVIGATION BAR -->
-  <header class="sticky top-0 z-50 tech-glass border-b border-cyan-500/10 px-6 py-4 flex items-center justify-between">
+  <header class="sticky top-0 z-40 tech-glass border-b border-cyan-500/10 px-6 py-4 flex items-center justify-between">
     <div class="flex items-center gap-3 cursor-pointer" onclick="window.location.href='index.html'">
       <div class="bg-gradient-to-tr from-rose-600 to-amber-500 p-2.5 rounded-xl shadow-lg shadow-rose-500/20 text-white font-bold text-lg flex items-center justify-center w-10 h-10">
         <i class="fa-solid fa-user-shield"></i>
@@ -71,32 +80,21 @@
       </button>
     </div>
 
-    <!-- TAB 1: ALL PROBLEMS MANAGEMENT -->
+    <!-- TAB 1: ALL PROBLEMS MANAGEMENT (RE-UI) -->
     <section id="adminTabProblems" class="space-y-6">
-      <div class="flex justify-between items-center">
+      <div class="flex justify-between items-center bg-gradient-to-r from-cyan-950/40 to-blue-950/20 p-6 rounded-3xl border border-cyan-500/20">
         <div>
           <h2 class="text-xl font-bold text-white mb-1"><i class="fa-solid fa-list-check text-cyan-400 mr-2"></i> คลังโจทย์ทั้งหมดในระบบ</h2>
-          <p class="text-xs text-gray-400">ตรวจสอบ แก้ไข Test Cases, Subtasks และ Statement ของโจทย์ทุกข้อ</p>
+          <p class="text-xs text-gray-400">ควบคุมสถานะการมองเห็น, แก้ไข Test Cases, Subtasks และ Statement ได้อย่างอิสระ</p>
         </div>
-        <button onclick="openUploadProblemModal()" class="bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-95 text-white px-5 py-2.5 rounded-xl text-xs font-semibold shadow-lg shadow-cyan-500/20 transition flex items-center gap-2">
+        <button onclick="openUploadProblemModal()" class="bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-95 text-white px-5 py-3 rounded-2xl text-xs font-semibold shadow-lg shadow-cyan-500/20 transition flex items-center gap-2">
           <i class="fa-solid fa-plus-circle"></i> อัปโหลด / สร้างโจทย์ใหม่
         </button>
       </div>
 
-      <div class="tech-glass rounded-2xl overflow-hidden border border-cyan-500/20">
-        <table class="w-full text-left text-xs font-mono">
-          <thead class="bg-cyan-950/40 text-cyan-300 border-b border-cyan-500/20 font-sans">
-            <tr>
-              <th class="p-4">ID & ชื่อโจทย์</th>
-              <th class="p-4">ความยาก / หมวดหมู่</th>
-              <th class="p-4">คะแนนเต็ม</th>
-              <th class="p-4 text-right">จัดการโจทย์ & Test Cases</th>
-            </tr>
-          </thead>
-          <tbody id="allAdminProblemsTable" class="divide-y divide-cyan-500/10 font-sans">
-            <tr><td colspan="4" class="p-4 text-center text-gray-400">กำลังโหลดรายการโจทย์...</td></tr>
-          </tbody>
-        </table>
+      <!-- Problems Grid Cards / Table Layout -->
+      <div id="allAdminProblemsContainer" class="grid grid-cols-1 gap-4">
+        <div class="tech-glass p-6 rounded-2xl text-center text-gray-400 text-xs">กำลังโหลดรายการโจทย์...</div>
       </div>
     </section>
 
@@ -104,15 +102,8 @@
     <section id="adminTabVerify" class="space-y-4 hidden">
       <div class="tech-glass rounded-3xl p-6 border border-cyan-500/20 space-y-4">
         <h2 class="text-xl font-bold text-white"><i class="fa-solid fa-clipboard-check text-cyan-400 mr-2"></i> รายการโจทย์ที่รอการตรวจสอบจาก Admin</h2>
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs font-mono">
-            <thead class="bg-cyan-950/40 text-cyan-300 border-b border-cyan-500/20 font-sans">
-              <tr><th class="p-4">ID & ชื่อโจทย์</th><th class="p-4">ระดับความยาก</th><th class="p-4">ผู้เสนอ (User)</th><th class="p-4 text-right">ดำเนินการอนุมัติ</th></tr>
-            </thead>
-            <tbody id="pendingProblemsTable" class="divide-y divide-cyan-500/10 font-sans">
-              <tr><td colspan="4" class="p-4 text-center text-gray-400">กำลังโหลดรายการโจทย์ที่รออนุมัติ...</td></tr>
-            </tbody>
-          </table>
+        <div id="pendingProblemsContainer" class="space-y-3">
+          <div class="text-center text-gray-400 text-xs py-4">กำลังโหลดข้อมูล...</div>
         </div>
       </div>
     </section>
@@ -127,7 +118,7 @@
             <input type="text" placeholder="ชื่อ Contest (เช่น ST8 Weekly Contest #05)" class="bg-black/60 border border-cyan-500/20 rounded-xl px-4 py-2 text-xs text-white">
             <input type="text" placeholder="รายละเอียดหรือกติกา" class="bg-black/60 border border-cyan-500/20 rounded-xl px-4 py-2 text-xs text-white">
           </div>
-          <button onclick="alert('สร้าง Contest สำเร็จ')" class="bg-gradient-to-r from-blue-600 to-cyan-500 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-md">บันทึก Contest</button>
+          <button onclick="showToast('สร้าง Contest สำเร็จ', 'ระบบได้บันทึก Contest ใหม่เรียบร้อยแล้ว')" class="bg-gradient-to-r from-blue-600 to-cyan-500 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-md">บันทึก Contest</button>
         </div>
       </div>
     </section>
@@ -136,18 +127,17 @@
 
   <!-- MODAL: UPLOAD / CREATE PROBLEM -->
   <div id="uploadProbModal" class="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/85 backdrop-blur-md opacity-0 pointer-events-none transition-all duration-300">
-    <div class="tech-modal rounded-3xl p-8 max-w-3xl w-full max-h-[92vh] overflow-y-auto relative transform scale-95 transition-all duration-300 border border-cyan-500/30">
+    <div class="tech-modal rounded-3xl p-8 max-w-3xl w-full max-h-[92vh] overflow-y-auto relative transform scale-95 transition-all duration-300 border border-cyan-500/30 space-y-6">
       <button onclick="closeUploadProblemModal()" class="absolute top-5 right-5 text-gray-400 hover:text-white w-8 h-8 rounded-full bg-cyan-500/10 flex items-center justify-center transition">
         <i class="fa-solid fa-xmark text-xs"></i>
       </button>
 
-      <div class="text-center mb-6">
+      <div class="text-center">
         <h3 class="text-lg font-bold text-white mb-1"><i class="fa-solid fa-cloud-arrow-up text-cyan-400 mr-2"></i> สร้าง / อัปโหลดโจทย์ใหม่</h3>
-        <p class="text-xs text-gray-400">กรอกข้อมูล Test Cases, Subtasks และ Statement แบบเต็มรูปแบบ</p>
+        <p class="text-xs text-gray-400">ระบบพับ Test Cases อัตโนมัติ ไม่รกสายตา พร้อมอัปโหลดไฟล์ ZIP (.in / .sol)</p>
       </div>
 
       <form id="adminProblemForm" class="space-y-5">
-        <!-- Row 1: Title, Difficulty, Total Score, Author -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
           <div class="md:col-span-2">
             <label class="block text-xs font-medium text-cyan-300 mb-1">ชื่อโจทย์ (Title) *</label>
@@ -167,7 +157,7 @@
           </div>
         </div>
 
-        <!-- Author & Tags with Search & Custom Popup -->
+        <!-- Tags & Author -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
           <div>
             <label class="block text-xs font-medium text-cyan-300 mb-1">ผู้แต่งโจทย์ (Author)</label>
@@ -175,14 +165,12 @@
           </div>
           <div class="md:col-span-2 space-y-1">
             <div class="flex justify-between items-center">
-              <label class="text-xs font-medium text-cyan-300">หมวดหมู่ / แท็ก (ค้นหาหรือเพิ่มใหม่)</label>
+              <label class="text-xs font-medium text-cyan-300">หมวดหมู่ / แท็ก</label>
               <button type="button" onclick="openNewTagPopup()" class="text-[11px] text-cyan-400 hover:underline"><i class="fa-solid fa-plus mr-1"></i> เพิ่มหมวดหมู่ใหม่</button>
             </div>
-            <div class="flex gap-2">
-              <select id="tagSearchDropdown" onchange="addSelectedTag(this)" class="bg-black/60 border border-cyan-500/20 rounded-xl px-3 py-2 text-xs text-white w-full">
-                <option value="">-- ค้นหาหรือเลือกหมวดหมู่ที่มีอยู่ --</option>
-              </select>
-            </div>
+            <select id="tagSearchDropdown" onchange="addSelectedTag(this)" class="w-full bg-black/60 border border-cyan-500/20 rounded-xl px-3 py-2 text-xs text-white">
+              <option value="">-- ค้นหาหรือเลือกหมวดหมู่ --</option>
+            </select>
             <div id="selectedTagsContainer" class="flex flex-wrap gap-1.5 p-2 bg-black/40 rounded-xl border border-cyan-500/10 min-h-[36px]"></div>
           </div>
         </div>
@@ -199,20 +187,25 @@
           </div>
         </div>
 
-        <!-- Test Case Upload (รองรับ ZIP หรือพิมพ์เอง + ปุ่มดาว Sample) -->
+        <!-- TEST CASES (COLLAPSIBLE / FOLDABLE UI) -->
         <div class="tech-glass rounded-2xl p-4 border border-cyan-500/20 space-y-3">
           <div class="flex justify-between items-center">
-            <label class="text-xs font-bold text-cyan-300"><i class="fa-solid fa-box-archive mr-1"></i> ชุดทดสอบ Test Cases (อัปโหลด ZIP หรือกดดาว ⭐ เลือก Sample)</label>
-            <button type="button" onclick="addFormTestCaseRow()" class="tech-glass px-3 py-1.5 rounded-xl text-xs text-cyan-300 border border-cyan-500/30 hover:bg-cyan-500/10">+ เพิ่ม Test Case เอง</button>
+            <div class="flex items-center gap-2">
+              <label class="text-xs font-bold text-cyan-300"><i class="fa-solid fa-box-archive mr-1"></i> ชุดทดสอบ Test Cases (พับเก็บได้)</label>
+              <button type="button" onclick="toggleAllTestCasesFold()" class="text-[10px] text-cyan-400 bg-cyan-500/10 px-2 py-1 rounded-lg border border-cyan-500/30 hover:bg-cyan-500/20">พับ/ขยายทั้งหมด</button>
+            </div>
+            <button type="button" onclick="addFormTestCaseRow()" class="tech-glass px-3 py-1.5 rounded-xl text-xs text-cyan-300 border border-cyan-500/30 hover:bg-cyan-500/10">+ เพิ่ม Test Case</button>
           </div>
+          
           <div class="bg-black/40 p-2.5 rounded-xl border border-cyan-500/10">
-            <span class="text-[11px] text-cyan-400 font-semibold block mb-1"><i class="fa-solid fa-file-zipper mr-1"></i> อัปโหลดไฟล์ ZIP (.in / .out):</span>
+            <span class="text-[11px] text-cyan-400 font-semibold block mb-1"><i class="fa-solid fa-file-zipper mr-1"></i> อัปโหลดไฟล์ ZIP (.in / .sol):</span>
             <input type="file" id="admZipFile" accept=".zip" onchange="handleZipUpload(event)" class="w-full bg-black/60 border border-cyan-500/20 rounded-xl p-2 text-xs text-gray-300 file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-cyan-500/20 file:text-cyan-300 cursor-pointer">
           </div>
-          <div id="formTestCasesList" class="space-y-2 max-h-48 overflow-y-auto pr-1"></div>
+
+          <div id="formTestCasesList" class="space-y-2 max-h-56 overflow-y-auto pr-1"></div>
         </div>
 
-        <!-- Subtask System (3 ช่องชัดเจน) -->
+        <!-- Subtask System (3 ช่อง) -->
         <div class="tech-glass rounded-2xl p-4 border border-cyan-500/20 space-y-3">
           <div class="flex items-center justify-between">
             <label class="text-xs font-bold text-cyan-300"><i class="fa-solid fa-layer-group mr-1"></i> ระบบ Subtask (TOI / IOI Style)</label>
@@ -239,19 +232,14 @@
           </div>
         </div>
 
-        <!-- Statement (ย้ายมาไว้ด้านล่างสุด พิมพ์ได้แบบไม่จำกัด + อัปโหลด PDF) -->
+        <!-- Statement (ด้านล่างสุด พิมพ์ได้ไม่จำกัด + PDF) -->
         <div class="tech-glass rounded-2xl p-4 border border-cyan-500/20 space-y-3">
-          <label class="block text-xs font-bold text-cyan-300"><i class="fa-solid fa-file-pdf mr-1"></i> Statement โจทย์ (พิมพ์รายละเอียดแบบไม่จำกัด หรืออัปโหลด PDF)</label>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-2">
-            <div>
-              <span class="text-[11px] text-gray-400 block mb-1">อัปโหลดไฟล์ PDF Statement:</span>
-              <input type="file" id="admStatementPdf" accept=".pdf" class="w-full bg-black/60 border border-cyan-500/20 rounded-xl p-2 text-xs text-gray-300 file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-cyan-500/20 file:text-cyan-300 cursor-pointer">
-            </div>
+          <label class="block text-xs font-bold text-cyan-300"><i class="fa-solid fa-file-pdf mr-1"></i> Statement โจทย์ (พิมพ์รายละเอียดไม่จำกัด หรืออัปโหลด PDF)</label>
+          <div class="mb-2">
+            <input type="file" id="admStatementPdf" accept=".pdf" class="w-full bg-black/60 border border-cyan-500/20 rounded-xl p-2 text-xs text-gray-300 file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-cyan-500/20 file:text-cyan-300 cursor-pointer">
           </div>
           <textarea id="admStatementText" rows="6" placeholder="พิมพ์เนื้อหาโจทย์ เงื่อนไข และรายละเอียดทั้งหมดที่นี่..." class="w-full bg-black/60 border border-cyan-500/20 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-cyan-400 font-sans resize-y"></textarea>
         </div>
-
-        <div id="adminUploadMsg" class="text-xs text-center hidden"></div>
 
         <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-95 text-white font-bold py-3.5 rounded-xl text-xs transition shadow-lg shadow-cyan-500/25">
           <i class="fa-solid fa-cloud-arrow-up mr-1.5"></i> บันทึกและเผยแพร่โจทย์เข้าสู่ระบบทันที
@@ -274,20 +262,20 @@
 
   <!-- MODAL: MANAGE TEST CASES -->
   <div id="manageTestCasesModal" class="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/85 backdrop-blur-md opacity-0 pointer-events-none transition-all duration-300">
-    <div class="tech-modal rounded-3xl p-8 max-w-xl w-full max-h-[90vh] overflow-y-auto relative transform scale-95 transition-all duration-300 border border-cyan-500/30">
+    <div class="tech-modal rounded-3xl p-8 max-w-xl w-full max-h-[90vh] overflow-y-auto relative transform scale-95 transition-all duration-300 border border-cyan-500/30 space-y-4">
       <button onclick="closeTestCasesModal()" class="absolute top-5 right-5 text-gray-400 hover:text-white w-8 h-8 rounded-full bg-cyan-500/10 flex items-center justify-center transition">
         <i class="fa-solid fa-xmark text-xs"></i>
       </button>
 
-      <div class="text-center mb-6">
-        <h3 id="tcModalTitle" class="text-lg font-bold text-white mb-1">จัดการ Test Case: #PROB</h3>
-        <p class="text-xs text-gray-400">กดปุ่มดาว (⭐) เพื่อเลือก Test Case นั้นเป็น Sample I/O สำหรับแสดงหน้าโจทย์</p>
+      <div class="text-center">
+        <h3 id="tcModalTitle" class="text-lg font-bold text-white mb-1">จัดการ Test Cases (พับเก็บได้)</h3>
+        <p class="text-xs text-gray-400">กดดาว (⭐) เพื่อเลือก Sample I/O และคลิกแถบเพื่อพับ/ขยายดูทีละ Test Case</p>
       </div>
 
-      <div class="space-y-4">
-        <div id="testCasesListContainer" class="space-y-3"></div>
+      <div class="space-y-3">
+        <div id="testCasesListContainer" class="space-y-2 max-h-96 overflow-y-auto pr-1"></div>
         <button onclick="addEditTestCaseRow()" class="w-full tech-glass hover:bg-cyan-500/10 text-cyan-300 border border-cyan-500/30 py-2.5 rounded-xl text-xs transition font-semibold">
-          <i class="fa-solid fa-plus mr-1"></i> เพิ่ม Test Case ย่อยใหม่
+          <i class="fa-solid fa-plus mr-1"></i> เพิ่ม Test Case ใหม่
         </button>
         <button onclick="saveTestCases()" class="w-full bg-gradient-to-r from-emerald-600 to-teal-500 text-white font-bold py-3 rounded-xl text-xs transition shadow-lg shadow-emerald-500/20">
           บันทึกการเปลี่ยนแปลง Test Cases
@@ -308,20 +296,29 @@
     let activeTags = [];
     let customTagsList = JSON.parse(localStorage.getItem('st8_custom_tags')) || ["Graph", "Dynamic Programming", "Sorting", "Math", "Greedy"];
 
-    function openUploadProblemModal() { 
-      const modal = document.getElementById('uploadProbModal');
-      if (modal) modal.classList.remove('opacity-0', 'pointer-events-none'); 
+    // SYSTEM TOAST NOTIFICATION
+    function showToast(title, desc, isError = false) {
+      const toast = document.getElementById('systemToast');
+      document.getElementById('toastTitle').textContent = title;
+      document.getElementById('toastDesc').textContent = desc;
+      const icon = document.getElementById('toastIcon');
+      icon.className = isError ? 'fa-solid fa-circle-exclamation text-rose-400 text-lg' : 'fa-solid fa-circle-check text-cyan-400 text-lg';
+      
+      toast.classList.remove('translate-x-full');
+      setTimeout(() => { toast.classList.add('translate-x-full'); }, 3000);
     }
 
+    function openUploadProblemModal() { 
+      document.getElementById('uploadProbModal').classList.remove('opacity-0', 'pointer-events-none'); 
+    }
     function closeUploadProblemModal() { 
-      const modal = document.getElementById('uploadProbModal');
-      if (modal) modal.classList.add('opacity-0', 'pointer-events-none'); 
+      document.getElementById('uploadProbModal').classList.add('opacity-0', 'pointer-events-none'); 
     }
 
     function initTagDropdown() {
       const dropdown = document.getElementById('tagSearchDropdown');
       if (dropdown) {
-        dropdown.innerHTML = '<option value="">-- ค้นหาหรือเลือกหมวดหมู่ที่มีอยู่ --</option>' + 
+        dropdown.innerHTML = '<option value="">-- ค้นหาหรือเลือกหมวดหมู่ --</option>' + 
           customTagsList.map(t => `<option value="${t}">${t}</option>`).join('');
       }
     }
@@ -338,6 +335,7 @@
         initTagDropdown();
         activeTags.push(val);
         renderTags();
+        showToast('เพิ่มหมวดหมู่สำเร็จ', `บันทึกแท็ก "${val}" เรียบร้อย`);
       }
       document.getElementById('customNewTagInput').value = '';
       closeNewTagPopup();
@@ -346,8 +344,8 @@
     async function checkAdminAuth() {
       const { data: { session } } = await supabaseClient.auth.getSession();
       if (!session) {
-        alert('⚠️ กรุณาเข้าสู่ระบบก่อนเข้าใช้งานหน้าผู้ดูแลระบบ');
-        window.location.href = 'index.html';
+        showToast('แจ้งเตือน', 'กรุณาเข้าสู่ระบบแอดมินก่อน', true);
+        setTimeout(() => { window.location.href = 'index.html'; }, 1500);
       } else {
         fetchAllAdminProblems();
       }
@@ -386,12 +384,10 @@
       if (val && !activeTags.includes(val)) { activeTags.push(val); renderTags(); }
       select.value = "";
     }
-
     function removeTag(tag) {
       activeTags = activeTags.filter(t => t !== tag);
       renderTags();
     }
-
     function renderTags() {
       const container = document.getElementById('selectedTagsContainer');
       container.innerHTML = activeTags.map(t => `
@@ -412,7 +408,7 @@
       const list = document.getElementById('subtaskList');
       const count = list.children.length + 1;
       const row = document.createElement('div');
-      row.className = 'flex items-center gap-2 bg-black/40 p-2 rounded-xl border border-cyan-500/10';
+      row.className = 'flex items-center gap-2 bg-black/40 p-2 rounded-xl border border-cyan-500/15';
       row.innerHTML = `
         <span class="text-xs text-cyan-400 font-bold whitespace-nowrap">Subtask #${count}</span>
         <input type="number" placeholder="เริ่ม TC" class="bg-black/60 border border-cyan-500/20 rounded-lg px-3 py-1 text-xs text-white w-1/3">
@@ -423,30 +419,51 @@
       list.appendChild(row);
     }
 
+    // FOLDABLE TEST CASE ROWS (พับเก็บได้ ไม่รกตา)
     function addFormTestCaseRow() {
       const list = document.getElementById('formTestCasesList');
       const count = list.children.length + 1;
       const div = document.createElement('div');
-      div.className = 'tech-glass p-2.5 rounded-xl border border-cyan-500/20 space-y-2';
+      div.className = 'tech-glass rounded-xl border border-cyan-500/20 overflow-hidden';
       div.innerHTML = `
-        <div class="flex justify-between items-center text-xs text-cyan-300 font-bold">
-          <span class="tc-label">Test Case #${count}</span>
-          <div class="flex items-center gap-2">
-            <button type="button" onclick="toggleSampleStar(this)" title="ตั้งเป็น Sample I/O" class="text-gray-400 hover:text-amber-400 text-sm"><i class="fa-regular fa-star"></i></button>
+        <div onclick="toggleTestCaseCard(this)" class="bg-black/50 px-3 py-2 flex justify-between items-center cursor-pointer hover:bg-cyan-500/10 transition">
+          <div class="flex items-center gap-2 text-xs text-cyan-300 font-bold">
+            <i class="fa-solid fa-chevron-down transition-transform duration-200"></i>
+            <span>Test Case #${count}</span>
+          </div>
+          <div class="flex items-center gap-3" onclick="event.stopPropagation()">
+            <button type="button" onclick="toggleSampleStar(this)" title="Sample I/O" class="text-gray-400 hover:text-amber-400 text-sm"><i class="fa-regular fa-star"></i></button>
             <button type="button" onclick="this.closest('.tech-glass').remove()" class="text-rose-400 text-xs"><i class="fa-solid fa-trash"></i></button>
           </div>
         </div>
-        <div class="grid grid-cols-2 gap-2">
-          <div><span class="text-[10px] text-gray-400">Input (.in)</span><textarea rows="2" class="tc-input w-full bg-black/60 border border-cyan-500/20 rounded-lg p-2 text-xs text-white font-mono"></textarea></div>
-          <div><span class="text-[10px] text-gray-400">Output (.out)</span><textarea rows="2" class="tc-output w-full bg-black/60 border border-cyan-500/20 rounded-lg p-2 text-xs text-white font-mono"></textarea></div>
+        <div class="tc-body p-3 space-y-2 border-t border-cyan-500/10">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+            <div><span class="text-[10px] text-gray-400">Input (.in)</span><textarea rows="2" class="tc-input w-full bg-black/60 border border-cyan-500/20 rounded-lg p-2 text-xs text-white font-mono"></textarea></div>
+            <div><span class="text-[10px] text-gray-400">Solution (.sol)</span><textarea rows="2" class="tc-output w-full bg-black/60 border border-cyan-500/20 rounded-lg p-2 text-xs text-white font-mono"></textarea></div>
+          </div>
         </div>
       `;
       list.appendChild(div);
     }
     addFormTestCaseRow();
 
+    function toggleTestCaseCard(header) {
+      const body = header.nextElementSibling;
+      const icon = header.querySelector('.fa-chevron-down');
+      body.classList.toggle('hidden');
+      icon.classList.toggle('rotate-180');
+    }
+
+    function toggleAllTestCasesFold() {
+      const bodies = document.querySelectorAll('#formTestCasesList .tc-body');
+      const icons = document.querySelectorAll('#formTestCasesList .fa-chevron-down');
+      const shouldHide = !bodies[0]?.classList.contains('hidden');
+      bodies.forEach(b => b.classList.toggle('hidden', shouldHide));
+      icons.forEach(i => i.classList.toggle('rotate-180', shouldHide));
+    }
+
     function toggleSampleStar(btn) {
-      document.querySelectorAll('#formTestCasesList button[title="ตั้งเป็น Sample I/O"]').forEach(b => {
+      document.querySelectorAll('#formTestCasesList button[title="Sample I/O"]').forEach(b => {
         b.innerHTML = '<i class="fa-regular fa-star"></i>';
         b.classList.remove('text-amber-400');
       });
@@ -454,7 +471,7 @@
       btn.classList.add('text-amber-400');
     }
 
-    // ฟังก์ชันอ่านไฟล์ ZIP แยก .in / .out อัตโนมัติ
+    // ZIP UPLOAD HANDLING (.in / .sol)
     async function handleZipUpload(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -470,11 +487,11 @@
           const ext = baseName.split('.').pop().toLowerCase();
           const nameWithoutExt = baseName.substring(0, baseName.lastIndexOf('.'));
 
-          if (ext === 'in' || ext === 'out') {
+          if (ext === 'in' || ext === 'sol') {
             if (!testCasesMap[nameWithoutExt]) testCasesMap[nameWithoutExt] = { input: '', output: '' };
             const textContent = await content.files[filename].async('text');
             if (ext === 'in') testCasesMap[nameWithoutExt].input = textContent;
-            if (ext === 'out') testCasesMap[nameWithoutExt].output = textContent;
+            if (ext === 'sol') testCasesMap[nameWithoutExt].output = textContent;
           }
         }
 
@@ -485,68 +502,105 @@
         for (let key of Object.keys(testCasesMap).sort()) {
           const tc = testCasesMap[key];
           const div = document.createElement('div');
-          div.className = 'tech-glass p-2.5 rounded-xl border border-cyan-500/20 space-y-2';
+          div.className = 'tech-glass rounded-xl border border-cyan-500/20 overflow-hidden';
           div.innerHTML = `
-            <div class="flex justify-between items-center text-xs text-cyan-300 font-bold">
-              <span class="tc-label">Test Case #${index} (${key})</span>
-              <div class="flex items-center gap-2">
-                <button type="button" onclick="toggleSampleStar(this)" title="ตั้งเป็น Sample I/O" class="text-gray-400 hover:text-amber-400 text-sm"><i class="fa-regular fa-star"></i></button>
+            <div onclick="toggleTestCaseCard(this)" class="bg-black/50 px-3 py-2 flex justify-between items-center cursor-pointer hover:bg-cyan-500/10 transition">
+              <div class="flex items-center gap-2 text-xs text-cyan-300 font-bold">
+                <i class="fa-solid fa-chevron-down transition-transform duration-200"></i>
+                <span>Test Case #${index} (${key})</span>
+              </div>
+              <div class="flex items-center gap-3" onclick="event.stopPropagation()">
+                <button type="button" onclick="toggleSampleStar(this)" title="Sample I/O" class="text-gray-400 hover:text-amber-400 text-sm"><i class="fa-regular fa-star"></i></button>
                 <button type="button" onclick="this.closest('.tech-glass').remove()" class="text-rose-400 text-xs"><i class="fa-solid fa-trash"></i></button>
               </div>
             </div>
-            <div class="grid grid-cols-2 gap-2">
-              <div><span class="text-[10px] text-gray-400">Input (.in)</span><textarea rows="2" class="tc-input w-full bg-black/60 border border-cyan-500/20 rounded-lg p-2 text-xs text-white font-mono">${tc.input}</textarea></div>
-              <div><span class="text-[10px] text-gray-400">Output (.out)</span><textarea rows="2" class="tc-output w-full bg-black/60 border border-cyan-500/20 rounded-lg p-2 text-xs text-white font-mono">${tc.output}</textarea></div>
+            <div class="tc-body p-3 space-y-2 border-t border-cyan-500/10">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                <div><span class="text-[10px] text-gray-400">Input (.in)</span><textarea rows="2" class="tc-input w-full bg-black/60 border border-cyan-500/20 rounded-lg p-2 text-xs text-white font-mono">${tc.input}</textarea></div>
+                <div><span class="text-[10px] text-gray-400">Solution (.sol)</span><textarea rows="2" class="tc-output w-full bg-black/60 border border-cyan-500/20 rounded-lg p-2 text-xs text-white font-mono">${tc.output}</textarea></div>
+              </div>
             </div>
           `;
           list.appendChild(div);
           index++;
         }
-        alert(`🎉 แตกไฟล์ ZIP สำเร็จ! โหลด Test Cases เข้าสู่ระบบแล้ว ${index - 1} ชุด`);
+        showToast('อัปโหลด ZIP สำเร็จ', `โหลด Test Cases แล้ว ${index - 1} ชุด`);
       } catch (err) {
-        alert('❌ เกิดข้อผิดพลาดในการอ่านไฟล์ ZIP: ' + err.message);
+        showToast('เกิดข้อผิดพลาด', err.message, true);
       }
     }
 
+    // FETCH PROBLEMS WITH VISIBILITY TOGGLE SWITCH & RE-UI
     async function fetchAllAdminProblems() {
       const { data: list, error } = await supabaseClient.from('problems').select('*').order('id', { ascending: false });
-      const table = document.getElementById('allAdminProblemsTable');
+      const container = document.getElementById('allAdminProblemsContainer');
       if (error || !list || list.length === 0) {
-        table.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-gray-400">ยังไม่มีโจทย์ในระบบ</td></tr>`;
+        container.innerHTML = `<div class="tech-glass p-6 rounded-2xl text-center text-gray-400 text-xs">ยังไม่มีโจทย์ในระบบ</div>`;
         return;
       }
-      table.innerHTML = list.map(p => `
-        <tr class="hover:bg-cyan-500/5 transition">
-          <td class="p-4 font-bold text-white">#PROB-${p.id} : ${p.title}</td>
-          <td class="p-4 text-cyan-300">${p.difficulty} <span class="text-[10px] text-gray-400 block">${p.tags || '-'}</span></td>
-          <td class="p-4 text-amber-400 font-mono font-bold">${p.max_score || 100} คะแนน</td>
-          <td class="p-4 text-right space-x-2">
-            <button onclick="openTestCasesModal(${p.id}, '${p.title}')" class="tech-glass hover:bg-cyan-500/10 text-cyan-300 border border-cyan-500/30 px-3 py-1.5 rounded-lg transition font-semibold text-xs">
-              จัดการ Test Cases
-            </button>
-            <button onclick="deleteProblem(${p.id})" class="bg-rose-600/20 text-rose-400 hover:bg-rose-600 hover:text-white px-3 py-1.5 rounded-lg transition font-semibold text-xs">
-              ลบ
-            </button>
-          </td>
-        </tr>
+      container.innerHTML = list.map(p => `
+        <div class="tech-glass p-5 rounded-2xl border border-cyan-500/20 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:border-cyan-500/40 transition">
+          <div class="space-y-1">
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-bold text-cyan-400 font-mono">#PROB-${p.id}</span>
+              <h3 class="font-bold text-white text-sm">${p.title}</h3>
+              <span class="text-[10px] px-2 py-0.5 rounded-full ${p.difficulty === 'Easy' ? 'bg-emerald-500/20 text-emerald-300' : p.difficulty === 'Medium' ? 'bg-amber-500/20 text-amber-300' : 'bg-rose-500/20 text-rose-300'}">${p.difficulty}</span>
+            </div>
+            <p class="text-xs text-gray-400"><i class="fa-solid fa-tags text-cyan-500 mr-1"></i> หมวดหมู่: ${p.tags || '-'} &bull; คะแนนเต็ม: <strong class="text-amber-400">${p.max_score || 100}</strong></p>
+          </div>
+
+          <div class="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end border-t md:border-t-0 pt-3 md:pt-0 border-cyan-500/10">
+            <!-- VISIBILITY TOGGLE SWITCH -->
+            <div class="flex items-center gap-2">
+              <span class="text-[11px] text-gray-300">แสดงโจทย์:</span>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" ${p.is_verified ? 'checked' : ''} onchange="toggleProblemVisibility(${p.id}, this.checked)" class="sr-only peer">
+                <div class="w-9 h-5 bg-black/60 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-cyan-500"></div>
+              </label>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <button onclick="openTestCasesModal(${p.id}, '${p.title}')" class="tech-glass hover:bg-cyan-500/10 text-cyan-300 border border-cyan-500/30 px-3 py-1.5 rounded-xl transition text-xs font-semibold">
+                <i class="fa-solid fa-box-archive mr-1"></i> Test Cases
+              </button>
+              <button onclick="deleteProblem(${p.id})" class="bg-rose-600/20 text-rose-400 hover:bg-rose-600 hover:text-white px-3 py-1.5 rounded-xl transition text-xs font-semibold">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </div>
+          </div>
+        </div>
       `).join('');
+    }
+
+    async function toggleProblemVisibility(id, status) {
+      const { error } = await supabaseClient.from('problems').update({ is_verified: status }).eq('id', id);
+      if (error) {
+        showToast('เกิดข้อผิดพลาด', error.message, true);
+      } else {
+        showToast('อัปเดตสถานะสำเร็จ', `ตั้งค่าการมองเห็นโจทย์ #${id} เรียบร้อย`);
+      }
     }
 
     function openTestCasesModal(id, title) {
       document.getElementById('tcModalTitle').textContent = `จัดการ Test Case: #${id} ${title}`;
       const container = document.getElementById('testCasesListContainer');
       container.innerHTML = `
-        <div class="tech-glass p-3 rounded-xl border border-cyan-500/20 space-y-2">
-          <div class="flex justify-between items-center text-xs text-cyan-300 font-bold">
-            <span>Test Case #1 (Sample)</span>
-            <div class="flex items-center gap-2">
-              <button onclick="toggleSampleStar(this)" class="text-amber-400 text-sm"><i class="fa-solid fa-star"></i></button>
-              <button onclick="this.closest('.tech-glass').remove()" class="text-rose-400 hover:underline">ลบ</button>
+        <div class="tech-glass rounded-xl border border-cyan-500/20 overflow-hidden">
+          <div onclick="toggleTestCaseCard(this)" class="bg-black/50 px-3 py-2 flex justify-between items-center cursor-pointer hover:bg-cyan-500/10 transition">
+            <div class="flex items-center gap-2 text-xs text-cyan-300 font-bold">
+              <i class="fa-solid fa-chevron-down"></i>
+              <span>Test Case #1 (Sample)</span>
+            </div>
+            <div class="flex items-center gap-3" onclick="event.stopPropagation()">
+              <button onclick="toggleSampleStar(this)" title="Sample I/O" class="text-amber-400 text-sm"><i class="fa-solid fa-star"></i></button>
+              <button onclick="this.closest('.tech-glass').remove()" class="text-rose-400 text-xs"><i class="fa-solid fa-trash"></i></button>
             </div>
           </div>
-          <div class="grid grid-cols-2 gap-2">
-            <div><span class="text-[10px] text-gray-400">Input (.in)</span><textarea rows="2" class="w-full bg-black/60 border border-cyan-500/20 rounded-lg p-2 text-xs text-white font-mono">1 2</textarea></div>
-            <div><span class="text-[10px] text-gray-400">Output (.out)</span><textarea rows="2" class="w-full bg-black/60 border border-cyan-500/20 rounded-lg p-2 text-xs text-white font-mono">3</textarea></div>
+          <div class="tc-body p-3 space-y-2 border-t border-cyan-500/10">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+              <div><span class="text-[10px] text-gray-400">Input (.in)</span><textarea rows="2" class="w-full bg-black/60 border border-cyan-500/20 rounded-lg p-2 text-xs text-white font-mono">1 2</textarea></div>
+              <div><span class="text-[10px] text-gray-400">Solution (.sol)</span><textarea rows="2" class="w-full bg-black/60 border border-cyan-500/20 rounded-lg p-2 text-xs text-white font-mono">3</textarea></div>
+            </div>
           </div>
         </div>
       `;
@@ -559,28 +613,37 @@
       const container = document.getElementById('testCasesListContainer');
       const count = container.children.length + 1;
       const div = document.createElement('div');
-      div.className = 'tech-glass p-3 rounded-xl border border-cyan-500/20 space-y-2';
+      div.className = 'tech-glass rounded-xl border border-cyan-500/20 overflow-hidden';
       div.innerHTML = `
-        <div class="flex justify-between items-center text-xs text-cyan-300 font-bold">
-          <span>Test Case #${count}</span>
-          <div class="flex items-center gap-2">
-            <button onclick="toggleSampleStar(this)" class="text-gray-400 hover:text-amber-400 text-sm"><i class="fa-regular fa-star"></i></button>
-            <button onclick="this.closest('.tech-glass').remove()" class="text-rose-400 hover:underline">ลบ</button>
+        <div onclick="toggleTestCaseCard(this)" class="bg-black/50 px-3 py-2 flex justify-between items-center cursor-pointer hover:bg-cyan-500/10 transition">
+          <div class="flex items-center gap-2 text-xs text-cyan-300 font-bold">
+            <i class="fa-solid fa-chevron-down"></i>
+            <span>Test Case #${count}</span>
+          </div>
+          <div class="flex items-center gap-3" onclick="event.stopPropagation()">
+            <button onclick="toggleSampleStar(this)" title="Sample I/O" class="text-gray-400 hover:text-amber-400 text-sm"><i class="fa-regular fa-star"></i></button>
+            <button onclick="this.closest('.tech-glass').remove()" class="text-rose-400 text-xs"><i class="fa-solid fa-trash"></i></button>
           </div>
         </div>
-        <div class="grid grid-cols-2 gap-2">
-          <div><span class="text-[10px] text-gray-400">Input (.in)</span><textarea rows="2" class="w-full bg-black/60 border border-cyan-500/20 rounded-lg p-2 text-xs text-white font-mono"></textarea></div>
-          <div><span class="text-[10px] text-gray-400">Output (.out)</span><textarea rows="2" class="w-full bg-black/60 border border-cyan-500/20 rounded-lg p-2 text-xs text-white font-mono"></textarea></div>
+        <div class="tc-body p-3 space-y-2 border-t border-cyan-500/10">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+            <div><span class="text-[10px] text-gray-400">Input (.in)</span><textarea rows="2" class="w-full bg-black/60 border border-cyan-500/20 rounded-lg p-2 text-xs text-white font-mono"></textarea></div>
+            <div><span class="text-[10px] text-gray-400">Solution (.sol)</span><textarea rows="2" class="w-full bg-black/60 border border-cyan-500/20 rounded-lg p-2 text-xs text-white font-mono"></textarea></div>
+          </div>
         </div>
       `;
       container.appendChild(div);
     }
     
-    function saveTestCases() { alert('✅ บันทึก Test Cases สำเร็จเรียบร้อย!'); closeTestCasesModal(); }
+    function saveTestCases() {
+      showToast('บันทึกสำเร็จ', 'อัปเดต Test Cases เรียบร้อยแล้ว');
+      closeTestCasesModal();
+    }
 
     async function deleteProblem(id) {
       if (confirm('คุณต้องการลบโจทย์ข้อนี้ใช่หรือไม่?')) {
         await supabaseClient.from('problems').delete().eq('id', id);
+        showToast('ลบโจทย์สำเร็จ', `ลบโจทย์รหัส #${id} ออกจากระบบแล้ว`);
         fetchAllAdminProblems();
       }
     }
@@ -593,11 +656,8 @@
       const tags = activeTags.join(', ');
       const max_score = parseInt(document.getElementById('admMaxScore').value) || 100;
       const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + Math.random().toString(36).substring(2, 7);
-      const msg = document.getElementById('adminUploadMsg');
 
-      msg.classList.remove('hidden');
-      msg.textContent = 'กำลังบันทึกโจทย์เข้าสู่ระบบ...';
-      msg.className = 'text-xs text-center text-cyan-300 font-semibold';
+      showToast('กำลังบันทึก', 'กำลังอัปโหลดโจทย์เข้าสู่ระบบ...');
 
       const { data: { session } } = await supabaseClient.auth.getSession();
       const { error } = await supabaseClient.from('problems').insert([
@@ -605,45 +665,43 @@
       ]);
 
       if (error) {
-        msg.textContent = `❌ เกิดข้อผิดพลาด: ${error.message}`;
-        msg.className = 'text-xs text-center text-rose-400 font-semibold';
+        showToast('เกิดข้อผิดพลาด', error.message, true);
       } else {
-        msg.textContent = '✅ สร้างและเผยแพร่โจทย์สำเร็จ!';
-        msg.className = 'text-xs text-center text-emerald-400 font-semibold';
+        showToast('สำเร็จ!', 'สร้างและเผยแพร่โจทย์ใหม่เรียบร้อยแล้ว');
         setTimeout(() => {
           closeUploadProblemModal();
           document.getElementById('adminProblemForm').reset();
           activeTags = [];
           renderTags();
-          msg.classList.add('hidden');
           fetchAllAdminProblems();
-        }, 1500);
+        }, 1200);
       }
     });
 
     async function fetchPendingProblems() {
       const { data: list } = await supabaseClient.from('problems').select('*').eq('is_verified', false);
-      const table = document.getElementById('pendingProblemsTable');
+      const container = document.getElementById('pendingProblemsContainer');
       if (!list || list.length === 0) {
-        table.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-gray-400">ไม่มีโจทย์ที่รอตรวจสอบ</td></tr>`;
+        container.innerHTML = `<div class="text-center text-gray-400 text-xs py-4">ไม่มีโจทย์ที่รอตรวจสอบ</div>`;
         return;
       }
-      table.innerHTML = list.map(p => `
-        <tr class="hover:bg-cyan-500/5 transition">
-          <td class="p-4 font-bold text-white">#PROB-${p.id} : ${p.title}</td>
-          <td class="p-4 text-amber-400">${p.difficulty}</td>
-          <td class="p-4 text-gray-400">User</td>
-          <td class="p-4 text-right space-x-2">
-            <button onclick="approveProblem(${p.id})" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg transition font-semibold">อนุมัติ</button>
-            <button onclick="deleteProblem(${p.id})" class="bg-rose-600/20 text-rose-400 hover:bg-rose-600 hover:text-white px-3 py-1.5 rounded-lg transition font-semibold">ลบ</button>
-          </td>
-        </tr>
+      container.innerHTML = list.map(p => `
+        <div class="tech-glass p-4 rounded-xl flex justify-between items-center border border-cyan-500/20">
+          <div>
+            <h4 class="font-bold text-white text-xs">#PROB-${p.id} : ${p.title}</h4>
+            <span class="text-[10px] text-amber-400">ความยาก: ${p.difficulty}</span>
+          </div>
+          <div class="flex gap-2">
+            <button onclick="approveProblem(${p.id})" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold">อนุมัติ</button>
+            <button onclick="deleteProblem(${p.id})" class="bg-rose-600/20 text-rose-400 hover:bg-rose-600 hover:text-white px-3 py-1.5 rounded-lg text-xs font-semibold">ลบ</button>
+          </div>
+        </div>
       `).join('');
     }
 
     async function approveProblem(id) {
       await supabaseClient.from('problems').update({ is_verified: true }).eq('id', id);
-      alert('✅ อนุมัติโจทย์สำเร็จ!');
+      showToast('อนุมัติสำเร็จ', `เปิดใช้งานโจทย์ #${id} เรียบร้อย`);
       fetchPendingProblems();
     }
   </script>

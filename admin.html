@@ -80,7 +80,7 @@
       </button>
     </div>
 
-    <!-- TAB 1: ALL PROBLEMS MANAGEMENT (TABLE FORMAT) -->
+    <!-- TAB 1: ALL PROBLEMS MANAGEMENT -->
     <section id="adminTabProblems" class="space-y-6">
       <div class="flex justify-between items-center bg-gradient-to-r from-cyan-950/40 to-blue-950/20 p-6 rounded-3xl border border-cyan-500/20">
         <div>
@@ -233,7 +233,7 @@
     </div>
   </div>
 
-  <!-- MODAL: EDIT PROBLEM (โครงสร้างสมบูรณ์แบบหน้าอัพโหลด) -->
+  <!-- MODAL: EDIT PROBLEM (โครงสร้างสมบูรณ์แบบหน้าอัปโหลด 100%) -->
   <div id="editProbModal" class="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/85 backdrop-blur-md opacity-0 pointer-events-none transition-all duration-300">
     <div class="tech-modal rounded-3xl p-8 max-w-3xl w-full max-h-[92vh] overflow-y-auto relative transform scale-95 transition-all duration-300 border border-cyan-500/30 space-y-6">
       <button onclick="closeEditProblemModal()" class="absolute top-5 right-5 text-gray-400 hover:text-white w-8 h-8 rounded-full bg-cyan-500/10 flex items-center justify-center transition">
@@ -267,6 +267,17 @@
           <div>
             <label class="block text-xs font-medium text-cyan-300 mb-1">คะแนน</label>
             <input type="number" id="editMaxScore" class="w-full bg-black/60 border border-cyan-500/20 rounded-xl px-3 py-2.5 text-xs text-white font-mono">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-cyan-300 mb-1">ผู้แต่งโจทย์ (Author)</label>
+            <input type="text" id="editAuthor" placeholder="AP" class="w-full bg-black/60 border border-cyan-500/20 rounded-xl px-4 py-2.5 text-xs text-white font-mono">
+          </div>
+          <div class="md:col-span-2 space-y-1">
+            <label class="block text-xs font-medium text-cyan-300 mb-1">หมวดหมู่ / แท็ก</label>
+            <input type="text" id="editTags" placeholder="เช่น Graph, Sorting" class="w-full bg-black/60 border border-cyan-500/20 rounded-xl px-4 py-2.5 text-xs text-white font-mono">
           </div>
         </div>
 
@@ -354,6 +365,8 @@
       document.getElementById('editTitle').value = p.title || '';
       document.getElementById('editDifficulty').value = p.difficulty || 'Medium';
       document.getElementById('editMaxScore').value = p.max_score || 100;
+      document.getElementById('editAuthor').value = p.author || '';
+      document.getElementById('editTags').value = p.tags || '';
       document.getElementById('editStatementText').value = p.statement || '';
       document.getElementById('editProbSubTitle').textContent = `แก้ไขข้อมูลโจทย์รหัส: ${p.problem_code || '#PROB-' + p.id}`;
       document.getElementById('editProbModal').classList.remove('opacity-0', 'pointer-events-none');
@@ -551,7 +564,6 @@
       }
     }
 
-    // FETCH PROBLEMS WITH TABLE LAYOUT & AC/SUBMISSIONS STATS
     async function fetchAllAdminProblems() {
       const { data: list, error } = await supabaseClient.from('problems').select('*').order('id', { ascending: false });
       const tableBody = document.getElementById('allAdminProblemsTableBody');
@@ -562,8 +574,6 @@
       }
 
       allLoadedProblems = list;
-
-      // ดึงข้อมูล submissions เพื่อคำนวณสถิติ AC / Submissions
       const { data: subs } = await supabaseClient.from('submissions').select('problem_id, status');
 
       tableBody.innerHTML = list.map((p, index) => {
@@ -618,7 +628,6 @@
       }
     }
 
-    // SUBMIT NEW PROBLEM
     document.getElementById('adminProblemForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const problem_code = document.getElementById('admCode').value.trim().toUpperCase();
@@ -650,7 +659,6 @@
       }
     });
 
-    // SUBMIT EDIT PROBLEM
     document.getElementById('editProblemForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const id = document.getElementById('editProbId').value;
@@ -658,6 +666,8 @@
       const title = document.getElementById('editTitle').value.trim();
       const difficulty = document.getElementById('editDifficulty').value;
       const max_score = parseInt(document.getElementById('editMaxScore').value) || 100;
+      const author = document.getElementById('editAuthor').value.trim();
+      const tags = document.getElementById('editTags').value.trim();
       const statement = document.getElementById('editStatementText').value.trim();
 
       showToast('กำลังอัปเดต', 'กำลังบันทึกข้อมูลโจทย์...');
@@ -667,6 +677,8 @@
         title,
         difficulty,
         max_score,
+        author,
+        tags,
         statement
       }).eq('id', id);
 

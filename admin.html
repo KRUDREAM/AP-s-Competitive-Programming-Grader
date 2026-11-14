@@ -203,18 +203,16 @@
           </div>
         </div>
 
-        <!-- Test Case Upload (พิมพ์ลงระบบ หรืออัปโหลด ZIP พร้อมปุ่มดาว Sample) -->
+        <!-- Test Case Upload -->
         <div class="tech-glass rounded-2xl p-4 border border-cyan-500/20 space-y-3">
           <div class="flex justify-between items-center">
             <label class="text-xs font-bold text-cyan-300"><i class="fa-solid fa-box-archive mr-1"></i> ชุดทดสอบ Test Cases (กดดาว ⭐ เพื่อเลือกเป็น Sample I/O)</label>
             <button type="button" onclick="addFormTestCaseRow()" class="tech-glass px-3 py-1.5 rounded-xl text-xs text-cyan-300 border border-cyan-500/30 hover:bg-cyan-500/10">+ เพิ่ม Test Case</button>
           </div>
-          <div id="formTestCasesList" class="space-y-2 max-h-48 overflow-y-auto pr-1">
-            <!-- Test case rows will be added here -->
-          </div>
+          <div id="formTestCasesList" class="space-y-2 max-h-48 overflow-y-auto pr-1"></div>
         </div>
 
-        <!-- Subtask System (3 ช่องตามรีเควส) -->
+        <!-- Subtask System -->
         <div class="tech-glass rounded-2xl p-4 border border-cyan-500/20 space-y-3">
           <div class="flex items-center justify-between">
             <label class="text-xs font-bold text-cyan-300"><i class="fa-solid fa-layer-group mr-1"></i> ระบบ Subtask (TOI / IOI Style)</label>
@@ -229,9 +227,9 @@
             <div id="subtaskList" class="space-y-2">
               <div class="flex items-center gap-2 bg-black/40 p-2 rounded-xl border border-cyan-500/10">
                 <span class="text-xs text-cyan-400 font-bold whitespace-nowrap">Subtask #1</span>
-                <input type="number" placeholder="เริ่มที่ TC (เช่น 1)" class="bg-black/60 border border-cyan-500/20 rounded-lg px-3 py-1 text-xs text-white w-1/3">
-                <input type="number" placeholder="จบที่ TC (เช่น 5)" class="bg-black/60 border border-cyan-500/20 rounded-lg px-3 py-1 text-xs text-white w-1/3">
-                <input type="number" placeholder="สัดส่วน (%) เช่น 30" class="bg-black/60 border border-cyan-500/20 rounded-lg px-3 py-1 text-xs text-white w-1/3">
+                <input type="number" placeholder="เริ่ม TC" class="bg-black/60 border border-cyan-500/20 rounded-lg px-3 py-1 text-xs text-white w-1/3">
+                <input type="number" placeholder="จบ TC" class="bg-black/60 border border-cyan-500/20 rounded-lg px-3 py-1 text-xs text-white w-1/3">
+                <input type="number" placeholder="สัดส่วน (%)" class="bg-black/60 border border-cyan-500/20 rounded-lg px-3 py-1 text-xs text-white w-1/3">
                 <button type="button" onclick="this.parentElement.remove()" class="text-rose-400 text-xs px-2"><i class="fa-solid fa-trash"></i></button>
               </div>
             </div>
@@ -241,7 +239,7 @@
           </div>
         </div>
 
-        <!-- Statement (ย้ายมาไว้ด้านล่างสุด พิมพ์ได้แบบไม่จำกัด) -->
+        <!-- Statement -->
         <div class="tech-glass rounded-2xl p-4 border border-cyan-500/20 space-y-2">
           <label class="block text-xs font-bold text-cyan-300"><i class="fa-solid fa-file-lines mr-1"></i> Statement โจทย์ (พิมพ์รายละเอียดแบบไม่จำกัด)</label>
           <textarea id="admStatementText" rows="6" placeholder="พิมพ์เนื้อหาโจทย์ เงื่อนไข และรายละเอียดทั้งหมดที่นี่..." class="w-full bg-black/60 border border-cyan-500/20 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-cyan-400 font-sans resize-y"></textarea>
@@ -256,7 +254,7 @@
     </div>
   </div>
 
-  <!-- POPUP: เพิ่มหมวดหมู่ใหม่ (จำไว้ตลอด) -->
+  <!-- POPUP: เพิ่มหมวดหมู่ใหม่ -->
   <div id="newTagPopupModal" class="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/80 backdrop-blur-md opacity-0 pointer-events-none transition-all duration-300">
     <div class="tech-modal rounded-3xl p-6 max-w-sm w-full relative space-y-4 border border-cyan-500/30">
       <h3 class="text-sm font-bold text-white"><i class="fa-solid fa-folder-plus text-cyan-400 mr-1.5"></i> เพิ่มหมวดหมู่ใหม่</h3>
@@ -268,7 +266,7 @@
     </div>
   </div>
 
-  <!-- MODAL: MANAGE & EDIT TEST CASES (สำหรับกดดู/แก้ไข Test Case แต่ละข้อ) -->
+  <!-- MODAL: MANAGE TEST CASES -->
   <div id="manageTestCasesModal" class="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/85 backdrop-blur-md opacity-0 pointer-events-none transition-all duration-300">
     <div class="tech-modal rounded-3xl p-8 max-w-xl w-full max-h-[90vh] overflow-y-auto relative transform scale-95 transition-all duration-300 border border-cyan-500/30">
       <button onclick="closeTestCasesModal()" class="absolute top-5 right-5 text-gray-400 hover:text-white w-8 h-8 rounded-full bg-cyan-500/10 flex items-center justify-center transition">
@@ -304,10 +302,23 @@
     let activeTags = [];
     let customTagsList = JSON.parse(localStorage.getItem('st8_custom_tags')) || ["Graph", "Dynamic Programming", "Sorting", "Math", "Greedy"];
 
+    // ฟังก์ชันเปิด-ปิด Modal ให้อยู่ด้านบนสุดเรียกใช้งานได้ทันที
+    function openUploadProblemModal() { 
+      const modal = document.getElementById('uploadProbModal');
+      if (modal) modal.classList.remove('opacity-0', 'pointer-events-none'); 
+    }
+
+    function closeUploadProblemModal() { 
+      const modal = document.getElementById('uploadProbModal');
+      if (modal) modal.classList.add('opacity-0', 'pointer-events-none'); 
+    }
+
     function initTagDropdown() {
       const dropdown = document.getElementById('tagSearchDropdown');
-      dropdown.innerHTML = '<option value="">-- ค้นหาหรือเลือกหมวดหมู่ที่มีอยู่ --</option>' + 
-        customTagsList.map(t => `<option value="${t}">${t}</option>`).join('');
+      if (dropdown) {
+        dropdown.innerHTML = '<option value="">-- ค้นหาหรือเลือกหมวดหมู่ที่มีอยู่ --</option>' + 
+          customTagsList.map(t => `<option value="${t}">${t}</option>`).join('');
+      }
     }
     initTagDropdown();
 
@@ -407,7 +418,6 @@
       list.appendChild(row);
     }
 
-    // Test case rows in upload form
     function addFormTestCaseRow() {
       const list = document.getElementById('formTestCasesList');
       const count = list.children.length + 1;
@@ -428,7 +438,7 @@
       `;
       list.appendChild(div);
     }
-    addFormTestCaseRow(); // เพิ่มค่าเริ่มต้น 1 แถว
+    addFormTestCaseRow();
 
     function toggleSampleStar(btn) {
       document.querySelectorAll('#formTestCasesList button[title="ตั้งเป็น Sample I/O"]').forEach(b => {
@@ -439,16 +449,6 @@
       btn.classList.add('text-amber-400');
     }
 
-function openUploadProblemModal() { 
-  const modal = document.getElementById('uploadProbModal');
-  if (modal) modal.classList.remove('opacity-0', 'pointer-events-none'); 
-}
-
-function closeUploadProblemModal() { 
-  const modal = document.getElementById('uploadProbModal');
-  if (modal) modal.classList.add('opacity-0', 'pointer-events-none'); 
-}
-    
     async function fetchAllAdminProblems() {
       const { data: list, error } = await supabaseClient.from('problems').select('*').order('id', { ascending: false });
       const table = document.getElementById('allAdminProblemsTable');
@@ -495,6 +495,7 @@ function closeUploadProblemModal() {
     }
 
     function closeTestCasesModal() { document.getElementById('manageTestCasesModal').classList.add('opacity-0', 'pointer-events-none'); }
+    
     function addEditTestCaseRow() {
       const container = document.getElementById('testCasesListContainer');
       const count = container.children.length + 1;
@@ -515,6 +516,7 @@ function closeUploadProblemModal() {
       `;
       container.appendChild(div);
     }
+    
     function saveTestCases() { alert('✅ บันทึก Test Cases สำเร็จเรียบร้อย!'); closeTestCasesModal(); }
 
     async function deleteProblem(id) {
@@ -524,7 +526,6 @@ function closeUploadProblemModal() {
       }
     }
 
-    // Submit New Problem (แก้ปัญหา slug ไม่ให้ติด not-null constraint)
     document.getElementById('adminProblemForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const title = document.getElementById('admTitle').value.trim();
@@ -532,7 +533,7 @@ function closeUploadProblemModal() {
       const statement = document.getElementById('admStatementText').value.trim();
       const tags = activeTags.join(', ');
       const max_score = parseInt(document.getElementById('admMaxScore').value) || 100;
-      const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + Math.random().toString(36.substring(2, 7));
+      const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + Math.random().toString(36).substring(2, 7);
       const msg = document.getElementById('adminUploadMsg');
 
       msg.classList.remove('hidden');

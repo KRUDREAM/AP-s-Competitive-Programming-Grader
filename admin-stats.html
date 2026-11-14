@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>สถิติการทำโจทย์ | ST8 CP-Grader Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body { font-family: 'Kanit', sans-serif; background-color: #030712; color: #f3f4f6; }
+    .tech-glass { background: rgba(10, 15, 30, 0.78); backdrop-filter: blur(20px); border: 1px solid rgba(56, 189, 248, 0.16); }
+    .cyber-grid { background-image: linear-gradient(to right, rgba(56, 189, 248, 0.03) 1px, transparent 1px), linear-gradient(to bottom, rgba(56, 189, 248, 0.03) 1px, transparent 1px); background-size: 32px 32px; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col relative overflow-x-hidden cyber-grid">
+  <div id="systemToast" class="fixed top-5 right-5 z-[80] transform translate-x-[120%] transition-all duration-300 tech-glass px-5 py-3.5 rounded-2xl border border-cyan-500/40 shadow-2xl flex items-center gap-3">
+    <i id="toastIcon" class="fa-solid fa-circle-check text-cyan-400 text-lg"></i>
+    <div><h4 id="toastTitle" class="text-xs font-bold text-white"></h4><p id="toastDesc" class="text-xs text-gray-300"></p></div>
+  </div>
+
+  <div id="adminHeaderMount"></div>
+
+  <div class="flex-1 flex flex-col lg:flex-row relative z-10 w-full min-w-0">
+    <div id="adminSidebarMount"></div>
+
+    <main class="flex-1 min-w-0 px-4 md:px-6 py-6 space-y-5">
+      <div class="bg-gradient-to-r from-cyan-950/40 to-purple-950/25 p-5 rounded-2xl border border-cyan-500/20 flex flex-wrap justify-between items-center gap-3">
+        <div>
+          <h2 class="text-lg md:text-xl font-bold text-white"><i class="fa-solid fa-chart-pie text-cyan-400 mr-2"></i> สถิติการทำโจทย์ &amp; Live Submissions</h2>
+          <p class="text-xs text-gray-400">ภาพรวมอัตราการผ่านโจทย์ สัดส่วนผลตรวจ (AC / WA / TLE) และรายการส่งโค้ดล่าสุด</p>
+        </div>
+        <button type="button" onclick="loadAnalyticsData()" class="tech-glass hover:bg-cyan-500/15 text-cyan-300 border border-cyan-500/35 px-4 py-2 rounded-xl text-xs font-semibold transition cursor-pointer">
+          <i class="fa-solid fa-rotate mr-1"></i> รีเฟรชข้อมูล
+        </button>
+      </div>
+
+      <!-- KPI CARDS -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+        <div class="tech-glass p-4 rounded-2xl border border-cyan-500/20">
+          <span class="text-xs text-gray-400">โจทย์ทั้งหมดในระบบ</span>
+          <div id="kpiTotalProblems" class="text-2xl font-bold text-white mt-1">0</div>
+        </div>
+        <div class="tech-glass p-4 rounded-2xl border border-cyan-500/20">
+          <span class="text-xs text-gray-400">ยอดส่งโค้ดทั้งหมด</span>
+          <div id="kpiTotalSubs" class="text-2xl font-bold text-cyan-300 mt-1">0</div>
+        </div>
+        <div class="tech-glass p-4 rounded-2xl border border-emerald-500/25">
+          <span class="text-xs text-gray-400">ผ่าน (Accepted)</span>
+          <div id="kpiAcceptedSubs" class="text-2xl font-bold text-emerald-400 mt-1">0</div>
+        </div>
+        <div class="tech-glass p-4 rounded-2xl border border-amber-500/25">
+          <span class="text-xs text-gray-400">อัตราการผ่านเฉลี่ย</span>
+          <div id="kpiPassRate" class="text-2xl font-bold text-amber-300 mt-1">0%</div>
+        </div>
+      </div>
+
+      <!-- BREAKDOWN & TOP PROBLEMS -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div class="tech-glass p-5 rounded-2xl border border-cyan-500/20 space-y-3">
+          <h3 class="text-sm font-bold text-cyan-300"><i class="fa-solid fa-bars-progress mr-1.5"></i> สัดส่วนผลการตรวจ (Verdict Breakdown)</h3>
+          <div id="verdictBarsContainer" class="space-y-3"></div>
+        </div>
+
+        <div class="tech-glass p-5 rounded-2xl border border-cyan-500/20 space-y-3">
+          <h3 class="text-sm font-bold text-amber-300"><i class="fa-solid fa-fire mr-1.5"></i> โจทย์ที่มีคนส่งมากที่สุด (Top 5)</h3>
+          <div id="topProblemsContainer" class="space-y-2"></div>
+        </div>
+      </div>
+
+      <!-- RECENT SUBMISSIONS LOG -->
+      <div class="tech-glass rounded-2xl overflow-x-auto border border-cyan-500/20">
+        <div class="p-4 border-b border-cyan-500/15 flex justify-between items-center">
+          <h3 class="text-sm font-bold text-white"><i class="fa-solid fa-clock-rotate-left text-cyan-400 mr-1.5"></i> รายการส่งโค้ดล่าสุด 25 รายการ</h3>
+        </div>
+        <table class="w-full text-left text-sm">
+          <thead class="bg-cyan-950/50 text-cyan-300 border-b border-cyan-500/20 text-xs uppercase">
+            <tr>
+              <th class="px-4 py-3">เวลาส่ง</th>
+              <th class="px-4 py-3">ผู้ส่ง</th>
+              <th class="px-4 py-3">โจทย์</th>
+              <th class="px-4 py-3 text-center">ภาษา</th>
+              <th class="px-4 py-3 text-center">ผลตรวจ</th>
+            </tr>
+          </thead>
+          <tbody id="recentSubsTableBody" class="divide-y divide-cyan-500/10">
+            <tr><td colspan="5" class="p-6 text-center text-gray-400">กำลังโหลดข้อมูล...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <script src="admin-common.js"></script>
+  <script>
+    renderAdminShell('stats');
+
+    async function loadAnalyticsData() {
+      const [{ data: probs }, { data: subs }, { data: profiles }] = await Promise.all([
+        supabaseClient.from('problems').select('id, problem_code, title'),
+        supabaseClient.from('submissions').select('*').order('created_at', { ascending: false }),
+        supabaseClient.from('profiles').select('id, username, full_name')
+      ]);
+
+      const problemList = probs || [];
+      const subList = subs || [];
+      const userMap = {};
+      (profiles || []).forEach(u => { userMap[u.id] = u.username || u.full_name || String(u.id).slice(0, 8); });
+
+      const probMap = {};
+      problemList.forEach(p => { probMap[p.id] = `${p.problem_code || 'P' + p.id} : ${p.title}`; });
+
+      const totalSubs = subList.length;
+      const acCount = subList.filter(s => s.status === 'Accepted' || s.status === 'AC').length;
+      const waCount = subList.filter(s => s.status === 'Wrong Answer' || s.status === 'WA').length;
+      const tleCount = subList.filter(s => s.status === 'Time Limit Exceeded' || s.status === 'TLE').length;
+      const otherCount = Math.max(0, totalSubs - acCount - waCount - tleCount);
+
+      document.getElementById('kpiTotalProblems').textContent = problemList.length;
+      document.getElementById('kpiTotalSubs').textContent = totalSubs;
+      document.getElementById('kpiAcceptedSubs').textContent = acCount;
+      document.getElementById('kpiPassRate').textContent = totalSubs ? `${Math.round((acCount / totalSubs) * 100)}%` : '0%';
+
+      const verdicts = [
+        { label: 'Accepted (AC)', count: acCount, color: 'bg-emerald-500' },
+        { label: 'Wrong Answer (WA)', count: waCount, color: 'bg-rose-500' },
+        { label: 'Time Limit Exceeded (TLE)', count: tleCount, color: 'bg-amber-500' },
+        { label: 'Runtime / Compile Error / อื่นๆ', count: otherCount, color: 'bg-purple-500' }
+      ];
+
+      document.getElementById('verdictBarsContainer').innerHTML = verdicts.map(v => {
+        const pct = totalSubs ? Math.round((v.count / totalSubs) * 100) : 0;
+        return `
+          <div class="space-y-1">
+            <div class="flex justify-between text-xs"><span class="text-gray-300">${v.label}</span><span class="font-bold text-white">${v.count} (${pct}%)</span></div>
+            <div class="w-full h-2.5 bg-black/60 rounded-full overflow-hidden"><div class="${v.color} h-full rounded-full" style="width: ${pct}%"></div></div>
+          </div>
+        `;
+      }).join('');
+
+      const countByProb = {};
+      subList.forEach(s => { countByProb[s.problem_id] = (countByProb[s.problem_id] || 0) + 1; });
+      const top5 = Object.entries(countByProb).sort((a, b) => b[1] - a[1]).slice(0, 5);
+
+      document.getElementById('topProblemsContainer').innerHTML = top5.map(([pid, cnt], i) => `
+        <div class="bg-black/45 border border-white/10 px-3.5 py-2.5 rounded-xl flex justify-between items-center text-xs">
+          <span class="text-white font-medium truncate pr-2"><b class="text-cyan-400 mr-1.5">#${i + 1}</b> ${probMap[pid] || 'Problem #' + pid}</span>
+          <span class="text-amber-300 font-bold shrink-0">${cnt} ครั้ง</span>
+        </div>
+      `).join('') || '<div class="text-xs text-gray-500 text-center py-4">ยังไม่มีข้อมูลการส่ง</div>';
+
+      document.getElementById('recentSubsTableBody').innerHTML = subList.slice(0, 25).map(s => {
+        const isAc = s.status === 'Accepted' || s.status === 'AC';
+        return `
+          <tr class="hover:bg-cyan-500/5 transition">
+            <td class="px-4 py-3 text-xs text-gray-400 whitespace-nowrap">${s.created_at ? new Date(s.created_at).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' }) : '-'}</td>
+            <td class="px-4 py-3 text-white font-medium">${userMap[s.user_id] || String(s.user_id || 'Guest').slice(0, 8)}</td>
+            <td class="px-4 py-3 text-gray-200">${probMap[s.problem_id] || 'Problem #' + s.problem_id}</td>
+            <td class="px-4 py-3 text-center text-xs text-cyan-300">${s.language || 'C++'}</td>
+            <td class="px-4 py-3 text-center">
+              <span class="text-xs font-bold px-2.5 py-0.5 rounded-full ${isAc ? 'bg-emerald-500/20 text-emerald-300' : 'bg-rose-500/20 text-rose-300'}">${s.status}</span>
+            </td>
+          </tr>
+        `;
+      }).join('') || '<tr><td colspan="5" class="p-6 text-center text-gray-400">ยังไม่มีรายการส่งโค้ด</td></tr>';
+    }
+
+    ensureAdminSession(loadAnalyticsData);
+  </script>
+</body>
+</html>

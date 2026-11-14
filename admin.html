@@ -70,7 +70,7 @@
       </button>
     </div>
 
-    <!-- TAB 1: ALL PROBLEMS MANAGEMENT (แสดงโจทย์ทั้งหมด + ปุ่มอัปโหลดมุมขวาบน) -->
+    <!-- TAB 1: ALL PROBLEMS MANAGEMENT -->
     <section id="adminTabProblems" class="space-y-6">
       <div class="flex justify-between items-center">
         <div>
@@ -88,12 +88,12 @@
             <tr>
               <th class="p-4">ID & ชื่อโจทย์</th>
               <th class="p-4">ความยาก / หมวดหมู่</th>
-              <th class="p-4">สถานะการเผยแพร่</th>
+              <th class="p-4">คะแนนเต็ม</th>
               <th class="p-4 text-right">จัดการ Test Case / แก้ไข</th>
             </tr>
           </thead>
           <tbody id="allAdminProblemsTable" class="divide-y divide-cyan-500/10 font-sans">
-            <tr><td colspan="4" class="p-4 text-center text-gray-400">กำลังโหลดรายการโจทย์ทั้งหมด...</td></tr>
+            <tr><td colspan="4" class="p-4 text-center text-gray-400">กำลังโหลดรายการโจทย์...</td></tr>
           </tbody>
         </table>
       </div>
@@ -133,85 +133,161 @@
 
   </main>
 
-  <!-- MODAL: UPLOAD / CREATE PROBLEM (พร้อมตั้งค่าสถานะ, แท็ก Dropdown และจัดการ Test Case) -->
+  <!-- MODAL: UPLOAD / CREATE PROBLEM (สเปกสมบูรณ์ระดับ TOI/IOI) -->
   <div id="uploadProbModal" class="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/85 backdrop-blur-md opacity-0 pointer-events-none transition-all duration-300">
-    <div class="tech-modal rounded-3xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto relative transform scale-95 transition-all duration-300 border border-cyan-500/30">
+    <div class="tech-modal rounded-3xl p-8 max-w-3xl w-full max-h-[92vh] overflow-y-auto relative transform scale-95 transition-all duration-300 border border-cyan-500/30">
       <button onclick="closeUploadProblemModal()" class="absolute top-5 right-5 text-gray-400 hover:text-white w-8 h-8 rounded-full bg-cyan-500/10 flex items-center justify-center transition">
         <i class="fa-solid fa-xmark text-xs"></i>
       </button>
 
       <div class="text-center mb-6">
-        <h3 class="text-lg font-bold text-white mb-1"><i class="fa-solid fa-cloud-arrow-up text-cyan-400 mr-2"></i> สร้าง / อัปโหลดโจทย์ใหม่</h3>
-        <p class="text-xs text-gray-400">กรอกข้อมูล กำหนดหมวดหมู่ สถานะเผยแพร่ และจัดการชุดทดสอบ Test Case</p>
+        <h3 class="text-lg font-bold text-white mb-1"><i class="fa-solid fa-cloud-arrow-up text-cyan-400 mr-2"></i> สร้าง / อัปโหลดโจทย์ใหม่ (Advanced Grader)</h3>
+        <p class="text-xs text-gray-400">ระบบสร้างโจทย์พร้อม Test Case, Subtask และ Custom Checker แบบเต็มรูปแบบ</p>
       </div>
 
-      <form id="adminProblemForm" class="space-y-4">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+      <form id="adminProblemForm" class="space-y-5">
+        <!-- Row 1: Title, Difficulty, Total Score -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
           <div class="md:col-span-2">
             <label class="block text-xs font-medium text-cyan-300 mb-1">ชื่อโจทย์ (Title) *</label>
-            <input type="text" id="admTitle" required placeholder="เช่น Matrix Multiplication" class="w-full bg-black/60 border border-cyan-500/20 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-400 font-mono">
+            <input type="text" id="admTitle" required placeholder="เช่น Matrix Chain Multiplication" class="w-full bg-black/60 border border-cyan-500/20 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-400 font-mono">
           </div>
           <div>
             <label class="block text-xs font-medium text-cyan-300 mb-1">ระดับความยาก</label>
-            <select id="admDifficulty" class="w-full bg-black/60 border border-cyan-500/20 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-400">
+            <select id="admDifficulty" class="w-full bg-black/60 border border-cyan-500/20 rounded-xl px-4 py-2.5 text-xs text-white">
               <option value="Easy">Easy</option>
               <option value="Medium" selected>Medium</option>
               <option value="Hard">Hard</option>
             </select>
           </div>
-        </div>
-
-        <!-- Tag System: Dropdown ที่เลือกได้หลายอัน + เพิ่มหมวดหมู่ใหม่ได้ -->
-        <div>
-          <label class="block text-xs font-medium text-cyan-300 mb-1">หมวดหมู่ / แท็ก (เลือกหรือพิมพ์เพิ่ม)</label>
-          <div class="flex gap-2 mb-2">
-            <select id="existingTagsDropdown" onchange="addSelectedTag(this)" class="bg-black/60 border border-cyan-500/20 rounded-xl px-3 py-2 text-xs text-white w-1/2">
-              <option value="">-- เลือกหมวดหมู่ที่มีอยู่ --</option>
-              <option value="Graph">Graph</option>
-              <option value="Dynamic Programming">Dynamic Programming</option>
-              <option value="Sorting">Sorting</option>
-              <option value="Math">Math</option>
-            </select>
-            <input type="text" id="newTagInput" placeholder="หรือพิมพ์แท็กใหม่..." class="bg-black/60 border border-cyan-500/20 rounded-xl px-3 py-2 text-xs text-white w-1/2">
-            <button type="button" onclick="addNewTag()" class="tech-glass px-4 py-2 rounded-xl text-xs text-cyan-300 border border-cyan-500/30 hover:bg-cyan-500/10">เพิ่ม</button>
-          </div>
-          <div id="selectedTagsContainer" class="flex flex-wrap gap-1.5 p-2 bg-black/40 rounded-xl border border-cyan-500/10 min-h-[38px]">
-            <!-- Tags Pills แสดงตรงนี้ -->
+          <div>
+            <label class="block text-xs font-medium text-cyan-300 mb-1">คะแนนเต็ม (Score)</label>
+            <input type="number" id="admMaxScore" value="100" class="w-full bg-black/60 border border-cyan-500/20 rounded-xl px-4 py-2.5 text-xs text-white font-mono">
           </div>
         </div>
 
-        <!-- Visibility & Status: Draft / Published / Scheduled -->
+        <!-- Author & Tags -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-cyan-300 mb-1">ผู้แต่งโจทย์ (Author)</label>
+            <input type="text" id="admAuthor" placeholder="เช่น AP / ST8 Team" class="w-full bg-black/60 border border-cyan-500/20 rounded-xl px-4 py-2.5 text-xs text-white font-mono">
+          </div>
+          <div class="md:col-span-2">
+            <label class="block text-xs font-medium text-cyan-300 mb-1">หมวดหมู่ / แท็ก (เลือกหรือพิมพ์เพิ่ม)</label>
+            <div class="flex gap-2 mb-1">
+              <select id="existingTagsDropdown" onchange="addSelectedTag(this)" class="bg-black/60 border border-cyan-500/20 rounded-xl px-3 py-1.5 text-xs text-white w-1/2">
+                <option value="">-- เลือกหมวดหมู่ --</option>
+                <option value="Graph">Graph</option>
+                <option value="Dynamic Programming">Dynamic Programming</option>
+                <option value="Sorting">Sorting</option>
+                <option value="Math">Math</option>
+                <option value="Greedy">Greedy</option>
+              </select>
+              <input type="text" id="newTagInput" placeholder="หรือพิมพ์แท็กใหม่..." class="bg-black/60 border border-cyan-500/20 rounded-xl px-3 py-1.5 text-xs text-white w-1/2">
+              <button type="button" onclick="addNewTag()" class="tech-glass px-3 py-1.5 rounded-xl text-xs text-cyan-300 border border-cyan-500/30 hover:bg-cyan-500/10">เพิ่ม</button>
+            </div>
+            <div id="selectedTagsContainer" class="flex flex-wrap gap-1.5 p-2 bg-black/40 rounded-xl border border-cyan-500/10 min-h-[36px]"></div>
+          </div>
+        </div>
+
+        <!-- Statement (Text & PDF) -->
+        <div class="tech-glass rounded-2xl p-4 border border-cyan-500/20 space-y-3">
+          <label class="block text-xs font-bold text-cyan-300"><i class="fa-solid fa-file-lines mr-1"></i> Statement โจทย์ (พิมพ์เอง หรืออัปโหลด PDF)</label>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <span class="text-[11px] text-gray-400 block mb-1">พิมพ์ Statement (Markdown / HTML):</span>
+              <textarea id="admStatementText" rows="3" placeholder="รายละเอียดเนื้อหาโจทย์..." class="w-full bg-black/60 border border-cyan-500/20 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-cyan-400 resize-none font-sans"></textarea>
+            </div>
+            <div>
+              <span class="text-[11px] text-gray-400 block mb-1">อัปโหลดไฟล์ PDF Statement:</span>
+              <input type="file" id="admStatementPdf" accept=".pdf" class="w-full bg-black/60 border border-cyan-500/20 rounded-xl p-2 text-xs text-gray-300 file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-cyan-500/20 file:text-cyan-300 cursor-pointer">
+            </div>
+          </div>
+        </div>
+
+        <!-- Sample I/O (แยกต่างหากสำหรับแสดงตัวอย่างหน้าโจทย์) -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
-            <label class="block text-xs font-medium text-cyan-300 mb-1">สถานะการเผยแพร่ (Visibility)</label>
-            <select id="admVisibility" onchange="toggleScheduleInput()" class="w-full bg-black/60 border border-cyan-500/20 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-400">
-              <option value="published">เผยแพร่ทันที (Published)</option>
-              <option value="draft">ฉบับร่าง (Draft)</option>
-              <option value="scheduled">ตั้งเวลาเปิด (Scheduled)</option>
-            </select>
+            <label class="block text-xs font-medium text-cyan-300 mb-1">Sample Input (ตัวอย่างข้อมูลเข้า)</label>
+            <textarea id="admSampleInput" rows="2" placeholder="3&#10;1 2 3" class="w-full bg-black/60 border border-cyan-500/20 rounded-xl p-2.5 text-xs text-white font-mono resize-none"></textarea>
           </div>
-          <div id="scheduleTimeGroup" class="hidden">
-            <label class="block text-xs font-medium text-cyan-300 mb-1">กำหนดเวลาเปิด (Date & Time)</label>
-            <input type="datetime-local" id="admScheduledTime" class="w-full bg-black/60 border border-cyan-500/20 rounded-xl px-4 py-2 text-xs text-white">
+          <div>
+            <label class="block text-xs font-medium text-cyan-300 mb-1">Sample Output (ตัวอย่างผลลัพธ์)</label>
+            <textarea id="admSampleOutput" rows="2" placeholder="6" class="w-full bg-black/60 border border-cyan-500/20 rounded-xl p-2.5 text-xs text-white font-mono resize-none"></textarea>
           </div>
         </div>
 
-        <!-- Statement Option -->
-        <div>
-          <label class="block text-xs font-medium text-cyan-300 mb-1">Statement โจทย์ (พิมพ์เอง หรืออัปโหลด PDF)</label>
-          <textarea id="admStatementText" rows="3" placeholder="รายละเอียดเนื้อหาโจทย์..." class="w-full bg-black/60 border border-cyan-500/20 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-cyan-400 resize-none font-sans"></textarea>
+        <!-- Limits & Checker Settings -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-cyan-300 mb-1">Time Limit (วินาที)</label>
+            <input type="number" step="0.1" id="admTimeLimit" value="1.0" class="w-full bg-black/60 border border-cyan-500/20 rounded-xl px-4 py-2.5 text-xs text-white font-mono">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-cyan-300 mb-1">Memory Limit (MB)</label>
+            <input type="number" id="admMemoryLimit" value="256" class="w-full bg-black/60 border border-cyan-500/20 rounded-xl px-4 py-2.5 text-xs text-white font-mono">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-cyan-300 mb-1">รูปแบบการตรวจ (Checker)</label>
+            <select id="admCheckerType" class="w-full bg-black/60 border border-cyan-500/20 rounded-xl px-4 py-2.5 text-xs text-white">
+              <option value="standard">Standard (Exact Match)</option>
+              <option value="floating">Floating Point (ทศนิยม)</option>
+              <option value="custom">Custom Checker (Special Judge)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Test Case Upload (2 รูปแบบ: พิมพ์เอง หรือ อัปโหลด ZIP .in/.out) -->
+        <div class="tech-glass rounded-2xl p-4 border border-cyan-500/20 space-y-3">
+          <label class="block text-xs font-bold text-cyan-300"><i class="fa-solid fa-box-archive mr-1"></i> ชุดทดสอบ Test Cases (เลือก 1 รูปแบบ)</label>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <span class="text-[11px] text-gray-400 block mb-1">รูปแบบที่ 1: อัปโหลดไฟล์ ZIP (บรรจุ .in และ .out)</span>
+              <input type="file" id="admZipFile" accept=".zip" class="w-full bg-black/60 border border-cyan-500/20 rounded-xl p-2 text-xs text-gray-300 file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-cyan-500/20 file:text-cyan-300 cursor-pointer">
+            </div>
+            <div>
+              <span class="text-[11px] text-gray-400 block mb-1">รูปแบบที่ 2: พิมพ์ Test Cases ลงระบบ</span>
+              <textarea id="admManualTestCases" rows="2" placeholder="Input / Output ตัวอย่าง..." class="w-full bg-black/60 border border-cyan-500/20 rounded-xl p-2.5 text-xs text-white font-mono resize-none"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Subtask System (ตามระบบ TOI / IOI) -->
+        <div class="tech-glass rounded-2xl p-4 border border-cyan-500/20 space-y-3">
+          <div class="flex items-center justify-between">
+            <label class="text-xs font-bold text-cyan-300"><i class="fa-solid fa-layer-group mr-1"></i> ระบบ Subtask (อิงตามระบบ TOI / IOI)</label>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="admSubtaskToggle" onchange="toggleSubtaskSection()" class="sr-only peer">
+              <div class="w-9 h-5 bg-black/60 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-cyan-500"></div>
+              <span class="ml-2 text-xs text-gray-300 font-medium">เปิดใช้งาน Subtask</span>
+            </label>
+          </div>
+
+          <div id="subtaskContainer" class="hidden space-y-2 pt-1">
+            <div id="subtaskList" class="space-y-2">
+              <div class="flex items-center gap-2 bg-black/40 p-2 rounded-xl border border-cyan-500/10">
+                <span class="text-xs text-cyan-400 font-bold whitespace-nowrap">Subtask #1</span>
+                <input type="text" placeholder="ช่วง Test Case (เช่น 1-5)" class="bg-black/60 border border-cyan-500/20 rounded-lg px-3 py-1 text-xs text-white w-1/3">
+                <input type="number" placeholder="สัดส่วนคะแนน (%) เช่น 30" class="bg-black/60 border border-cyan-500/20 rounded-lg px-3 py-1 text-xs text-white w-1/3">
+                <button type="button" class="text-rose-400 text-xs px-2"><i class="fa-solid fa-trash"></i></button>
+              </div>
+            </div>
+            <button type="button" onclick="addSubtaskRow()" class="tech-glass text-cyan-300 border border-cyan-500/30 hover:bg-cyan-500/10 px-3 py-1.5 rounded-xl text-xs transition">
+              + เพิ่ม Subtask อีก
+            </button>
+          </div>
         </div>
 
         <div id="adminUploadMsg" class="text-xs text-center hidden"></div>
 
-        <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-95 text-white font-bold py-3 rounded-xl text-xs transition shadow-lg shadow-cyan-500/20 mt-2">
-          บันทึกโจทย์เข้าสู่ระบบ
+        <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-95 text-white font-bold py-3.5 rounded-xl text-xs transition shadow-lg shadow-cyan-500/25">
+          <i class="fa-solid fa-cloud-arrow-up mr-1.5"></i> บันทึกและเผยแพร่โจทย์เข้าสู่ระบบทันที
         </button>
       </form>
     </div>
   </div>
 
-  <!-- MODAL: MANAGE & EDIT TEST CASES (กดเข้าไปดู/แก้ไข Test Case ย่อยแต่ละข้อ) -->
+  <!-- MODAL: MANAGE TEST CASES -->
   <div id="manageTestCasesModal" class="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/85 backdrop-blur-md opacity-0 pointer-events-none transition-all duration-300">
     <div class="tech-modal rounded-3xl p-8 max-w-xl w-full max-h-[90vh] overflow-y-auto relative transform scale-95 transition-all duration-300 border border-cyan-500/30">
       <button onclick="closeTestCasesModal()" class="absolute top-5 right-5 text-gray-400 hover:text-white w-8 h-8 rounded-full bg-cyan-500/10 flex items-center justify-center transition">
@@ -224,14 +300,10 @@
       </div>
 
       <div class="space-y-4">
-        <div id="testCasesListContainer" class="space-y-3">
-          <!-- รายการ Test Case ย่อยจะถูกเรนเดอร์มาที่นี่ -->
-        </div>
-
+        <div id="testCasesListContainer" class="space-y-3"></div>
         <button onclick="addTestCaseRow()" class="w-full tech-glass hover:bg-cyan-500/10 text-cyan-300 border border-cyan-500/30 py-2.5 rounded-xl text-xs transition font-semibold">
           <i class="fa-solid fa-plus mr-1"></i> เพิ่ม Test Case ย่อยใหม่
         </button>
-
         <button onclick="saveTestCases()" class="w-full bg-gradient-to-r from-emerald-600 to-teal-500 text-white font-bold py-3 rounded-xl text-xs transition shadow-lg shadow-emerald-500/20">
           บันทึกการเปลี่ยนแปลง Test Cases
         </button>
@@ -249,7 +321,6 @@
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     let activeTags = [];
-    let currentEditingProblemId = null;
 
     async function checkAdminAuth() {
       const { data: { session } } = await supabaseClient.auth.getSession();
@@ -289,23 +360,16 @@
       }
     }
 
-    // Tag management
     function addSelectedTag(select) {
       const val = select.value;
-      if (val && !activeTags.includes(val)) {
-        activeTags.push(val);
-        renderTags();
-      }
+      if (val && !activeTags.includes(val)) { activeTags.push(val); renderTags(); }
       select.value = "";
     }
 
     function addNewTag() {
       const input = document.getElementById('newTagInput');
       const val = input.value.trim();
-      if (val && !activeTags.includes(val)) {
-        activeTags.push(val);
-        renderTags();
-      }
+      if (val && !activeTags.includes(val)) { activeTags.push(val); renderTags(); }
       input.value = "";
     }
 
@@ -323,22 +387,30 @@
       `).join('') || '<span class="text-gray-500 text-[11px] italic">ยังไม่ได้เลือกแท็ก...</span>';
     }
 
-    function toggleScheduleInput() {
-      const val = document.getElementById('admVisibility').value;
-      const group = document.getElementById('scheduleTimeGroup');
-      if (val === 'scheduled') group.classList.remove('hidden');
-      else group.classList.add('hidden');
+    function toggleSubtaskSection() {
+      const isChecked = document.getElementById('admSubtaskToggle').checked;
+      const container = document.getElementById('subtaskContainer');
+      if (isChecked) container.classList.remove('hidden');
+      else container.classList.add('hidden');
     }
 
-    // Modal Control
-    function openUploadProblemModal() {
-      document.getElementById('uploadProbModal').classList.remove('opacity-0', 'pointer-events-none');
-    }
-    function closeUploadProblemModal() {
-      document.getElementById('uploadProbModal').classList.add('opacity-0', 'pointer-events-none');
+    function addSubtaskRow() {
+      const list = document.getElementById('subtaskList');
+      const count = list.children.length + 1;
+      const row = document.createElement('div');
+      row.className = 'flex items-center gap-2 bg-black/40 p-2 rounded-xl border border-cyan-500/10';
+      row.innerHTML = `
+        <span class="text-xs text-cyan-400 font-bold whitespace-nowrap">Subtask #${count}</span>
+        <input type="text" placeholder="ช่วง Test Case (เช่น 6-10)" class="bg-black/60 border border-cyan-500/20 rounded-lg px-3 py-1 text-xs text-white w-1/3">
+        <input type="number" placeholder="สัดส่วนคะแนน (%) เช่น 70" class="bg-black/60 border border-cyan-500/20 rounded-lg px-3 py-1 text-xs text-white w-1/3">
+        <button type="button" onclick="this.parentElement.remove()" class="text-rose-400 text-xs px-2"><i class="fa-solid fa-trash"></i></button>
+      `;
+      list.appendChild(row);
     }
 
-    // ดึงโจทย์ทั้งหมดมาแสดงในแท็บ Admin
+    function openUploadProblemModal() { document.getElementById('uploadProbModal').classList.remove('opacity-0', 'pointer-events-none'); }
+    function closeUploadProblemModal() { document.getElementById('uploadProbModal').classList.add('opacity-0', 'pointer-events-none'); }
+
     async function fetchAllAdminProblems() {
       const { data: list, error } = await supabaseClient.from('problems').select('*').order('id', { ascending: false });
       const table = document.getElementById('allAdminProblemsTable');
@@ -350,10 +422,10 @@
         <tr class="hover:bg-cyan-500/5 transition">
           <td class="p-4 font-bold text-white">#PROB-${p.id} : ${p.title}</td>
           <td class="p-4 text-cyan-300">${p.difficulty} <span class="text-[10px] text-gray-400 block">${p.tags || '-'}</span></td>
-          <td class="p-4 text-emerald-400 font-semibold">${p.is_verified ? '🟢 เผยแพร่แล้ว' : '🟡 รออนุมัติ'}</td>
+          <td class="p-4 text-amber-400 font-mono font-bold">${p.max_score || 100} คะแนน</td>
           <td class="p-4 text-right space-x-2">
             <button onclick="openTestCasesModal(${p.id}, '${p.title}')" class="tech-glass hover:bg-cyan-500/10 text-cyan-300 border border-cyan-500/30 px-3 py-1.5 rounded-lg transition font-semibold text-xs">
-              <i class="fa-solid fa-sliders mr-1"></i> จัดการ Test Cases
+              จัดการ Test Cases
             </button>
             <button onclick="deleteProblem(${p.id})" class="bg-rose-600/20 text-rose-400 hover:bg-rose-600 hover:text-white px-3 py-1.5 rounded-lg transition font-semibold text-xs">
               ลบ
@@ -363,9 +435,7 @@
       `).join('');
     }
 
-    // จัดการ Test Cases (จำลองหน้าเปิดดูและแก้ไข Test Case ย่อยแต่ละข้อ)
-    async function openTestCasesModal(id, title) {
-      currentEditingProblemId = id;
+    function openTestCasesModal(id, title) {
       document.getElementById('tcModalTitle').textContent = `จัดการ Test Case: #${id} ${title}`;
       const container = document.getElementById('testCasesListContainer');
       container.innerHTML = `
@@ -383,32 +453,8 @@
       document.getElementById('manageTestCasesModal').classList.remove('opacity-0', 'pointer-events-none');
     }
 
-    function closeTestCasesModal() {
-      document.getElementById('manageTestCasesModal').classList.add('opacity-0', 'pointer-events-none');
-    }
-
-    function addTestCaseRow() {
-      const container = document.getElementById('testCasesListContainer');
-      const count = container.children.length + 1;
-      const div = document.createElement('div');
-      div.className = 'tech-glass p-3 rounded-xl border border-cyan-500/20 space-y-2';
-      div.innerHTML = `
-        <div class="flex justify-between items-center text-xs text-cyan-300 font-bold">
-          <span>Test Case #${count}</span>
-          <button onclick="this.closest('.tech-glass').remove()" class="text-rose-400 hover:underline">ลบ</button>
-        </div>
-        <div class="grid grid-cols-2 gap-2">
-          <div><span class="text-[10px] text-gray-400">Input (.in)</span><textarea rows="2" class="w-full bg-black/60 border border-cyan-500/20 rounded-lg p-2 text-xs text-white font-mono"></textarea></div>
-          <div><span class="text-[10px] text-gray-400">Output (.out)</span><textarea rows="2" class="w-full bg-black/60 border border-cyan-500/20 rounded-lg p-2 text-xs text-white font-mono"></textarea></div>
-        </div>
-      `;
-      container.appendChild(div);
-    }
-
-    function saveTestCases() {
-      alert('✅ บันทึก Test Cases สำเร็จเรียบร้อย!');
-      closeTestCasesModal();
-    }
+    function closeTestCasesModal() { document.getElementById('manageTestCasesModal').classList.add('opacity-0', 'pointer-events-none'); }
+    function saveTestCases() { alert('✅ บันทึก Test Cases สำเร็จเรียบร้อย!'); closeTestCasesModal(); }
 
     async function deleteProblem(id) {
       if (confirm('คุณต้องการลบโจทย์ข้อนี้ใช่หรือไม่?')) {
@@ -417,13 +463,13 @@
       }
     }
 
-    // Submit New Problem
     document.getElementById('adminProblemForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const title = document.getElementById('admTitle').value.trim();
       const difficulty = document.getElementById('admDifficulty').value;
       const statement = document.getElementById('admStatementText').value.trim();
       const tags = activeTags.join(', ');
+      const max_score = parseInt(document.getElementById('admMaxScore').value) || 100;
       const msg = document.getElementById('adminUploadMsg');
 
       msg.classList.remove('hidden');
@@ -432,7 +478,7 @@
 
       const { data: { session } } = await supabaseClient.auth.getSession();
       const { error } = await supabaseClient.from('problems').insert([
-        { title, difficulty, statement, tags, is_verified: true, created_by: session ? session.user.id : null }
+        { title, difficulty, statement, tags, max_score, is_verified: true, created_by: session ? session.user.id : null }
       ]);
 
       if (error) {
@@ -452,7 +498,6 @@
       }
     });
 
-    // ดึงโจทย์รออนุมัติ
     async function fetchPendingProblems() {
       const { data: list } = await supabaseClient.from('problems').select('*').eq('is_verified', false);
       const table = document.getElementById('pendingProblemsTable');

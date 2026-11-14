@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="th" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard | ST8 CP-Grader</title>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body { font-family: 'Kanit', sans-serif; background-color: #030712; color: #f3f4f6; }
+    .tech-glass {
+      background: rgba(10, 15, 30, 0.75);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(56, 189, 248, 0.15);
+      box-shadow: 0 0 40px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    }
+    .cyber-grid {
+      background-image: linear-gradient(to right, rgba(56, 189, 248, 0.03) 1px, transparent 1px),
+                        linear-gradient(to bottom, rgba(56, 189, 248, 0.03) 1px, transparent 1px);
+      background-size: 32px 32px;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col relative overflow-x-hidden cyber-grid selection:bg-cyan-500 selection:text-black">
+
+  <!-- NAVIGATION BAR -->
+  <header class="sticky top-0 z-50 tech-glass border-b border-cyan-500/10 px-6 py-4 flex items-center justify-between">
+    <div class="flex items-center gap-3 cursor-pointer" onclick="window.location.href='index.html'">
+      <div class="bg-gradient-to-tr from-rose-600 to-amber-500 p-2.5 rounded-xl shadow-lg shadow-rose-500/20 text-white font-bold text-lg flex items-center justify-center w-10 h-10">
+        <i class="fa-solid fa-user-shield"></i>
+      </div>
+      <div>
+        <h1 class="font-bold text-sm tracking-widest text-rose-400 uppercase">ST8 CP-Grader</h1>
+        <p class="text-[9px] text-gray-400 tracking-wider">ADMIN CONTROL PANEL</p>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <a href="index.html" class="tech-glass hover:bg-cyan-500/10 text-cyan-300 border border-cyan-500/30 px-4 py-2 rounded-xl text-xs transition flex items-center gap-1.5">
+        <i class="fa-solid fa-house"></i> หน้าหลัก
+      </a>
+      <button onclick="handleAdminLogout()" class="bg-rose-600/20 text-rose-400 hover:bg-rose-600 hover:text-white px-4 py-2 rounded-xl text-xs transition font-semibold">
+        <i class="fa-solid fa-right-from-bracket mr-1"></i> ออกจากระบบ
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main class="flex-1 max-w-6xl mx-auto px-6 py-10 space-y-8 w-full relative z-10">
+    
+    <!-- Admin Tabs Header -->
+    <div class="flex flex-wrap gap-3 border-b border-cyan-500/20 pb-4">
+      <button onclick="switchAdminTab('upload')" id="tabBtnUpload" class="px-5 py-2.5 rounded-xl text-xs font-semibold bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-lg shadow-cyan-500/20 transition">
+        <i class="fa-solid fa-circle-plus mr-1.5"></i> สร้าง / อัปโหลดโจทย์ใหม่
+      </button>
+      <button onclick="switchAdminTab('verify')" id="tabBtnVerify" class="px-5 py-2.5 rounded-xl text-xs font-semibold tech-glass text-gray-300 hover:text-cyan-300 border border-cyan-500/20 transition">
+        <i class="fa-solid fa-clipboard-check mr-1.5"></i> ตรวจสอบโจทย์ที่ User เสนอมา
+      </button>
+      <button onclick="switchAdminTab('contests')" id="tabBtnContests" class="px-5 py-2.5 rounded-xl text-xs font-semibold tech-glass text-gray-300 hover:text-cyan-300 border border-cyan-500/20 transition">
+        <i class="fa-solid fa-trophy mr-1.5"></i> จัดการ Contest
+      </button>
+    </div>
+
+    <!-- TAB 1: UPLOAD/CREATE PROBLEM (ตามสเปกที่คุณออกแบบ) -->
+    <section id="adminTabUpload" class="space-y-6">
+      <div class="tech-glass rounded-3xl p-6 md:p-8 border border-cyan-500/20 space-y-6">
+        <div>
+          <h2 class="text-xl font-bold text-white mb-1"><i class="fa-solid fa-file-code text-cyan-400 mr-2"></i> ระบบสร้างและอัปโหลดโจทย์สำหรับ Admin</h2>
+          <p class="text-xs text-gray-400">โจทย์ที่สร้างจากที่นี่จะผ่านการรับรอง (Verified) และเผยแพร่ลงคลังโจทย์สาธารณะทันที</p>
+        </div>
+
+        <form id="adminProblemForm" class="space-y-5">
+          <!-- Row 1: Title & Difficulty -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="md:col-span-2">
+              <label class="block text-xs font-medium text-cyan-300 mb-1">ชื่อโจทย์ (Problem Title) *</label>
+              <input type="text" id="admTitle" required placeholder="เช่น Dijkstra Shortest Path" class="w-full bg-black/60 border border-cyan-500/20 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-400 font-mono">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-cyan-300 mb-1">ระดับความยาก (Difficulty)</label>
+              <select id="admDifficulty" class="w-full bg-black/60 border border-cyan-500/20 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-400 font-sans">
+                <option value="Easy">Easy (ง่าย)</option>
+                <option value="Medium" selected>Medium (ปานกลาง)</option>
+                <option value="Hard">Hard (ยาก)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Tags System -->
+          <div>
+            <label class="block text-xs font-medium text-cyan-300 mb-1">หมวดหมู่ / แท็ก (Categories / Tags - คั่นด้วยจุลภาค ,)</label>
+            <input type="text" id="admTags" placeholder="เช่น Graph, Dynamic Programming, BFS, Greedy" class="w-full bg-black/60 border border-cyan-500/20 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-400 font-mono">
+          </div>
+
+          <!-- Statement Option (Text or PDF) -->
+          <div class="tech-glass rounded-2xl p-5 border border-cyan-500/20 space-y-3">
+            <label class="block text-xs font-bold text-cyan-300"><i class="fa-solid fa-file-pdf mr-1"></i> Statement โจทย์ (เลือกพิมพ์ข้อความ หรืออัปโหลดไฟล์ PDF)</label>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <span class="text-[11px] text-gray-400 block mb-1">พิมพ์ Statement เอง (Markdown / HTML):</span>
+                <textarea id="admStatementText" rows="4" placeholder="พิมพ์เนื้อหาโจทย์ เงื่อนไข และรายละเอียด..." class="w-full bg-black/60 border border-cyan-500/20 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-cyan-400 font-sans resize-none"></textarea>
+              </div>
+              <div>
+                <span class="text-[11px] text-gray-400 block mb-1">หรืออัปโหลดไฟล์ PDF Statement:</span>
+                <input type="file" id="admStatementPdf" accept=".pdf" class="w-full bg-black/60 border border-cyan-500/20 rounded-xl p-2.5 text-xs text-gray-300 file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-cyan-500/20 file:text-cyan-300 hover:file:bg-cyan-500/30 cursor-pointer">
+              </div>
+            </div>
+          </div>
+
+          <!-- Limits -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-medium text-cyan-300 mb-1">Time Limit (วินาที)</label>
+              <input type="number" step="0.1" id="admTimeLimit" value="1.0" class="w-full bg-black/60 border border-cyan-500/20 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-400 font-mono">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-cyan-300 mb-1">Memory Limit (MB)</label>
+              <input type="number" id="admMemoryLimit" value="256" class="w-full bg-black/60 border border-cyan-500/20 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-400 font-mono">
+            </div>
+          </div>
+
+          <!-- Test Cases Upload / Input (2 รูปแบบ) -->
+          <div class="tech-glass rounded-2xl p-5 border border-cyan-500/20 space-y-3">
+            <label class="block text-xs font-bold text-cyan-300"><i class="fa-solid fa-box-archive mr-1"></i> ชุดทดสอบ Test Cases (เลือก 1 รูปแบบ)</label>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <span class="text-[11px] text-gray-400 block mb-1">รูปแบบที่ 1: อัปโหลดไฟล์ ZIP (มีไฟล์ .in และ .out ด้านใน)</span>
+                <input type="file" id="admZipFile" accept=".zip" class="w-full bg-black/60 border border-cyan-500/20 rounded-xl p-2.5 text-xs text-gray-300 file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-cyan-500/20 file:text-cyan-300 hover:file:bg-cyan-500/30 cursor-pointer">
+              </div>
+              <div>
+                <span class="text-[11px] text-gray-400 block mb-1">รูปแบบที่ 2: พิมพ์ Sample/Test Cases ลงระบบ</span>
+                <textarea id="admManualTestCases" rows="3" placeholder="Input: 1 2&#10;Output: 3" class="w-full bg-black/60 border border-cyan-500/20 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-cyan-400 font-mono resize-none"></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- Subtask Configuration (ตามระบบ TOI/IOI) -->
+          <div class="tech-glass rounded-2xl p-5 border border-cyan-500/20 space-y-3">
+            <div class="flex items-center justify-between">
+              <label class="text-xs font-bold text-cyan-300"><i class="fa-solid fa-layer-group mr-1"></i> ระบบ Subtask (อิงตามระบบ TOI / IOI)</label>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="admSubtaskToggle" onchange="toggleSubtaskSection()" class="sr-only peer">
+                <div class="w-9 h-5 bg-black/60 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-cyan-500"></div>
+                <span class="ml-2 text-xs text-gray-300 font-medium">เปิดใช้งาน Subtask</span>
+              </label>
+            </div>
+
+            <div id="subtaskContainer" class="hidden space-y-3 pt-2">
+              <p class="text-[11px] text-gray-400">กำหนดสัดส่วนคะแนน (%) และช่วง Test Case ของแต่ละ Subtask เช่น Subtask 1 (TestCase 1-3, สัดส่วน 30%)</p>
+              <div id="subtaskList" class="space-y-2">
+                <!-- Subtask Item Row -->
+                <div class="flex items-center gap-2 bg-black/40 p-2.5 rounded-xl border border-cyan-500/10">
+                  <span class="text-xs text-cyan-400 font-bold whitespace-nowrap">Subtask #1</span>
+                  <input type="text" placeholder="ช่วง Test Case (เช่น 1-5)" class="bg-black/60 border border-cyan-500/20 rounded-lg px-3 py-1.5 text-xs text-white w-1/3">
+                  <input type="number" placeholder="สัดส่วนคะแนน (%) เช่น 30" class="bg-black/60 border border-cyan-500/20 rounded-lg px-3 py-1.5 text-xs text-white w-1/3">
+                  <button type="button" class="text-rose-400 hover:text-rose-300 text-xs px-2"><i class="fa-solid fa-trash"></i></button>
+                </div>
+              </div>
+              <button type="button" onclick="addSubtaskRow()" class="tech-glass text-cyan-300 border border-cyan-500/30 hover:bg-cyan-500/10 px-3.5 py-1.5 rounded-xl text-xs transition">
+                + เพิ่ม Subtask อีก
+              </button>
+            </div>
+          </div>
+
+          <div id="adminUploadMsg" class="text-xs text-center hidden"></div>
+
+          <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-95 text-white font-bold py-3.5 rounded-xl text-xs transition shadow-lg shadow-cyan-500/25">
+            <i class="fa-solid fa-cloud-arrow-up mr-1.5"></i> บันทึกและเผยแพร่โจทย์เข้าสู่ระบบทันที
+          </button>
+        </form>
+      </div>
+    </section>
+
+    <!-- TAB 2: VERIFY PROBLEMS (อนุมัติโจทย์จาก User) -->
+    <section id="adminTabVerify" class="space-y-4 hidden">
+      <div class="tech-glass rounded-3xl p-6 border border-cyan-500/20 space-y-4">
+        <h2 class="text-xl font-bold text-white"><i class="fa-solid fa-clipboard-check text-cyan-400 mr-2"></i> รายการโจทย์ที่รอการตรวจสอบจาก Admin</h2>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs font-mono">
+            <thead class="bg-cyan-950/40 text-cyan-300 border-b border-cyan-500/20 font-sans">
+              <tr><th class="p-4">ID & ชื่อโจทย์</th><th class="p-4">ระดับความยาก</th><th class="p-4">ผู้เสนอ (User)</th><th class="p-4 text-right">ดำเนินการอนุมัติ</th></tr>
+            </thead>
+            <tbody id="pendingProblemsTable" class="divide-y divide-cyan-500/10 font-sans">
+              <tr><td colspan="4" class="p-4 text-center text-gray-400">กำลังโหลดรายการโจทย์ที่รออนุมัติ...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: CONTEST MANAGEMENT -->
+    <section id="adminTabContests" class="space-y-4 hidden">
+      <div class="tech-glass rounded-3xl p-6 border border-cyan-500/20 space-y-4">
+        <h2 class="text-xl font-bold text-white"><i class="fa-solid fa-trophy text-amber-400 mr-2"></i> จัดการการแข่งขัน (Contest Hub)</h2>
+        <p class="text-xs text-gray-400">สร้างและกำหนดเวลา Contest ใหม่สำหรับนักเรียน</p>
+        <div class="tech-glass p-5 rounded-2xl border border-cyan-500/10 space-y-3">
+          <h3 class="font-bold text-cyan-300 text-xs">สร้าง Contest ใหม่</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <input type="text" placeholder="ชื่อ Contest (เช่น ST8 Weekly Contest #05)" class="bg-black/60 border border-cyan-500/20 rounded-xl px-4 py-2 text-xs text-white">
+            <input type="text" placeholder="รายละเอียดหรือกติกา" class="bg-black/60 border border-cyan-500/20 rounded-xl px-4 py-2 text-xs text-white">
+          </div>
+          <button onclick="alert('สร้าง Contest สำเร็จ')" class="bg-gradient-to-r from-blue-600 to-cyan-500 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-md">บันทึก Contest</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="tech-glass border-t border-cyan-500/20 py-6 text-center text-xs text-gray-400 mt-auto relative z-10">
+    <p class="text-cyan-400 font-bold tracking-widest uppercase">ST8 CP-Grader &bull; Admin Panel</p>
+  </footer>
+
+  <!-- SCRIPT CONTROLLER -->
+  <script>
+    const SUPABASE_URL = 'https://hqnmfkafwwnjiqpdhzoh.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhxbm1ma2Fmd3duamlxcGRoem9oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQyMTc0NzEsImV4cCI6MjEwOTc5MzQ3MX0.m6dHtNnXuQ108DvafyKWeFvAg_oySuQH3LRg0Jzaops';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // เช็คสิทธิ์ Admin เบื้องต้น
+    async function checkAdminAuth() {
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      if (!session) {
+        alert('⚠️ กรุณาเข้าสู่ระบบก่อนเข้าใช้งานหน้าผู้ดูแลระบบ');
+        window.location.href = 'index.html';
+      }
+    }
+    checkAdminAuth();
+
+    function handleAdminLogout() {
+      supabaseClient.auth.signOut().then(() => {
+        window.location.href = 'index.html';
+      });
+    }
+
+    // Switch Admin Tabs
+    function switchAdminTab(tabName) {
+      document.getElementById('adminTabUpload').classList.add('hidden');
+      document.getElementById('adminTabVerify').classList.add('hidden');
+      document.getElementById('adminTabContests').classList.add('hidden');
+
+      document.getElementById('tabBtnUpload').className = 'px-5 py-2.5 rounded-xl text-xs font-semibold tech-glass text-gray-300 hover:text-cyan-300 border border-cyan-500/20 transition';
+      document.getElementById('tabBtnVerify').className = 'px-5 py-2.5 rounded-xl text-xs font-semibold tech-glass text-gray-300 hover:text-cyan-300 border border-cyan-500/20 transition';
+      document.getElementById('tabBtnContests').className = 'px-5 py-2.5 rounded-xl text-xs font-semibold tech-glass text-gray-300 hover:text-cyan-300 border border-cyan-500/20 transition';
+
+      if (tabName === 'upload') {
+        document.getElementById('adminTabUpload').classList.remove('hidden');
+        document.getElementById('tabBtnUpload').className = 'px-5 py-2.5 rounded-xl text-xs font-semibold bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-lg shadow-cyan-500/20 transition';
+      } else if (tabName === 'verify') {
+        document.getElementById('adminTabVerify').classList.remove('hidden');
+        document.getElementById('tabBtnVerify').className = 'px-5 py-2.5 rounded-xl text-xs font-semibold bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-lg shadow-cyan-500/20 transition';
+        fetchPendingProblems();
+      } else if (tabName === 'contests') {
+        document.getElementById('adminTabContests').classList.remove('hidden');
+        document.getElementById('tabBtnContests').className = 'px-5 py-2.5 rounded-xl text-xs font-semibold bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-lg shadow-cyan-500/20 transition';
+      }
+    }
+
+    // Toggle Subtask Section
+    function toggleSubtaskSection() {
+      const isChecked = document.getElementById('admSubtaskToggle').checked;
+      const container = document.getElementById('subtaskContainer');
+      if (isChecked) {
+        container.classList.remove('hidden');
+      } else {
+        container.classList.add('hidden');
+      }
+    }
+
+    function addSubtaskRow() {
+      const list = document.getElementById('subtaskList');
+      const count = list.children.length + 1;
+      const row = document.createElement('div');
+      row.className = 'flex items-center gap-2 bg-black/40 p-2.5 rounded-xl border border-cyan-500/10';
+      row.innerHTML = `
+        <span class="text-xs text-cyan-400 font-bold whitespace-nowrap">Subtask #${count}</span>
+        <input type="text" placeholder="ช่วง Test Case (เช่น 6-10)" class="bg-black/60 border border-cyan-500/20 rounded-lg px-3 py-1.5 text-xs text-white w-1/3">
+        <input type="number" placeholder="สัดส่วนคะแนน (%) เช่น 70" class="bg-black/60 border border-cyan-500/20 rounded-lg px-3 py-1.5 text-xs text-white w-1/3">
+        <button type="button" onclick="this.parentElement.remove()" class="text-rose-400 hover:text-rose-300 text-xs px-2"><i class="fa-solid fa-trash"></i></button>
+      `;
+      list.appendChild(row);
+    }
+
+    // ดึงโจทย์ที่รออนุมัติ (is_verified = false) มาให้ Admin ตรวจสอบ
+    async function fetchPendingProblems() {
+      const { data: list, error } = await supabaseClient.from('problems').select('*').eq('is_verified', false);
+      const table = document.getElementById('pendingProblemsTable');
+      if (error || !list || list.length === 0) {
+        table.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-gray-400">ไม่มีโจทย์ที่รอการตรวจสอบในขณะนี้</td></tr>`;
+        return;
+      }
+      table.innerHTML = list.map(p => `
+        <tr class="hover:bg-cyan-500/5 transition">
+          <td class="p-4 font-bold text-white">#PROB-${p.id} : ${p.title}</td>
+          <td class="p-4 text-amber-400">${p.difficulty}</td>
+          <td class="p-4 text-gray-400">${p.created_by ? p.created_by.substring(0, 8) + '...' : 'User'}</td>
+          <td class="p-4 text-right space-x-2">
+            <button onclick="approveProblem(${p.id})" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg transition font-semibold">อนุมัติ</button>
+            <button onclick="deleteProblem(${p.id})" class="bg-rose-600/20 text-rose-400 hover:bg-rose-600 hover:text-white px-3 py-1.5 rounded-lg transition font-semibold">ปฏิเสธ/ลบ</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    async function approveProblem(id) {
+      const { error } = await supabaseClient.from('problems').update({ is_verified: true }).eq('id', id);
+      if (error) {
+        alert('เกิดข้อผิดพลาดในการอนุมัติ: ' + error.message);
+      } else {
+        alert('✅ อนุมัติโจทย์สำเร็จ เผยแพร่สู่คลังโจทย์แล้ว!');
+        fetchPendingProblems();
+      }
+    }
+
+    async function deleteProblem(id) {
+      if (confirm('คุณต้องการปฏิเสธและลบโจทย์นี้ใช่หรือไม่?')) {
+        const { error } = await supabaseClient.from('problems').delete().eq('id', id);
+        if (error) {
+          alert('เกิดข้อผิดพลาด: ' + error.message);
+        } else {
+          alert('🗑️ ลบโจทย์เรียบร้อยแล้ว');
+          fetchPendingProblems();
+        }
+      }
+    }
+
+    // Submit New Problem by Admin (is_verified = true ทันที)
+    document.getElementById('adminProblemForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const title = document.getElementById('admTitle').value.trim();
+      const difficulty = document.getElementById('admDifficulty').value;
+      const msg = document.getElementById('adminUploadMsg');
+
+      msg.classList.remove('hidden');
+      msg.textContent = 'กำลังบันทึกและอัปโหลดโจทย์เข้าสู่ระบบ...';
+      msg.className = 'text-xs text-center text-cyan-300 font-semibold';
+
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      if (!session) {
+        msg.textContent = '❌ เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่';
+        msg.className = 'text-xs text-center text-rose-400 font-semibold';
+        return;
+      }
+
+      const { error } = await supabaseClient.from('problems').insert([
+        { title, difficulty, is_verified: true, created_by: session.user.id }
+      ]);
+
+      if (error) {
+        msg.textContent = `❌ เกิดข้อผิดพลาด: ${error.message}`;
+        msg.className = 'text-xs text-center text-rose-400 font-semibold';
+      } else {
+        msg.textContent = '✅ สร้างและเผยแพร่โจทย์สำเร็จเรียบร้อย!';
+        msg.className = 'text-xs text-center text-emerald-400 font-semibold';
+        setTimeout(() => {
+          document.getElementById('adminProblemForm').reset();
+          msg.classList.add('hidden');
+        }, 2000);
+      }
+    });
+  </script>
+</body>
+</html>

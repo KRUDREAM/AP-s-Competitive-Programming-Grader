@@ -3,18 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Scoreboard กระดานคะแนน | ST8 CP-Grader Admin</title>
+  <title>TOI/IOI Scoreboard | ST8 CP-Grader Admin</title>
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <style>
+    html, body { max-width: 100%; overflow-x: hidden; }
     body { font-family: 'Kanit', sans-serif; background-color: #030712; color: #f3f4f6; }
     .tech-glass { background: rgba(10, 15, 30, 0.78); backdrop-filter: blur(20px); border: 1px solid rgba(56, 189, 248, 0.16); }
     .cyber-grid { background-image: linear-gradient(to right, rgba(56, 189, 248, 0.03) 1px, transparent 1px), linear-gradient(to bottom, rgba(56, 189, 248, 0.03) 1px, transparent 1px); background-size: 32px 32px; }
   </style>
 </head>
 <body class="min-h-screen flex flex-col relative overflow-x-hidden cyber-grid">
+
   <div id="systemToast" class="fixed top-5 right-5 z-[80] transform translate-x-[120%] transition-all duration-300 tech-glass px-5 py-3.5 rounded-2xl border border-cyan-500/40 shadow-2xl flex items-center gap-3">
     <i id="toastIcon" class="fa-solid fa-circle-check text-cyan-400 text-lg"></i>
     <div><h4 id="toastTitle" class="text-xs font-bold text-white"></h4><p id="toastDesc" class="text-xs text-gray-300"></p></div>
@@ -26,40 +29,94 @@
     <div id="adminSidebarMount"></div>
 
     <main class="flex-1 min-w-0 px-4 md:px-6 py-6 space-y-5">
-      <div class="flex flex-wrap gap-3 justify-between items-center bg-gradient-to-r from-cyan-950/40 to-emerald-950/20 p-5 rounded-2xl border border-cyan-500/20">
+      <!-- HEADER -->
+      <div class="flex flex-wrap gap-3 justify-between items-center bg-gradient-to-r from-cyan-950/45 via-blue-950/30 to-amber-950/25 p-5 rounded-2xl border border-cyan-500/25">
         <div>
-          <h2 class="text-lg md:text-xl font-bold text-white"><i class="fa-solid fa-ranking-star text-yellow-400 mr-2"></i> Scoreboard กระดานคะแนนรวม</h2>
-          <p class="text-xs text-gray-400">จัดอันดับคะแนนรวมจากโจทย์ที่ผ่าน (Accepted) ของผู้เข้าแข่งขันทุกคนในระบบ</p>
+          <div class="flex items-center gap-2 flex-wrap">
+            <h2 class="text-lg md:text-xl font-bold text-white"><i class="fa-solid fa-ranking-star text-yellow-400 mr-1.5"></i> TOI / IOI Style Scoreboard</h2>
+            <span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40">IOI PARTIAL SCORING</span>
+          </div>
+          <p class="text-xs text-gray-400 mt-0.5">ตารางคะแนนรายข้อแบบ Best Score + กราฟเส้นเปรียบเทียบคะแนนตามเวลาของแต่ละคนพร้อมกัน</p>
         </div>
-        <button type="button" onclick="exportScoreboardCsv()" class="tech-glass hover:bg-emerald-500/15 text-emerald-300 border border-emerald-500/35 px-4 py-2.5 rounded-xl text-xs font-semibold transition cursor-pointer flex items-center gap-1.5">
-          <i class="fa-solid fa-file-csv"></i> Export CSV
-        </button>
+
+        <div class="flex flex-wrap items-center gap-2">
+          <button type="button" onclick="loadScoreboardEnvironment()" class="tech-glass hover:bg-cyan-500/15 text-cyan-300 border border-cyan-500/35 px-3.5 py-2 rounded-xl text-xs font-semibold transition cursor-pointer">
+            <i class="fa-solid fa-rotate mr-1"></i> อัปเดตผลสด
+          </button>
+          <button type="button" onclick="exportIoiScoreboardCsv()" class="tech-glass hover:bg-emerald-500/15 text-emerald-300 border border-emerald-500/35 px-3.5 py-2 rounded-xl text-xs font-semibold transition cursor-pointer">
+            <i class="fa-solid fa-file-csv mr-1"></i> Export CSV รายข้อ
+          </button>
+        </div>
       </div>
 
-      <!-- Filter Bar -->
-      <div class="tech-glass p-4 rounded-2xl border border-cyan-500/20 flex flex-wrap gap-3 items-center justify-between">
-        <div class="relative flex-1 min-w-[220px]">
-          <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-cyan-400 text-xs"></i>
-          <input type="text" id="sbSearchInput" oninput="renderScoreboardTable()" placeholder="ค้นหาชื่อผู้ใช้ หรือ User ID..." class="w-full bg-black/60 border border-cyan-500/25 focus:border-cyan-400 focus:outline-none rounded-xl pl-9 pr-4 py-2 text-sm text-white">
+      <!-- CONTROLS BAR: CONTEST SELECTOR, FREEZE MODE, SEARCH -->
+      <div class="tech-glass p-4 rounded-2xl border border-cyan-500/20 grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
+        <div class="md:col-span-5">
+          <label class="block text-[11px] text-cyan-300 font-semibold mb-1">เลือกรอบการแข่งขัน (Contest):</label>
+          <select id="contestSelect" onchange="recomputeIoiScoreboard()" class="w-full bg-black/70 border border-cyan-500/30 focus:border-cyan-400 focus:outline-none rounded-xl px-3.5 py-2 text-sm text-white cursor-pointer">
+            <option value="ALL">รวมโจทย์ทั้งหมดในระบบ (Global Practice)</option>
+          </select>
         </div>
-        <div class="text-xs text-gray-400">ผู้เข้าแข่งขันทั้งหมด: <span id="sbTotalUsers" class="text-cyan-300 font-bold">0</span> คน</div>
+
+        <div class="md:col-span-4">
+          <label class="block text-[11px] text-cyan-300 font-semibold mb-1">ค้นหาผู้เข้าแข่งขัน:</label>
+          <div class="relative">
+            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-cyan-400 text-xs"></i>
+            <input type="text" id="sbSearchInput" oninput="renderIoiTable()" placeholder="ชื่อผู้เข้าแข่งขัน..." class="w-full bg-black/70 border border-cyan-500/25 focus:border-cyan-400 focus:outline-none rounded-xl pl-9 pr-4 py-2 text-sm text-white">
+          </div>
+        </div>
+
+        <div class="md:col-span-3 flex flex-col justify-end">
+          <label class="block text-[11px] text-amber-300 font-semibold mb-1">โหมดลุ้นผลรางวัล (Freeze):</label>
+          <button type="button" id="freezeToggleBtn" onclick="toggleScoreboardFreeze()" class="w-full py-2 px-3 rounded-xl text-xs font-semibold border border-cyan-500/30 bg-black/60 text-gray-300 hover:border-amber-400 transition cursor-pointer flex items-center justify-center gap-2">
+            <i class="fa-solid fa-snowflake text-cyan-400"></i> <span>Freeze: ปิดอยู่</span>
+          </button>
+        </div>
       </div>
 
-      <!-- Scoreboard Table -->
-      <div class="tech-glass rounded-2xl overflow-x-auto border border-cyan-500/20">
+      <!-- MULTI-USER SCORE PROGRESSION CHART (X = TIME, Y = SCORE) -->
+      <div class="tech-glass p-5 rounded-2xl border border-cyan-500/25 space-y-4">
+        <div class="flex flex-wrap justify-between items-center gap-3">
+          <div>
+            <h3 class="text-sm md:text-base font-bold text-white"><i class="fa-solid fa-chart-line text-cyan-400 mr-1.5"></i> กราฟพัฒนาการคะแนนรวม (แกน X: เวลา &bull; แกน Y: คะแนน)</h3>
+            <p class="text-xs text-gray-400">คลิกเลือกผู้เข้าแข่งขันในตารางด้านล่าง หรือกดปุ่มเลือกด่วน เพื่อเปรียบเทียบกราฟคะแนนหลายคนพร้อมกัน</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button type="button" onclick="selectTopUsersForChart(5)" class="bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer">
+              <i class="fa-solid fa-trophy mr-1"></i> เทียบ Top 5
+            </button>
+            <button type="button" onclick="clearChartSelection()" class="bg-white/5 hover:bg-rose-500/20 text-gray-300 hover:text-rose-300 border border-white/10 px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer">
+              ล้างกราฟ
+            </button>
+          </div>
+        </div>
+
+        <!-- Selected User Chips -->
+        <div id="selectedChartUsersChips" class="flex flex-wrap gap-2 items-center min-h-[32px]"></div>
+
+        <!-- Chart Canvas -->
+        <div class="relative w-full h-72 md:h-80 bg-black/50 rounded-2xl p-3 border border-cyan-500/15">
+          <canvas id="ioiScoreProgressionChart"></canvas>
+        </div>
+      </div>
+
+      <!-- MEDAL LEGEND & SUMMARY -->
+      <div class="flex flex-wrap justify-between items-center gap-3 text-xs px-1">
+        <div class="flex flex-wrap items-center gap-3">
+          <span class="text-gray-400 font-semibold">เกณฑ์เหรียญ (IOI Ratio):</span>
+          <span class="px-2.5 py-0.5 rounded-full bg-yellow-500/20 text-yellow-300 border border-yellow-500/40 font-semibold"><i class="fa-solid fa-medal mr-1"></i> Gold (Top 1/12)</span>
+          <span class="px-2.5 py-0.5 rounded-full bg-slate-300/20 text-slate-200 border border-slate-300/40 font-semibold"><i class="fa-solid fa-medal mr-1"></i> Silver (ถัดไป 2/12)</span>
+          <span class="px-2.5 py-0.5 rounded-full bg-amber-700/25 text-amber-300 border border-amber-600/40 font-semibold"><i class="fa-solid fa-medal mr-1"></i> Bronze (ถัดไป 3/12)</span>
+        </div>
+        <div class="text-gray-400">ผู้เข้าแข่งขัน: <span id="sbTotalContestants" class="text-cyan-300 font-bold">0</span> คน &bull; คะแนนเต็มรวม: <span id="sbTotalMaxPoints" class="text-emerald-400 font-bold">0</span></div>
+      </div>
+
+      <!-- TOI / IOI PER-PROBLEM SCORE MATRIX TABLE -->
+      <div class="tech-glass rounded-2xl overflow-x-auto border border-cyan-500/25">
         <table class="w-full text-left text-sm">
-          <thead class="bg-cyan-950/50 text-cyan-300 border-b border-cyan-500/20 text-xs uppercase">
-            <tr>
-              <th class="px-4 py-3.5 text-center w-20">อันดับ</th>
-              <th class="px-4 py-3.5">ผู้เข้าแข่งขัน</th>
-              <th class="px-4 py-3.5 text-center">ผ่านแล้ว (AC)</th>
-              <th class="px-4 py-3.5 text-center">ส่งทั้งหมด</th>
-              <th class="px-4 py-3.5 text-center">คะแนนรวม</th>
-              <th class="px-4 py-3.5 text-right">อัปเดตล่าสุด</th>
-            </tr>
-          </thead>
-          <tbody id="scoreboardTableBody" class="divide-y divide-cyan-500/10">
-            <tr><td colspan="6" class="p-6 text-center text-gray-400">กำลังประมวลผลคะแนน...</td></tr>
+          <thead id="ioiTableHead" class="bg-cyan-950/60 text-cyan-300 border-b border-cyan-500/25 text-xs uppercase"></thead>
+          <tbody id="ioiTableBody" class="divide-y divide-cyan-500/10">
+            <tr><td colspan="6" class="p-6 text-center text-gray-400">กำลังประมวลผลตารางคะแนน TOI / IOI...</td></tr>
           </tbody>
         </table>
       </div>
@@ -69,106 +126,414 @@
   <script src="admin-common.js"></script>
   <script>
     renderAdminShell('scoreboard');
-    let rankedUsersData = [];
 
-    async function loadScoreboardData() {
-      const [{ data: probs }, { data: subs }, { data: profiles }] = await Promise.all([
-        supabaseClient.from('problems').select('id, max_score'),
-        supabaseClient.from('submissions').select('user_id, problem_id, status, score, created_at'),
+    let allContests = [];
+    let allContestProblems = [];
+    let allProblems = [];
+    let allSubmissions = [];
+    let allProfiles = [];
+
+    let activeProblemColumns = []; // [{ id, label, title, maxScore }]
+    let computedRows = [];         // Ranked contestants with per-problem scores + timeline events
+    let selectedChartUserIds = new Set();
+    let scoreChartInstance = null;
+    let isFreezeActive = false;
+
+    const CHART_PALETTE = [
+      '#38bdf8', '#fbbf24', '#34d399', '#f472b6', '#a78bfa',
+      '#fb7185', '#2dd4bf', '#f97316', '#60a5fa', '#e879f9'
+    ];
+
+    async function loadScoreboardEnvironment() {
+      const [contestsRes, cpRes, probsRes, subsRes, profsRes] = await Promise.all([
+        supabaseClient.from('contests').select('*').order('start_time', { ascending: false }),
+        supabaseClient.from('contest_problems').select('*').order('sort_order', { ascending: true }),
+        supabaseClient.from('problems').select('id, problem_code, title, max_score, is_verified'),
+        supabaseClient.from('submissions').select('*').order('created_at', { ascending: true }),
         supabaseClient.from('profiles').select('id, username, full_name, email')
       ]);
 
-      const scoreMap = {};
-      (probs || []).forEach(p => { scoreMap[p.id] = p.max_score || 100; });
+      allContests = contestsRes.data || [];
+      allContestProblems = cpRes.data || [];
+      allProblems = probsRes.data || [];
+      allSubmissions = subsRes.data || [];
+      allProfiles = profsRes.data || [];
 
-      const profileMap = {};
-      (profiles || []).forEach(u => { profileMap[u.id] = u; });
+      const selectEl = document.getElementById('contestSelect');
+      const currentVal = selectEl.value;
+      selectEl.innerHTML = `<option value="ALL">รวมโจทย์ทั้งหมดในระบบ (Global Practice)</option>` +
+        allContests.map(c => `<option value="${c.id}">${c.title} (${new Date(c.start_time).toLocaleDateString('th-TH')})</option>`).join('');
 
-      const userStats = {};
-      (subs || []).forEach(s => {
-        const uid = s.user_id || 'anonymous';
-        if (!userStats[uid]) {
-          const prof = profileMap[uid] || {};
-          userStats[uid] = {
+      if ([...selectEl.options].some(o => o.value === currentVal)) {
+        selectEl.value = currentVal;
+      } else if (allContests.length > 0) {
+        selectEl.value = String(allContests[0].id);
+      }
+
+      recomputeIoiScoreboard();
+    }
+
+    function toggleScoreboardFreeze() {
+      isFreezeActive = !isFreezeActive;
+      const btn = document.getElementById('freezeToggleBtn');
+      if (isFreezeActive) {
+        btn.className = 'w-full py-2 px-3 rounded-xl text-xs font-bold border border-cyan-400 bg-cyan-500/20 text-cyan-200 transition cursor-pointer flex items-center justify-center gap-2 shadow-md shadow-cyan-500/20';
+        btn.innerHTML = '<i class="fa-solid fa-snowflake fa-spin text-cyan-300"></i> <span>Freeze: เปิดใช้งาน (ซ่อน 30 นาทีท้าย)</span>';
+        showToast('เปิดโหมด Freeze แล้ว', 'ซ่อนผลคะแนนช่วง 30 นาทีสุดท้ายของ Contest');
+      } else {
+        btn.className = 'w-full py-2 px-3 rounded-xl text-xs font-semibold border border-cyan-500/30 bg-black/60 text-gray-300 hover:border-amber-400 transition cursor-pointer flex items-center justify-center gap-2';
+        btn.innerHTML = '<i class="fa-solid fa-snowflake text-cyan-400"></i> <span>Freeze: ปิดอยู่</span>';
+      }
+      recomputeIoiScoreboard();
+    }
+
+    function recomputeIoiScoreboard() {
+      const selectedContestId = document.getElementById('contestSelect').value;
+      const probLookup = {};
+      allProblems.forEach(p => { probLookup[p.id] = p; });
+
+      const userLookup = {};
+      allProfiles.forEach(u => {
+        userLookup[u.id] = u.username || u.full_name || u.email || `User-${String(u.id).slice(0, 6)}`;
+      });
+
+      let contestObj = null;
+      let relevantSubs = [];
+
+      if (selectedContestId === 'ALL') {
+        const verifiedProbs = allProblems.filter(p => p.is_verified);
+        activeProblemColumns = verifiedProbs.map((p, idx) => ({
+          id: p.id,
+          label: p.problem_code || `P${idx + 1}`,
+          title: p.title,
+          maxScore: Number(p.max_score) || 100
+        }));
+        relevantSubs = allSubmissions.filter(s => activeProblemColumns.some(col => String(col.id) === String(s.problem_id)));
+      } else {
+        contestObj = allContests.find(c => String(c.id) === String(selectedContestId));
+        const linked = allContestProblems.filter(cp => String(cp.contest_id) === String(selectedContestId));
+        activeProblemColumns = linked.map((cp, idx) => {
+          const baseProb = probLookup[cp.problem_id] || {};
+          return {
+            id: cp.problem_id,
+            label: cp.problem_label || String.fromCharCode(65 + idx),
+            title: baseProb.title || `Problem #${cp.problem_id}`,
+            maxScore: Number(cp.custom_score || baseProb.max_score || 100)
+          };
+        });
+
+        const startMs = contestObj ? new Date(contestObj.start_time).getTime() : 0;
+        let endMs = contestObj ? new Date(contestObj.end_time).getTime() : Infinity;
+        if (isFreezeActive && contestObj) {
+          endMs = endMs - (30 * 60 * 1000); // ซ่อน 30 นาทีสุดท้าย
+        }
+
+        relevantSubs = allSubmissions.filter(s => {
+          const inProbSet = activeProblemColumns.some(col => String(col.id) === String(s.problem_id));
+          if (!inProbSet) return false;
+          if (!s.created_at) return true;
+          const t = new Date(s.created_at).getTime();
+          return t >= startMs && t <= endMs;
+        });
+      }
+
+      const maxScoreByProb = {};
+      activeProblemColumns.forEach(col => { maxScoreByProb[col.id] = col.maxScore; });
+
+      // คำนวณคะแนน IOI (เอาคะแนนสูงสุดต่อข้อ) + เก็บไทม์ไลน์คะแนนเพื่อวาดกราฟ
+      const usersMap = {};
+      relevantSubs.forEach(s => {
+        const uid = s.user_id || 'guest';
+        if (!usersMap[uid]) {
+          usersMap[uid] = {
             userId: uid,
-            displayName: prof.username || prof.full_name || prof.email || `User-${String(uid).slice(0, 6)}`,
-            solvedMap: {},
-            totalSubmissions: 0,
-            lastActive: s.created_at
+            name: userLookup[uid] || `User-${String(uid).slice(0, 6)}`,
+            bestByProblem: {},      // problem_id -> best score
+            attemptsByProblem: {},  // problem_id -> count
+            timeline: [],           // [{ timeMs, label, totalScore }]
+            lastImproveTime: 0
           };
         }
-        userStats[uid].totalSubmissions++;
-        if (s.created_at && (!userStats[uid].lastActive || new Date(s.created_at) > new Date(userStats[uid].lastActive))) {
-          userStats[uid].lastActive = s.created_at;
+
+        const u = usersMap[uid];
+        const pid = s.problem_id;
+        u.attemptsByProblem[pid] = (u.attemptsByProblem[pid] || 0) + 1;
+
+        const maxP = maxScoreByProb[pid] || 100;
+        let earned = 0;
+        if (s.score != null && !isNaN(Number(s.score))) {
+          earned = Math.min(maxP, Math.max(0, Number(s.score)));
+        } else if (s.status === 'Accepted' || s.status === 'AC') {
+          earned = maxP;
         }
-        if (s.status === 'Accepted' || s.status === 'AC') {
-          const pts = s.score != null ? Number(s.score) : (scoreMap[s.problem_id] || 100);
-          userStats[uid].solvedMap[s.problem_id] = Math.max(userStats[uid].solvedMap[s.problem_id] || 0, pts);
+
+        const prevBest = u.bestByProblem[pid] || 0;
+        if (earned > prevBest) {
+          u.bestByProblem[pid] = earned;
+          const subTimeMs = s.created_at ? new Date(s.created_at).getTime() : Date.now();
+          u.lastImproveTime = subTimeMs;
+
+          const newTotal = Object.values(u.bestByProblem).reduce((sum, v) => sum + v, 0);
+          u.timeline.push({
+            timeMs: subTimeMs,
+            timeLabel: s.created_at ? new Date(s.created_at).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }) : '-',
+            totalScore: newTotal
+          });
         }
       });
 
-      rankedUsersData = Object.values(userStats).map(u => {
-        const solvedCount = Object.keys(u.solvedMap).length;
-        const totalScore = Object.values(u.solvedMap).reduce((sum, v) => sum + v, 0);
-        return { ...u, solvedCount, totalScore };
-      }).sort((a, b) => b.totalScore - a.totalScore || b.solvedCount - a.solvedCount);
+      computedRows = Object.values(usersMap).map(u => {
+        const totalScore = Object.values(u.bestByProblem).reduce((sum, v) => sum + v, 0);
+        const fullSolvedCount = activeProblemColumns.filter(col => (u.bestByProblem[col.id] || 0) >= col.maxScore).length;
+        return { ...u, totalScore, fullSolvedCount };
+      }).sort((a, b) => b.totalScore - a.totalScore || b.fullSolvedCount - a.fullSolvedCount || a.lastImproveTime - b.lastImproveTime);
 
-      renderScoreboardTable();
+      // เลือก Top 3 อัตโนมัติตอนเปิดครั้งแรกถ้ายังไม่ได้เลือกใคร
+      if (selectedChartUserIds.size === 0 && computedRows.length > 0) {
+        computedRows.slice(0, 3).forEach(r => selectedChartUserIds.add(String(r.userId)));
+      }
+
+      const totalMaxPossible = activeProblemColumns.reduce((sum, c) => sum + c.maxScore, 0);
+      document.getElementById('sbTotalContestants').textContent = computedRows.length;
+      document.getElementById('sbTotalMaxPoints').textContent = totalMaxPossible;
+
+      renderIoiTable();
+      renderSelectedUserChips();
+      renderProgressionChart();
     }
 
-    function renderScoreboardTable() {
-      const tbody = document.getElementById('scoreboardTableBody');
+    function getMedalBadge(rank, totalCount, score) {
+      if (score <= 0 || totalCount === 0) return `<span class="text-gray-400 font-bold">#${rank}</span>`;
+      const goldCutoff = Math.max(1, Math.ceil(totalCount / 12));
+      const silverCutoff = Math.max(goldCutoff + 1, Math.ceil((totalCount * 3) / 12));
+      const bronzeCutoff = Math.max(silverCutoff + 1, Math.ceil((totalCount * 6) / 12));
+
+      if (rank <= goldCutoff) {
+        return `<span class="px-2.5 py-1 rounded-full bg-yellow-500/20 text-yellow-300 border border-yellow-500/45 font-bold text-xs inline-flex items-center gap-1"><i class="fa-solid fa-medal"></i> ${rank}</span>`;
+      }
+      if (rank <= silverCutoff) {
+        return `<span class="px-2.5 py-1 rounded-full bg-slate-300/20 text-slate-200 border border-slate-300/45 font-bold text-xs inline-flex items-center gap-1"><i class="fa-solid fa-medal"></i> ${rank}</span>`;
+      }
+      if (rank <= bronzeCutoff) {
+        return `<span class="px-2.5 py-1 rounded-full bg-amber-700/25 text-amber-300 border border-amber-600/45 font-bold text-xs inline-flex items-center gap-1"><i class="fa-solid fa-medal"></i> ${rank}</span>`;
+      }
+      return `<span class="text-gray-300 font-bold">#${rank}</span>`;
+    }
+
+    function renderIoiTable() {
+      const thead = document.getElementById('ioiTableHead');
+      const tbody = document.getElementById('ioiTableBody');
       const query = (document.getElementById('sbSearchInput').value || '').trim().toLowerCase();
-      const filtered = rankedUsersData.filter(u => !query || u.displayName.toLowerCase().includes(query) || String(u.userId).toLowerCase().includes(query));
 
-      document.getElementById('sbTotalUsers').textContent = filtered.length;
+      // Render Header Columns
+      const probHeaders = activeProblemColumns.map(col => `
+        <th class="px-3 py-3.5 text-center min-w-[78px]" title="${col.title}">
+          <div class="font-bold text-cyan-300">${col.label}</div>
+          <div class="text-[10px] text-gray-400 font-normal">(${col.maxScore})</div>
+        </th>
+      `).join('');
 
+      thead.innerHTML = `
+        <tr>
+          <th class="px-3 py-3.5 text-center w-14">กราฟ</th>
+          <th class="px-3 py-3.5 text-center w-20">อันดับ</th>
+          <th class="px-4 py-3.5 min-w-[180px]">ผู้เข้าแข่งขัน</th>
+          <th class="px-4 py-3.5 text-center whitespace-nowrap">คะแนนรวม</th>
+          ${probHeaders}
+        </tr>
+      `;
+
+      const filtered = computedRows.filter(r => !query || r.name.toLowerCase().includes(query));
       if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-gray-400">ไม่พบข้อมูลผู้เข้าแข่งขัน</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="${4 + activeProblemColumns.length}" class="p-8 text-center text-gray-400">ยังไม่มีข้อมูลคะแนนในรอบการแข่งขันนี้</td></tr>`;
         return;
       }
 
-      tbody.innerHTML = filtered.map((u, idx) => {
-        const rank = idx + 1;
-        let rankBadge = `<span class="font-bold text-gray-300">#${rank}</span>`;
-        if (rank === 1) rankBadge = `<span class="px-2.5 py-1 rounded-full bg-yellow-500/20 text-yellow-300 border border-yellow-500/40 font-bold text-xs"><i class="fa-solid fa-crown mr-1"></i>1</span>`;
-        else if (rank === 2) rankBadge = `<span class="px-2.5 py-1 rounded-full bg-slate-400/20 text-slate-200 border border-slate-400/40 font-bold text-xs">2</span>`;
-        else if (rank === 3) rankBadge = `<span class="px-2.5 py-1 rounded-full bg-amber-700/25 text-amber-300 border border-amber-600/40 font-bold text-xs">3</span>`;
+      tbody.innerHTML = filtered.map(row => {
+        const trueRank = computedRows.findIndex(r => String(r.userId) === String(row.userId)) + 1;
+        const isChecked = selectedChartUserIds.has(String(row.userId));
 
-        const timeStr = u.lastActive ? new Date(u.lastActive).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' }) : '-';
+        const problemCells = activeProblemColumns.map(col => {
+          const attempts = row.attemptsByProblem[col.id] || 0;
+          const score = row.bestByProblem[col.id] || 0;
+
+          if (attempts === 0) {
+            return `<td class="px-2 py-3 text-center text-gray-600 font-mono text-xs">-</td>`;
+          }
+
+          let cellStyle = 'bg-rose-500/15 text-rose-300 border-rose-500/30'; // 0 คะแนน
+          if (score >= col.maxScore) {
+            cellStyle = 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 font-bold'; // เต็ม 100%
+          } else if (score > 0) {
+            cellStyle = 'bg-amber-500/20 text-amber-300 border-amber-500/40 font-semibold'; // Partial Score
+          }
+
+          return `
+            <td class="px-2 py-2.5 text-center">
+              <div class="inline-flex flex-col items-center justify-center min-w-[54px] py-1 px-2 rounded-xl border ${cellStyle}">
+                <span class="text-xs leading-tight">${score}</span>
+                <span class="text-[9px] opacity-75 leading-none mt-0.5">${attempts} ส่ง</span>
+              </div>
+            </td>
+          `;
+        }).join('');
 
         return `
-          <tr class="hover:bg-cyan-500/5 transition">
-            <td class="px-4 py-3.5 text-center">${rankBadge}</td>
-            <td class="px-4 py-3.5">
-              <div class="font-semibold text-white">${u.displayName}</div>
-              <div class="text-[11px] text-gray-400">ID: ${String(u.userId).slice(0, 12)}</div>
+          <tr class="hover:bg-cyan-500/5 transition ${isChecked ? 'bg-cyan-500/10' : ''}">
+            <td class="px-3 py-3 text-center">
+              <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleChartUser('${row.userId}')" class="w-4 h-4 accent-cyan-400 cursor-pointer rounded">
             </td>
-            <td class="px-4 py-3.5 text-center"><span class="text-emerald-400 font-bold">${u.solvedCount}</span> ข้อ</td>
-            <td class="px-4 py-3.5 text-center text-gray-300">${u.totalSubmissions} ครั้ง</td>
-            <td class="px-4 py-3.5 text-center"><span class="text-cyan-300 font-bold text-base">${u.totalScore}</span></td>
-            <td class="px-4 py-3.5 text-right text-xs text-gray-400">${timeStr}</td>
+            <td class="px-3 py-3 text-center whitespace-nowrap">${getMedalBadge(trueRank, computedRows.length, row.totalScore)}</td>
+            <td class="px-4 py-3">
+              <div class="font-semibold text-white text-sm">${row.name}</div>
+              <div class="text-[11px] text-gray-400">เต็ม ${row.fullSolvedCount}/${activeProblemColumns.length} ข้อ</div>
+            </td>
+            <td class="px-4 py-3 text-center whitespace-nowrap">
+              <span class="text-base font-bold text-cyan-300 bg-cyan-500/15 px-3 py-1 rounded-xl border border-cyan-500/30">${row.totalScore}</span>
+            </td>
+            ${problemCells}
           </tr>
         `;
       }).join('');
     }
 
-    function exportScoreboardCsv() {
-      if (!rankedUsersData.length) return;
-      const rows = [['Rank', 'Name', 'Solved_AC', 'Total_Submissions', 'Total_Score']];
-      rankedUsersData.forEach((u, i) => rows.push([i + 1, `"${u.displayName}"`, u.solvedCount, u.totalSubmissions, u.totalScore]));
+    function toggleChartUser(userId) {
+      const uid = String(userId);
+      if (selectedChartUserIds.has(uid)) selectedChartUserIds.delete(uid);
+      else selectedChartUserIds.add(uid);
+      renderIoiTable();
+      renderSelectedUserChips();
+      renderProgressionChart();
+    }
+
+    function selectTopUsersForChart(n = 5) {
+      selectedChartUserIds.clear();
+      computedRows.slice(0, n).forEach(r => selectedChartUserIds.add(String(r.userId)));
+      renderIoiTable();
+      renderSelectedUserChips();
+      renderProgressionChart();
+    }
+
+    function clearChartSelection() {
+      selectedChartUserIds.clear();
+      renderIoiTable();
+      renderSelectedUserChips();
+      renderProgressionChart();
+    }
+
+    function renderSelectedUserChips() {
+      const container = document.getElementById('selectedChartUsersChips');
+      const selectedRows = computedRows.filter(r => selectedChartUserIds.has(String(r.userId)));
+
+      if (selectedRows.length === 0) {
+        container.innerHTML = `<span class="text-xs text-gray-500 italic">ติ๊กเลือกช่อง "กราฟ" หน้าชื่อผู้เข้าแข่งขันในตารางด้านล่างเพื่อเปรียบเทียบคะแนน...</span>`;
+        return;
+      }
+
+      container.innerHTML = selectedRows.map((u, idx) => {
+        const color = CHART_PALETTE[idx % CHART_PALETTE.length];
+        return `
+          <span class="inline-flex items-center gap-2 px-3 py-1 rounded-xl text-xs font-semibold bg-black/60 border" style="border-color: ${color}; color: ${color};">
+            <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${color};"></span>
+            <span>${u.name} (${u.totalScore})</span>
+            <button type="button" onclick="toggleChartUser('${u.userId}')" class="hover:text-white ml-0.5 cursor-pointer">&times;</button>
+          </span>
+        `;
+      }).join('');
+    }
+
+    function renderProgressionChart() {
+      const ctx = document.getElementById('ioiScoreProgressionChart').getContext('2d');
+      if (scoreChartInstance) scoreChartInstance.destroy();
+
+      const selectedRows = computedRows.filter(r => selectedChartUserIds.has(String(r.userId)));
+      const allTimestampsSet = new Set();
+
+      selectedRows.forEach(u => {
+        u.timeline.forEach(pt => allTimestampsSet.add(pt.timeMs));
+      });
+
+      const sortedTimes = Array.from(allTimestampsSet).sort((a, b) => a - b);
+      const labels = sortedTimes.map(ms => new Date(ms).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+
+      const datasets = selectedRows.map((u, idx) => {
+        const color = CHART_PALETTE[idx % CHART_PALETTE.length];
+        let runningScore = 0;
+        const dataPoints = sortedTimes.map(tMs => {
+          const hit = u.timeline.filter(pt => pt.timeMs <= tMs);
+          if (hit.length > 0) runningScore = hit[hit.length - 1].totalScore;
+          return runningScore;
+        });
+
+        return {
+          label: u.name,
+          data: dataPoints,
+          borderColor: color,
+          backgroundColor: color + '25',
+          borderWidth: 2.5,
+          stepped: true, // กราฟขั้นบันไดสไตล์ IOI / CMS
+          tension: 0,
+          pointRadius: 3.5,
+          pointHoverRadius: 6
+        };
+      });
+
+      scoreChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: { labels, datasets },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { labels: { color: '#e5e7eb', font: { family: 'Kanit', size: 12 } } },
+            tooltip: {
+              backgroundColor: 'rgba(6, 11, 25, 0.95)',
+              titleColor: '#38bdf8',
+              bodyColor: '#f3f4f6',
+              borderColor: 'rgba(56, 189, 248, 0.4)',
+              borderWidth: 1
+            }
+          },
+          scales: {
+            x: {
+              title: { display: true, text: 'เวลาที่ส่งได้คะแนน (Time)', color: '#9ca3af', font: { family: 'Kanit', size: 12 } },
+              ticks: { color: '#9ca3af', font: { family: 'Kanit', size: 11 } },
+              grid: { color: 'rgba(56, 189, 248, 0.08)' }
+            },
+            y: {
+              beginAtZero: true,
+              title: { display: true, text: 'คะแนนรวม (Total Score)', color: '#9ca3af', font: { family: 'Kanit', size: 12 } },
+              ticks: { color: '#9ca3af', font: { family: 'Kanit', size: 11 } },
+              grid: { color: 'rgba(56, 189, 248, 0.08)' }
+            }
+          }
+        }
+      });
+    }
+
+    function exportIoiScoreboardCsv() {
+      if (!computedRows.length) return;
+      const headers = ['Rank', 'Name', 'Total_Score', ...activeProblemColumns.map(c => `${c.label}(${c.maxScore})`)];
+      const rows = [headers];
+
+      computedRows.forEach((r, idx) => {
+        const perProb = activeProblemColumns.map(col => r.bestByProblem[col.id] || 0);
+        rows.push([idx + 1, `"${r.name}"`, r.totalScore, ...perProb]);
+      });
+
       const csv = rows.map(r => r.join(',')).join('\n');
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `st8_scoreboard_${new Date().toISOString().slice(0, 10)}.csv`;
+      a.download = `st8_ioi_scoreboard_${new Date().toISOString().slice(0, 10)}.csv`;
       a.click();
       URL.revokeObjectURL(url);
-      showToast('Export สำเร็จ', 'ดาวน์โหลดไฟล์ CSV กระดานคะแนนแล้ว');
+      showToast('Export สำเร็จ', 'ดาวน์โหลดไฟล์ CSV คะแนนรายข้อเรียบร้อยแล้ว');
     }
 
-    ensureAdminSession(loadScoreboardData);
+    ensureAdminSession(loadScoreboardEnvironment);
   </script>
 </body>
 </html>

@@ -39,14 +39,12 @@
     .markdown-preview code { background: rgba(56, 189, 248, 0.15); color: #67e8f9; padding: 0.12rem 0.38rem; border-radius: 0.35rem; font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; }
     .markdown-preview pre { background: #020617; border: 1px solid rgba(56, 189, 248, 0.25); padding: 0.85rem; border-radius: 0.75rem; overflow-x: auto; margin-bottom: 0.75rem; }
 
-    /* สัดส่วนกระดาษ A4 แนวตั้ง (1 : 1.414) */
     .a4-pdf-frame {
       width: 100%;
       aspect-ratio: 1 / 1.414;
       min-height: 540px;
     }
 
-    /* Resizable Splitter */
     .split-resizer {
       width: 6px;
       cursor: col-resize;
@@ -102,7 +100,6 @@
     </div>
 
     <div class="flex items-center gap-2 shrink-0">
-      <!-- Engine Status Pill -->
       <span id="engineStatusPill" class="hidden md:inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-xl bg-emerald-500/15 text-emerald-300 border border-emerald-500/30" title="ระบบตรวจความเร็วสูงพร้อมใช้งาน">
         <i class="fa-solid fa-bolt text-amber-400"></i> Turbo Judge Ready
       </span>
@@ -131,10 +128,9 @@
   <!-- MAIN WORKSPACE -->
   <div id="workspaceContainer" class="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden">
 
-    <!-- ==================== LEFT PANE: STATEMENT / SUBMISSIONS / LIVE CHAT ==================== -->
+    <!-- LEFT PANE -->
     <section id="leftPane" style="width: 48%;" class="w-full lg:w-[48%] h-[45vh] lg:h-full flex flex-col bg-[#070c1b] border-b lg:border-b-0 border-cyan-500/20 min-w-0 shrink-0">
       
-      <!-- LEFT TABS BAR -->
       <div class="h-12 shrink-0 px-3 bg-[#090f22] border-b border-cyan-500/20 flex items-center justify-between gap-1.5 overflow-x-auto">
         <div class="flex items-center gap-1.5">
           <button type="button" id="leftTabBtnStmt" onclick="switchLeftTab('stmt')" class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow transition cursor-pointer flex items-center gap-1.5 shrink-0">
@@ -155,7 +151,7 @@
         </button>
       </div>
 
-      <!-- TAB 1: STATEMENT CONTENT -->
+      <!-- STATEMENT -->
       <div id="leftPaneStmt" class="flex-1 overflow-y-auto p-5 space-y-5">
         <div class="border-b border-cyan-500/15 pb-3.5 space-y-2">
           <div class="flex flex-wrap items-center justify-between gap-2">
@@ -172,7 +168,6 @@
           <div id="stmtTagsRow" class="flex flex-wrap gap-1.5 pt-1"></div>
         </div>
 
-        <!-- A4 PDF ATTACHMENT VIEWER -->
         <div id="stmtPdfSection" class="hidden space-y-2.5">
           <div class="flex items-center justify-between bg-rose-500/10 border border-rose-500/30 px-3.5 py-2 rounded-xl">
             <span class="text-xs font-semibold text-rose-300"><i class="fa-solid fa-file-pdf mr-1.5"></i> เอกสารโจทย์ (สัดส่วน A4)</span>
@@ -185,17 +180,15 @@
           </div>
         </div>
 
-        <!-- MARKDOWN STATEMENT -->
         <div id="stmtMarkdownBody" class="markdown-preview"></div>
 
-        <!-- SAMPLE TEST CASES -->
         <div id="stmtSamplesSection" class="space-y-3 pt-2 border-t border-cyan-500/15">
           <h3 class="text-sm font-bold text-cyan-300"><i class="fa-solid fa-flask mr-1.5"></i> ตัวอย่างข้อมูลนำเข้า / ส่งออก (Sample I/O)</h3>
           <div id="stmtSamplesList" class="space-y-3"></div>
         </div>
       </div>
 
-      <!-- TAB 2: SUBMISSION HISTORY -->
+      <!-- SUBMISSIONS -->
       <div id="leftPaneSubs" class="hidden flex-1 overflow-y-auto p-5 space-y-4">
         <div class="flex items-center justify-between">
           <div>
@@ -212,7 +205,7 @@
         </div>
       </div>
 
-      <!-- TAB 3: LIVE CHATROOM WITH SUBMISSION ATTACHMENT -->
+      <!-- CHAT -->
       <div id="leftPaneChat" class="hidden flex-1 flex flex-col min-h-0">
         <div class="px-4 py-2.5 bg-gradient-to-r from-amber-950/35 to-cyan-950/30 border-b border-cyan-500/15 flex items-center justify-between shrink-0">
           <div class="flex items-center gap-2">
@@ -260,13 +253,12 @@
       </div>
     </section>
 
-    <!-- ==================== DRAGGABLE RESIZER BAR ==================== -->
+    <!-- RESIZER -->
     <div id="splitResizer" class="hidden lg:block split-resizer shrink-0" title="ลากเพื่อปรับขนาดฝั่งโจทย์และฝั่งเขียนโค้ด"></div>
 
-    <!-- ==================== RIGHT PANE: CODE EDITOR & CONSOLE ==================== -->
+    <!-- RIGHT PANE -->
     <section id="rightPane" class="flex-1 h-[55vh] lg:h-full flex flex-col bg-[#050914] min-w-0">
       
-      <!-- EDITOR TOOLBAR -->
       <div class="h-12 shrink-0 px-3.5 bg-[#080d1e] border-b border-cyan-500/15 flex items-center justify-between gap-2 overflow-x-auto">
         <div class="flex items-center gap-2">
           <select id="langSelect" onchange="handleLanguageChange()" class="bg-black/70 border border-cyan-500/30 focus:border-cyan-400 focus:outline-none rounded-xl px-3 py-1.5 text-xs font-semibold text-white cursor-pointer">
@@ -299,7 +291,6 @@
         </div>
       </div>
 
-      <!-- MONACO CODE EDITOR CONTAINER -->
       <div id="monacoContainer" class="flex-1 min-h-0 w-full relative"></div>
 
       <!-- BOTTOM CONSOLE -->
@@ -342,7 +333,7 @@
     </section>
   </div>
 
-  <!-- MODAL: VIEW SUBMISSION CODE -->
+  <!-- MODALS -->
   <div id="viewCodeModal" onclick="if(event.target === this) closeViewCodeModal()" class="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/85 backdrop-blur-md opacity-0 pointer-events-none transition-all duration-200">
     <div class="tech-modal rounded-3xl p-6 max-w-2xl w-full max-h-[88vh] flex flex-col gap-4 border border-cyan-500/35">
       <div class="flex items-center justify-between border-b border-cyan-500/20 pb-3">
@@ -368,7 +359,6 @@
     </div>
   </div>
 
-  <!-- MODAL: VIEW GRADER MAIN CODE -->
   <div id="graderMainModal" onclick="if(event.target === this) document.getElementById('graderMainModal').classList.add('opacity-0','pointer-events-none')" class="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/85 backdrop-blur-md opacity-0 pointer-events-none transition-all duration-200">
     <div class="tech-modal rounded-3xl p-6 max-w-xl w-full space-y-4 border border-emerald-500/35">
       <div class="flex justify-between items-center border-b border-emerald-500/20 pb-2.5">
@@ -422,7 +412,6 @@
       setTimeout(() => toast.classList.add('translate-x-[130%]'), 3200);
     }
 
-    // ==================== RESIZABLE SPLIT PANE ====================
     function setSplitRatio(pct) {
       if (window.innerWidth < 1024) return;
       isLeftCollapsed = false;
@@ -485,14 +474,8 @@
         document.body.style.userSelect = '';
         localStorage.setItem('st8_split_left_pct', leftPaneWidthPct.toFixed(1));
       });
-
-      window.addEventListener('resize', () => {
-        leftEl.style.width = window.innerWidth < 1024 ? '100%' : leftPaneWidthPct + '%';
-        if (editorInstance) editorInstance.layout();
-      });
     }
 
-    // ==================== MONACO EDITOR ====================
     function initMonacoEditor() {
       return new Promise((resolve) => {
         require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs' } });
@@ -556,7 +539,6 @@
       event.target.value = '';
     }
 
-    // ==================== TABS SWITCHING ====================
     function switchConsoleTab(tab) {
       const isTest = tab === 'test';
       document.getElementById('consoleAreaTest').classList.toggle('hidden', !isTest);
@@ -584,7 +566,6 @@
       if (tab === 'chat') scrollChatToBottom();
     }
 
-    // ==================== INIT PAGE ====================
     async function initEditorPage() {
       if (!problemId) {
         window.location.href = 'problems.html';
@@ -734,9 +715,8 @@
 
     function loadSampleIntoCustomInput() { copySampleInput(0); }
 
-    // ==================== HYBRID ENGINE 1: IN-BROWSER PYTHON WASM WORKER ====================
+    // PYTHON WASM WORKER
     let pyodideWorker = null;
-    let pyodideWorkerReady = false;
     let pyodidePendingResolvers = {};
     let pyodideReqCounter = 1;
 
@@ -756,14 +736,7 @@
             const results = [];
             for (let i = 0; i < testCases.length; i++) {
               const stdinText = testCases[i].input || '';
-              let stdoutChunks = [];
-              let stderrChunks = [];
-
-              pyodide.setStdin({
-                stdin: () => null,
-                isatty: false
-              });
-              // Feed stdin via io.StringIO inside Python for 100% compatibility with input() & sys.stdin
+              pyodide.setStdin({ stdin: () => null, isatty: false });
               pyodide.globals.set('__st8_stdin_data', stdinText);
               pyodide.globals.set('__st8_user_code', code);
 
@@ -830,11 +803,7 @@ finally:
           worker.terminate();
           pyodideWorker = null;
           resolve(testCases.map(() => ({
-            status: 'TLE',
-            stdout: '',
-            stderr: 'Time Limit Exceeded (Infinite Loop Terminated)',
-            compilerError: '',
-            elapsed: timeLimitSec
+            status: 'TLE', stdout: '', stderr: 'Time Limit Exceeded', compilerError: '', elapsed: timeLimitSec
           })));
         }, maxTimeoutMs);
 
@@ -847,7 +816,6 @@ finally:
       });
     }
 
-    // ==================== HYBRID ENGINE 2: SINGLE-COMPILE C/C++ BATCH HARNESS ====================
     function buildFullRunnableCode(userCode) {
       if (!currentProblem || !currentProblem.is_function_mode || !currentProblem.grader_main_code) {
         return userCode;
@@ -861,7 +829,6 @@ finally:
       try { return decodeURIComponent(escape(atob(str))); } catch { return str; }
     }
 
-    // คอมไพล์ C/C++ ครั้งเดียวแล้วรันทุก Test Case ใน 1 คำขอ (เร็วกว่ายิงทีละเคส 10 เท่า!)
     function buildSingleCompileCppWrapper(userCode, testCases) {
       const marker = '___ST8_CASE_END_991827___';
       const inputsArray = testCases.map(tc => JSON.stringify(tc.input || '')).join(',\n        ');
@@ -932,7 +899,6 @@ int main() {
 
     async function executeCppSingleCall(code, lang, stdin) {
       const startTime = performance.now();
-      // ยิงตรงไปที่ Wandbox / Judge0 พร้อมกันแบบ Race เอาตัวที่ตอบเร็วที่สุด!
       const wandboxPromise = fetch('https://wandbox.org/api/compile.json', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -976,7 +942,6 @@ int main() {
     }
 
     async function runCppSingleCompileBatch(fullCode, lang, testCases) {
-      // ลองรวมทุกเคสคอมไพล์ครั้งเดียวก่อน (เร็วสุด ~0.6s สำหรับทุกเคสรวมกัน!)
       try {
         const marker = '___ST8_CASE_END_991827___';
         const wrapped = buildSingleCompileCppWrapper(fullCode, testCases);
@@ -1002,11 +967,8 @@ int main() {
           }
           return parsedResults;
         }
-      } catch {
-        // หากโค้ดมีโครงสร้างที่ไม่เข้ากับ namespace wrapper ให้สลับไปตรวจแบบ Parallel Race
-      }
+      } catch {}
 
-      // Fallback: เช็กเคสแรกก่อนเพื่อ Fail-Fast กรณี Compilation Error
       const first = await executeCppSingleCall(fullCode, lang, testCases[0].input || '');
       if (first.status === 'CE') return [first];
       if (testCases.length === 1) return [first];
@@ -1017,7 +979,6 @@ int main() {
       return [first, ...rest];
     }
 
-    // ==================== RUN & SUBMIT HANDLERS ====================
     async function runCustomTest() {
       const btn = document.getElementById('runSampleBtn');
       const outBox = document.getElementById('customOutputBox');
@@ -1030,9 +991,7 @@ int main() {
       btn.disabled = true;
       btn.innerHTML = '<i class="fa-solid fa-bolt fa-spin"></i> กำลังรัน...';
       outBox.className = 'flex-1 w-full bg-black/70 border border-cyan-500/30 rounded-xl p-2 text-xs text-cyan-300 font-code overflow-auto whitespace-pre-wrap';
-      outBox.textContent = lang === 'python'
-        ? 'กำลังรัน Python WASM ในเบราว์เซอร์...'
-        : 'กำลังคอมไพล์และรันโปรแกรม...';
+      outBox.textContent = lang === 'python' ? 'กำลังรัน Python WASM...' : 'กำลังคอมไพล์และรันโปรแกรม...';
       statsEl.textContent = '';
 
       try {
@@ -1051,7 +1010,7 @@ int main() {
           outBox.textContent = `[Compilation Error]\n${result.compilerError}`;
         } else if (result.status === 'TLE') {
           outBox.className = 'flex-1 w-full bg-black/70 border border-amber-500/40 rounded-xl p-2 text-xs text-amber-300 font-code overflow-auto whitespace-pre-wrap';
-          outBox.textContent = `[Time Limit Exceeded]\nโปรแกรมใช้เวลาเกินกำหนด`;
+          outBox.textContent = `[Time Limit Exceeded]`;
         } else if (result.status === 'RE') {
           outBox.className = 'flex-1 w-full bg-black/70 border border-amber-500/40 rounded-xl p-2 text-xs text-amber-300 font-code overflow-auto whitespace-pre-wrap';
           outBox.textContent = `[Runtime Error]\n${result.stderr}\n${result.stdout}`;
@@ -1088,7 +1047,7 @@ int main() {
       verdictBox.innerHTML = `
         <div class="text-center space-y-2 py-4">
           <i class="fa-solid fa-bolt text-2xl text-cyan-400 animate-pulse"></i>
-          <p class="text-xs font-bold text-cyan-300">${lang === 'python' ? 'กำลังตรวจด้วย In-Browser WASM Engine' : 'กำลังคอมไพล์ครั้งเดียวและตรวจทุกเคส'} (${testCases.length} Test Cases)...</p>
+          <p class="text-xs font-bold text-cyan-300">กำลังตรวจ ${testCases.length} Test Cases...</p>
         </div>
       `;
 
@@ -1142,7 +1101,7 @@ int main() {
 
         const { error: insertErr } = await supabaseClient.from('submissions').insert([{
           user_id: currentUser.id,
-          problem_id: currentProblem.id,
+          problem_id: parseInt(problemId),
           source_code: userCode,
           language: lang,
           status: finalStatus,
@@ -1198,7 +1157,6 @@ int main() {
       }
     }
 
-    // ==================== SUBMISSION HISTORY ====================
     async function loadMySubmissions() {
       if (!currentUser || !problemId) return;
       const { data } = await supabaseClient
@@ -1220,9 +1178,7 @@ int main() {
 
       listEl.innerHTML = mySubmissionsCache.map(s => {
         const isAc = s.status === 'Accepted' || s.status === 'AC';
-        const statusCls = isAc
-          ? 'text-emerald-300 bg-emerald-500/15 border-emerald-500/35'
-          : 'text-rose-300 bg-rose-500/15 border-rose-500/35';
+        const statusCls = isAc ? 'text-emerald-300 bg-emerald-500/15 border-emerald-500/35' : 'text-rose-300 bg-rose-500/15 border-rose-500/35';
         const timeStr = s.created_at ? new Date(s.created_at).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' }) : '-';
 
         return `
@@ -1289,7 +1245,6 @@ int main() {
       }
     }
 
-    // ==================== REAL-TIME CHATTING ====================
     function toggleAttachSubMenu() {
       const popup = document.getElementById('attachSubPopup');
       const list = document.getElementById('attachSubOptionsList');
@@ -1364,7 +1319,7 @@ int main() {
       document.getElementById('chatCountBadge').textContent = chatMessagesCache.length;
 
       if (chatMessagesCache.length === 0) {
-        container.innerHTML = `<div class="text-center py-10 text-xs text-gray-400">ยังไม่มีข้อความสนทนาในโจทย์ข้อนี้ — เริ่มทักทายหรือแนบโค้ดถามได้เลย!</div>`;
+        container.innerHTML = `<div class="text-center py-10 text-xs text-gray-400">ยังไม่มีข้อความสนทนาในโจทย์ข้อนี้</div>`;
         return;
       }
 

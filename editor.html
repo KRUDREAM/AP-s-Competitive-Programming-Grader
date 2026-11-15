@@ -97,6 +97,11 @@
         <span id="navProbCode" class="text-xs font-bold text-cyan-300 bg-cyan-500/15 px-2.5 py-0.5 rounded-lg border border-cyan-500/30 font-code shrink-0">LOADING</span>
         <h1 id="navProbTitle" class="text-sm md:text-base font-bold text-white truncate">กำลังโหลดโจทย์...</h1>
         <span id="navProbDiff" class="hidden sm:inline-block text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 shrink-0">Easy</span>
+        
+        <!-- ป้ายแสดงคะแนนสูงสุดที่ทำได้ปัจจุบัน / คะแนนเต็ม -->
+        <span id="navProbScoreBadge" class="hidden sm:inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-cyan-500/10 text-cyan-200 border border-cyan-500/30 shrink-0">
+          <i class="fa-solid fa-trophy text-amber-400"></i> <span id="navScoreText">0 / 100</span>
+        </span>
       </div>
     </div>
 
@@ -489,6 +494,31 @@
       document.getElementById('leftPaneChat').classList.toggle('hidden', tab !== 'chat');
     }
 
+    // อัปเดตการแสดงผลคะแนนสูงสุดที่ทำได้ (Max Score / Max Possible Score) บน Navbar
+    function updateMaxScoreBadge(submissionsList) {
+      const maxScoreBadge = document.getElementById('navProbScoreBadge');
+      const scoreTextEl = document.getElementById('navScoreText');
+      if (!currentProblem || !maxScoreBadge || !scoreTextEl) return;
+
+      const maxPossibleScore = currentProblem.max_score || 100;
+      let highestScore = 0;
+
+      if (submissionsList && submissionsList.length > 0) {
+        highestScore = Math.max(...submissionsList.map(s => Number(s.score) || 0));
+      }
+
+      scoreTextEl.textContent = `${highestScore} / ${maxPossibleScore}`;
+
+      // เปลี่ยนสีป้ายสถานะตามคะแนนที่ได้ (ถ้าเต็มจะได้สีเขียวเด่นชัด)
+      if (highestScore >= maxPossibleScore) {
+        maxScoreBadge.className = 'hidden sm:inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shrink-0';
+      } else if (highestScore > 0) {
+        maxScoreBadge.className = 'hidden sm:inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 shrink-0';
+      } else {
+        maxScoreBadge.className = 'hidden sm:inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-cyan-500/10 text-cyan-200 border border-cyan-500/30 shrink-0';
+      }
+    }
+
     // [Detailed Submissions with Memory & Numbering]
     async function loadMySubmissions() {
       if (!currentUser || !problemId) return;
@@ -509,6 +539,9 @@
       mySubmissionsCache = rawList.slice().reverse();
       hasUserSolvedThisProblem = rawList.some(s => s.status === 'Accepted' || s.status === 'AC');
       document.getElementById('mySubsCountBadge').textContent = rawList.length;
+
+      // อัปเดตคะแนนสูงสุดบน Navbar
+      updateMaxScoreBadge(rawList);
 
       const listEl = document.getElementById('mySubmissionsList');
       if (rawList.length === 0) {
@@ -775,7 +808,7 @@
         } else {
           rawResponses.forEach((res, idx) => {
             maxExecTime = Math.max(maxExecTime, res.elapsed || 0);
-            const mockMem = (1.5 + Math.random() * 1.2).toFixed(1) + ' MB'; //จำลอง Memory usage ต่อเคส
+            const mockMem = (1.5 + Math.random() * 1.2).toFixed(1) + ' MB';
             if (res.status === 'TLE' || (res.elapsed && res.elapsed > timeLimitSec)) {
               if (finalStatus === 'Accepted') finalStatus = 'Time Limit Exceeded';
               caseResults.push({ index: idx + 1, verdict: 'TLE', time: res.elapsed, memory: mockMem });

@@ -75,7 +75,7 @@
     </div>
   </div>
 
-  <!-- ANNOUNCEMENT POP-UP MODAL (แจ้งเตือนประกาศใหม่แบบ Realtime) -->
+  <!-- ANNOUNCEMENT POP-UP MODAL (เด้งขึ้นมาเฉพาะเมื่อมีประกาศใหม่เข้ามาแบบ Realtime) -->
   <div id="announcementModal" onclick="if(event.target === this) closeAnnouncementModal()" class="fixed inset-0 z-[100] flex items-center justify-center px-4 bg-black/85 backdrop-blur-md opacity-0 pointer-events-none transition-all duration-300">
     <div class="tech-modal rounded-3xl p-6 md:p-8 max-w-lg w-full relative space-y-4 border border-cyan-500/35 animate-modal-in">
       <button type="button" onclick="closeAnnouncementModal()" class="absolute top-5 right-5 text-gray-400 hover:text-white w-9 h-9 rounded-full bg-cyan-500/10 flex items-center justify-center cursor-pointer hover:bg-cyan-500/25 transition">
@@ -83,10 +83,10 @@
       </button>
       <div class="flex items-center gap-3 border-b border-cyan-500/20 pb-3">
         <div class="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 text-lg shadow-lg">
-          <i class="fa-solid fa-bullhorn fa-bounce"></i>
+          <i class="fa-solid fa-bell fa-bounce"></i>
         </div>
         <div>
-          <h3 class="text-base font-bold text-white">ประกาศด่วนจากระบบ</h3>
+          <h3 class="text-base font-bold text-white">ประกาศใหม่จากระบบ</h3>
           <p id="popupAnnouncementTime" class="text-[10px] text-gray-400 font-mono">เมื่อสักครู่</p>
         </div>
       </div>
@@ -131,10 +131,10 @@
         <a href="scoreboard.html" class="hover:text-cyan-400 transition hover:scale-105"><i class="fa-solid fa-ranking-star mr-1 text-cyan-500"></i> Scoreboard</a>
         <a href="problems.html" class="hover:text-cyan-400 transition hover:scale-105"><i class="fa-solid fa-laptop-code mr-1 text-cyan-500"></i> คลังโจทย์</a>
         
-        <!-- ปุ่มกระดิ่งแจ้งเตือนประกาศระบบ -->
+        <!-- เมนูปกติพร้อมไอคอนรูประฆัง -->
         <a href="announcement.html" class="relative hover:text-cyan-400 transition hover:scale-110 flex items-center gap-1.5 text-amber-400 font-bold" title="ประกาศระบบ">
-          <i class="fa-solid fa-bell text-sm"></i>
-          <span id="announcementBadgeDot" class="hidden absolute -top-1 -right-2 w-2.5 h-2.5 bg-rose-500 rounded-full animate-ping"></span>
+          <i class="fa-solid fa-bell text-sm"></i> ประกาศระบบ
+          <span id="announcementBadgeDot" class="hidden absolute -top-1 -right-2 w-2 h-2 bg-rose-500 rounded-full animate-ping"></span>
         </a>
       </nav>
 
@@ -314,7 +314,7 @@
               <a href="index.html" class="block px-4 py-2.5 text-xs text-gray-300 hover:bg-cyan-500/10 hover:text-cyan-300 transition"><i class="fa-solid fa-house mr-2 text-cyan-400"></i> หน้าหลัก</a>
               <a href="scoreboard.html" class="block px-4 py-2.5 text-xs text-gray-300 hover:bg-cyan-500/10 hover:text-cyan-300 transition"><i class="fa-solid fa-ranking-star mr-2 text-amber-400"></i> Live Scoreboard</a>
               <a href="problems.html" class="block px-4 py-2.5 text-xs text-gray-300 hover:bg-cyan-500/10 hover:text-cyan-300 transition"><i class="fa-solid fa-laptop-code mr-2 text-cyan-400"></i> คลังโจทย์</a>
-              <a href="announcement.html" class="block px-4 py-2.5 text-xs text-gray-300 hover:bg-cyan-500/10 hover:text-cyan-300 transition"><i class="fa-solid fa-bullhorn mr-2 text-cyan-400"></i> ประกาศระบบ</a>
+              <a href="announcement.html" class="block px-4 py-2.5 text-xs text-gray-300 hover:bg-cyan-500/10 hover:text-cyan-300 transition"><i class="fa-solid fa-bell mr-2 text-amber-400"></i> ประกาศระบบ</a>
               <div class="border-t border-cyan-500/20 my-1"></div>
               <button type="button" onclick="handleLogout()" class="w-full text-left px-4 py-2.5 text-xs text-rose-400 hover:bg-rose-500/20 transition cursor-pointer"><i class="fa-solid fa-right-from-bracket mr-2"></i> ออกจากระบบ</button>
             </div>
@@ -477,7 +477,7 @@
           statusIcon = `<i class="fa-solid fa-circle-xmark text-rose-400 text-base" title="ยังไม่ผ่าน"></i>`;
         }
 
-        // จัดรหัสข้อให้เรียงลำดับเป็น A, B, C, D... จากบนลงล่าง
+        // จัดรหัสโจทย์เรียง A, B, C, D... จากบนลงล่างอัตโนมัติ
         const alphabetCode = String.fromCharCode(65 + idx);
 
         return `
@@ -501,8 +501,6 @@
     }
 
     function setupAnnouncementRealtime() {
-      document.getElementById('announcementBadgeDot').classList.remove('hidden');
-
       if (announcementChannel) supabaseClient.removeChannel(announcementChannel);
 
       announcementChannel = supabaseClient.channel('public:announcements')

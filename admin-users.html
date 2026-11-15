@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>จัดการข้อมูลผู้ใช้และตรวจการส่งโค้ด | ST8 CP-Grader Admin</title>
+  <title>ตรวจโค้ดรายข้อและจัดการผู้ใช้ | ST8 CP-Grader Admin</title>
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -30,29 +30,82 @@
       <!-- HEADER -->
       <div class="bg-gradient-to-r from-blue-950/40 via-cyan-950/30 to-purple-950/25 p-5 rounded-2xl border border-cyan-500/20 flex flex-wrap justify-between items-center gap-3">
         <div>
-          <h2 class="text-lg md:text-xl font-bold text-white"><i class="fa-solid fa-users-gear text-cyan-400 mr-2"></i> จัดการผู้ใช้และตรวจการส่งโค้ดเชิงลึก (Users & Submissions Audit)</h2>
-          <p class="text-xs text-gray-400">ตรวจสอบสถิติผู้ใช้ ดูประวัติการส่งโค้ดรายบุคคลแยกตามรายข้อ และตรวจ Source Code ได้อย่างละเอียด</p>
+          <h2 class="text-lg md:text-xl font-bold text-white"><i class="fa-solid fa-code-compare text-cyan-400 mr-2"></i> ตรวจโค้ดรายข้อและจัดการผู้ใช้ (Problem-Centric Audit)</h2>
+          <p class="text-xs text-gray-400">เลือกดูรายชื่อการส่งโค้ดแยกตามโจทย์แต่ละข้อ ตรวจสอบผลลัพธ์ Testcase และ Source Code ได้อย่างรวดเร็ว</p>
         </div>
         <div class="flex items-center gap-2">
-          <button type="button" onclick="exportUsersCsv()" class="tech-glass hover:bg-emerald-500/15 text-emerald-300 border border-emerald-500/35 px-3.5 py-2 rounded-xl text-xs font-semibold transition cursor-pointer">
-            <i class="fa-solid fa-file-csv mr-1"></i> Export Users CSV
+          <button type="button" onclick="fetchUsersAndSubmissions()" class="tech-glass hover:bg-cyan-500/15 text-cyan-300 border border-cyan-500/35 px-3.5 py-2 rounded-xl text-xs font-semibold transition cursor-pointer">
+            <i class="fa-solid fa-rotate mr-1"></i> รีเฟรชข้อมูล
           </button>
-          <span id="userCountBadge" class="text-xs font-bold px-3.5 py-2 rounded-xl bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">ทั้งหมด 0 คน</span>
         </div>
       </div>
 
       <!-- TABS SWITCHER -->
       <div class="flex gap-2 border-b border-cyan-500/20 pb-3">
-        <button type="button" onclick="switchAdminTab('users')" id="tabBtnUsers" class="px-4 py-2 rounded-xl text-xs font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 transition cursor-pointer">
-          <i class="fa-solid fa-users mr-1.5"></i> รายชื่อผู้ใช้ทั้งหมด (<span id="tabUserCount">0</span>)
+        <button type="button" onclick="switchAdminTab('problems')" id="tabBtnProblems" class="px-4 py-2 rounded-xl text-xs font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 transition cursor-pointer">
+          <i class="fa-solid fa-list-check mr-1.5"></i> ตรวจโค้ดแยกตามรายข้อ (<span id="tabProblemCount">0</span> ข้อ)
+        </button>
+        <button type="button" onclick="switchAdminTab('users')" id="tabBtnUsers" class="px-4 py-2 rounded-xl text-xs font-semibold bg-black/40 text-gray-400 hover:text-white border border-white/10 transition cursor-pointer">
+          <i class="fa-solid fa-users mr-1.5"></i> รายชื่อผู้ใช้ทั้งหมด (<span id="tabUserCount">0</span> คน)
         </button>
         <button type="button" onclick="switchAdminTab('submissions')" id="tabBtnSubmissions" class="px-4 py-2 rounded-xl text-xs font-semibold bg-black/40 text-gray-400 hover:text-white border border-white/10 transition cursor-pointer">
-          <i class="fa-solid fa-clock-rotate-left mr-1.5"></i> ประวัติการส่งโค้ดทั้งหมดในระบบ (<span id="tabSubCount">0</span>)
+          <i class="fa-solid fa-clock-rotate-left mr-1.5"></i> ประวัติการส่งทั้งหมด (<span id="tabSubCount">0</span>)
         </button>
       </div>
 
-      <!-- TAB 1: USERS TABLE -->
-      <div id="tabContentUsers" class="space-y-4">
+      <!-- TAB 1: PROBLEMS LIST & SUBMISSIONS PER PROBLEM -->
+      <div id="tabContentProblems" class="space-y-4">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+          <!-- LEFT: PROBLEMS LIST -->
+          <div class="lg:col-span-4 space-y-3">
+            <div class="tech-glass p-3 rounded-2xl border border-cyan-500/20">
+              <input type="text" id="problemSearchInput" oninput="renderProblemsList()" placeholder="ค้นหารหัสหรือชื่อโจทย์..." class="w-full bg-black/60 border border-cyan-500/25 focus:border-cyan-400 focus:outline-none rounded-xl px-3.5 py-2 text-xs text-white">
+            </div>
+            <div id="problemsListContainer" class="space-y-2 max-h-[65vh] overflow-y-auto pr-1">
+              <div class="text-xs text-gray-500 text-center py-6">กำลังโหลดโจทย์...</div>
+            </div>
+          </div>
+
+          <!-- RIGHT: SUBMISSIONS FOR SELECTED PROBLEM -->
+          <div class="lg:col-span-8 tech-glass p-4 md:p-5 rounded-2xl border border-cyan-500/20 space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 pb-3">
+              <div>
+                <h3 id="selectedProblemTitle" class="text-base font-bold text-white">กรุณาเลือกโจทย์ทางด้านซ้าย</h3>
+                <p id="selectedProblemMeta" class="text-xs text-gray-400">คลิกที่โจทย์เพื่อดูรายการส่งโค้ดทั้งหมดของนักเรียนในข้อนั้น</p>
+              </div>
+              <div class="flex items-center gap-2">
+                <select id="probSubStatusFilter" onchange="renderSubmissionsForSelectedProblem()" class="bg-black/60 border border-cyan-500/25 rounded-xl px-3 py-1.5 text-xs text-white cursor-pointer">
+                  <option value="all">ทุกสถานะ</option>
+                  <option value="Accepted">Accepted (AC)</option>
+                  <option value="Wrong Answer">Wrong Answer (WA)</option>
+                  <option value="Time Limit Exceeded">TLE</option>
+                  <option value="Compilation Error">CE</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="overflow-x-auto max-h-[55vh]">
+              <table class="w-full text-left text-sm">
+                <thead class="bg-cyan-950/50 text-cyan-300 border-b border-cyan-500/20 text-xs uppercase">
+                  <tr>
+                    <th class="px-3 py-2.5">เวลา</th>
+                    <th class="px-3 py-2.5">ผู้ส่ง</th>
+                    <th class="px-3 py-2.5 text-center">ภาษา</th>
+                    <th class="px-3 py-2.5 text-center">สถานะ</th>
+                    <th class="px-3 py-2.5 text-right">ตรวจโค้ด & Testcases</th>
+                  </tr>
+                </thead>
+                <tbody id="selectedProblemSubsBody" class="divide-y divide-cyan-500/10">
+                  <tr><td colspan="5" class="p-6 text-center text-gray-400 text-xs">ยังไม่ได้เลือกโจทย์</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 2: USERS TABLE -->
+      <div id="tabContentUsers" class="space-y-4 hidden">
         <div class="tech-glass p-4 rounded-2xl border border-cyan-500/20 grid grid-cols-1 md:grid-cols-12 gap-3">
           <div class="md:col-span-8 relative">
             <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-cyan-400 text-xs"></i>
@@ -85,7 +138,7 @@
         </div>
       </div>
 
-      <!-- TAB 2: GLOBAL SUBMISSIONS AUDIT -->
+      <!-- TAB 3: GLOBAL SUBMISSIONS AUDIT -->
       <div id="tabContentSubmissions" class="space-y-4 hidden">
         <div class="tech-glass p-4 rounded-2xl border border-cyan-500/20 grid grid-cols-1 md:grid-cols-12 gap-3">
           <div class="md:col-span-6 relative">
@@ -97,8 +150,8 @@
               <option value="all">สถานะทั้งหมด</option>
               <option value="Accepted">Accepted (AC)</option>
               <option value="Wrong Answer">Wrong Answer (WA)</option>
-              <option value="Time Limit Exceeded">Time Limit Exceeded (TLE)</option>
-              <option value="Compilation Error">Compilation Error (CE)</option>
+              <option value="Time Limit Exceeded">TLE</option>
+              <option value="Compilation Error">CE</option>
             </select>
           </div>
           <div class="md:col-span-3">
@@ -119,7 +172,7 @@
                 <th class="px-4 py-3.5">โจทย์ (Problem)</th>
                 <th class="px-4 py-3.5 text-center">ภาษา</th>
                 <th class="px-4 py-3.5 text-center">สถานะ</th>
-                <th class="px-4 py-3.5 text-right">ตรวจโค้ด (Source Code)</th>
+                <th class="px-4 py-3.5 text-right">ตรวจโค้ด</th>
               </tr>
             </thead>
             <tbody id="globalSubsTableBody" class="divide-y divide-cyan-500/10">
@@ -146,28 +199,21 @@
 
       <div id="udModalStats" class="grid grid-cols-3 gap-3 text-center"></div>
 
-      <!-- PROBLEM BREAKDOWN MATRIX (รายข้อ) -->
       <div class="space-y-3">
-        <h4 class="text-xs font-bold text-cyan-300 uppercase tracking-wider"><i class="fa-solid fa-list-check mr-1.5"></i> สถิติการทำโจทย์แยกตามรายข้อ (Problem Breakdown)</h4>
+        <h4 class="text-xs font-bold text-cyan-300 uppercase tracking-wider"><i class="fa-solid fa-list-check mr-1.5"></i> สถิติการทำโจทย์แยกตามรายข้อ</h4>
         <div id="udProblemBreakdownGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 max-h-60 overflow-y-auto pr-1"></div>
-      </div>
-
-      <!-- ALL SUBMISSIONS HISTORY FOR THIS USER -->
-      <div class="space-y-3">
-        <h4 class="text-xs font-bold text-cyan-300 uppercase tracking-wider"><i class="fa-solid fa-clock-rotate-left mr-1.5"></i> ประวัติการส่งโค้ดทั้งหมด (Submissions History)</h4>
-        <div id="udSubmissionsList" class="space-y-2 max-h-60 overflow-y-auto pr-1"></div>
       </div>
     </div>
   </div>
 
-  <!-- SOURCE CODE INSPECTOR MODAL -->
+  <!-- SOURCE CODE INSPECTOR MODAL (พร้อมแสดงผลรายละเอียดผิดอะไรในแต่ละเคส) -->
   <div id="sourceCodeModal" onclick="if(event.target === this) closeSourceCodeModal()" class="fixed inset-0 z-[100] hidden items-center justify-center px-4 bg-black/90 backdrop-blur-md">
     <div class="tech-modal rounded-3xl p-6 md:p-8 max-w-4xl w-full max-h-[90vh] overflow-y-auto relative space-y-4 border border-cyan-500/40 shadow-2xl">
       <button type="button" onclick="closeSourceCodeModal()" class="absolute top-5 right-5 text-gray-400 hover:text-white w-9 h-9 rounded-full bg-white/10 flex items-center justify-center cursor-pointer"><i class="fa-solid fa-xmark text-sm"></i></button>
       
       <div class="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 pb-3">
         <div>
-          <h3 id="scModalTitle" class="text-base font-bold text-cyan-300">ตรวจสอบซอร์สโค้ด (Source Code Inspector)</h3>
+          <h3 id="scModalTitle" class="text-base font-bold text-cyan-300">ตรวจสอบซอร์สโค้ดและผลการตรวจ (Code & Judge Inspector)</h3>
           <p id="scModalSubtitle" class="text-xs text-gray-400">ผู้ส่ง: - | โจทย์: -</p>
         </div>
         <div class="flex items-center gap-2">
@@ -179,13 +225,13 @@
       </div>
 
       <div class="relative">
-        <pre class="bg-black/80 border border-cyan-500/20 rounded-2xl p-4 text-xs font-mono text-cyan-200 overflow-x-auto max-h-[50vh] leading-relaxed"><code id="scModalCodeContent">// กำลังโหลดซอร์สโค้ด...</code></pre>
+        <pre class="bg-black/80 border border-cyan-500/20 rounded-2xl p-4 text-xs font-mono text-cyan-200 overflow-x-auto max-h-[45vh] leading-relaxed"><code id="scModalCodeContent">// กำลังโหลดซอร์สโค้ด...</code></pre>
       </div>
 
-      <!-- TESTCASES / JUDGE RESULT DETAILS -->
-      <div class="space-y-2 pt-2">
-        <h4 class="text-xs font-bold text-gray-300 uppercase tracking-wider"><i class="fa-solid fa-list-check mr-1.5"></i> ผลการตรวจ Testcases</h4>
-        <div id="scModalTestcasesDetails" class="bg-black/60 border border-white/10 p-3 rounded-xl text-xs text-gray-300 space-y-1 font-mono">
+      <!-- TESTCASES / ERROR BREAKDOWN DETAILS -->
+      <div class="space-y-2 pt-1">
+        <h4 class="text-xs font-bold text-cyan-300 uppercase tracking-wider"><i class="fa-solid fa-bug mr-1.5"></i> วิเคราะห์ข้อผิดพลาดและผลตรวจแต่ละ Testcase</h4>
+        <div id="scModalTestcasesDetails" class="bg-black/70 border border-white/10 p-4 rounded-2xl text-xs text-gray-300 space-y-2 font-mono max-h-40 overflow-y-auto">
           -
         </div>
       </div>
@@ -201,12 +247,13 @@
     let allProblemsList = [];
     let problemMap = {};
     let profileMap = {};
+    let selectedProblemId = null;
 
     async function fetchUsersAndSubmissions() {
       const [{ data: profiles }, { data: subs }, { data: probs }] = await Promise.all([
         supabaseClient.from('profiles').select('*'),
         supabaseClient.from('submissions').select('*').order('created_at', { ascending: false }),
-        supabaseClient.from('problems').select('*')
+        supabaseClient.from('problems').select('*').order('problem_code', { ascending: true })
       ]);
 
       allSubsList = subs || [];
@@ -254,30 +301,128 @@
 
       allUsersList = Object.values(mergedMap).map(u => ({ ...u, acCount: u.acSet.size }));
 
+      document.getElementById('tabProblemCount').textContent = allProblemsList.length;
       document.getElementById('tabUserCount').textContent = allUsersList.length;
       document.getElementById('tabSubCount').textContent = allSubsList.length;
+
+      renderProblemsList();
+      if (!selectedProblemId && allProblemsList.length > 0) {
+        selectProblem(allProblemsList[0].id);
+      } else if (selectedProblemId) {
+        renderSubmissionsForSelectedProblem();
+      }
 
       renderUsersTable();
       renderGlobalSubmissionsTable();
     }
 
     function switchAdminTab(tab) {
+      const btnProbs = document.getElementById('tabBtnProblems');
       const btnUsers = document.getElementById('tabBtnUsers');
       const btnSubs = document.getElementById('tabBtnSubmissions');
+      
+      const contentProbs = document.getElementById('tabContentProblems');
       const contentUsers = document.getElementById('tabContentUsers');
       const contentSubs = document.getElementById('tabContentSubmissions');
 
-      if (tab === 'users') {
+      contentProbs.classList.add('hidden');
+      contentUsers.classList.add('hidden');
+      contentSubs.classList.add('hidden');
+      
+      btnProbs.className = 'px-4 py-2 rounded-xl text-xs font-semibold bg-black/40 text-gray-400 hover:text-white border border-white/10 transition cursor-pointer';
+      btnUsers.className = 'px-4 py-2 rounded-xl text-xs font-semibold bg-black/40 text-gray-400 hover:text-white border border-white/10 transition cursor-pointer';
+      btnSubs.className = 'px-4 py-2 rounded-xl text-xs font-semibold bg-black/40 text-gray-400 hover:text-white border border-white/10 transition cursor-pointer';
+
+      if (tab === 'problems') {
+        btnProbs.className = 'px-4 py-2 rounded-xl text-xs font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 transition cursor-pointer';
+        contentProbs.classList.remove('hidden');
+      } else if (tab === 'users') {
         btnUsers.className = 'px-4 py-2 rounded-xl text-xs font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 transition cursor-pointer';
-        btnSubs.className = 'px-4 py-2 rounded-xl text-xs font-semibold bg-black/40 text-gray-400 hover:text-white border border-white/10 transition cursor-pointer';
         contentUsers.classList.remove('hidden');
-        contentSubs.classList.add('hidden');
       } else {
         btnSubs.className = 'px-4 py-2 rounded-xl text-xs font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 transition cursor-pointer';
-        btnUsers.className = 'px-4 py-2 rounded-xl text-xs font-semibold bg-black/40 text-gray-400 hover:text-white border border-white/10 transition cursor-pointer';
         contentSubs.classList.remove('hidden');
-        contentUsers.classList.add('hidden');
       }
+    }
+
+    function renderProblemsList() {
+      const container = document.getElementById('problemsListContainer');
+      const query = (document.getElementById('problemSearchInput').value || '').trim().toLowerCase();
+
+      const filtered = allProblemsList.filter(p => {
+        const text = `${p.problem_code || ''} ${p.title || ''}`.toLowerCase();
+        return !query || text.includes(query);
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = `<div class="text-xs text-gray-500 text-center py-6">ไม่พบโจทย์</div>`;
+        return;
+      }
+
+      container.innerHTML = filtered.map(p => {
+        const pSubs = allSubsList.filter(s => String(s.problem_id) === String(p.id));
+        const passedCount = new Set(pSubs.filter(s => s.status === 'Accepted' || s.status === 'AC').map(s => s.user_id)).size;
+        const isSelected = String(selectedProblemId) === String(p.id);
+
+        return `
+          <div onclick="selectProblem('${p.id}')" class="tech-glass p-3 rounded-2xl border transition cursor-pointer ${isSelected ? 'border-cyan-400 bg-cyan-500/15 shadow-lg' : 'border-cyan-500/20 hover:bg-cyan-500/5'}">
+            <div class="flex justify-between items-center mb-1">
+              <span class="font-bold text-cyan-300 font-mono text-xs">${p.problem_code || 'P' + p.id}</span>
+              <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-semibold"><i class="fa-solid fa-check mr-1"></i>ผ่าน ${passedCount} คน</span>
+            </div>
+            <div class="text-xs font-semibold text-white truncate">${p.title}</div>
+            <div class="text-[10px] text-gray-400 mt-1">ส่งทั้งหมด ${pSubs.length} ครั้ง</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function selectProblem(problemId) {
+      selectedProblemId = problemId;
+      renderProblemsList();
+      renderSubmissionsForSelectedProblem();
+    }
+
+    function renderSubmissionsForSelectedProblem() {
+      const tbody = document.getElementById('selectedProblemSubsBody');
+      const prob = allProblemsList.find(p => String(p.id) === String(selectedProblemId));
+      if (!prob) return;
+
+      document.getElementById('selectedProblemTitle').textContent = `${prob.problem_code || 'P' + prob.id} : ${prob.title}`;
+      document.getElementById('selectedProblemMeta').textContent = `คะแนนเต็ม: ${prob.max_score || 100} คะแนน &bull; รายการส่งโค้ดทั้งหมดของข้อนี้`;
+
+      const statusFilter = document.getElementById('probSubStatusFilter').value;
+      const pSubs = allSubsList.filter(s => {
+        if (String(s.problem_id) !== String(selectedProblemId)) return false;
+        if (statusFilter !== 'all' && s.status !== statusFilter) return false;
+        return true;
+      });
+
+      if (pSubs.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-gray-500 text-xs">ยังไม่มีนักเรียนส่งโค้ดในข้อนี้</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = pSubs.map(s => {
+        const studentName = profileMap[s.user_id]?.name || `User-${String(s.user_id).slice(0, 6)}`;
+        const isAc = s.status === 'Accepted' || s.status === 'AC';
+        const badgeClass = isAc ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-rose-500/20 text-rose-300 border border-rose-500/40';
+        const timeStr = s.created_at ? new Date(s.created_at).toLocaleString('th-TH') : '-';
+
+        return `
+          <tr class="hover:bg-cyan-500/5 transition">
+            <td class="px-3 py-3 text-xs text-gray-400 font-mono">${timeStr}</td>
+            <td class="px-3 py-3 font-semibold text-white text-xs">${studentName}</td>
+            <td class="px-3 py-3 text-center font-mono text-xs text-amber-300">${s.language || 'C++'}</td>
+            <td class="px-3 py-3 text-center"><span class="px-2.5 py-1 rounded-lg text-xs font-bold ${badgeClass}">${s.status}</span></td>
+            <td class="px-3 py-3 text-right">
+              <button type="button" onclick="inspectSubmissionCode('${s.id}')" class="bg-cyan-500/15 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/30 px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer">
+                <i class="fa-solid fa-code mr-1"></i> ตรวจโค้ด & ข้อผิดพลาด
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
     }
 
     function renderUsersTable() {
@@ -290,8 +435,6 @@
         if (query && !`${u.username} ${u.email} ${u.id}`.toLowerCase().includes(query)) return false;
         return true;
       });
-
-      document.getElementById('userCountBadge').textContent = `ทั้งหมด ${filtered.length} คน`;
 
       if (filtered.length === 0) {
         tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-gray-400">ไม่พบข้อมูลผู้ใช้</td></tr>`;
@@ -311,7 +454,7 @@
           <td class="px-4 py-3.5 text-center text-gray-300">${u.totalSubs} ครั้ง</td>
           <td class="px-4 py-3.5 text-right whitespace-nowrap">
             <button type="button" onclick="openUserDetail('${u.id}')" class="bg-cyan-500/20 text-cyan-300 hover:bg-cyan-500 hover:text-black px-3.5 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer">
-              <i class="fa-solid fa-eye mr-1"></i> ดูข้อมูลเชิงลึก
+              <i class="fa-solid fa-eye mr-1"></i> ดูข้อมูล
             </button>
           </td>
         </tr>
@@ -382,63 +525,33 @@
         <div class="tech-glass p-3 rounded-2xl"><div class="text-xs text-gray-400">อัตราผ่าน</div><div class="text-lg font-bold text-amber-300">${acRate}%</div></div>
       `;
 
-      // สร้างตาราง Problem Breakdown รายข้อสำหรับนักเรียนคนนี้
       const breakdownGrid = document.getElementById('udProblemBreakdownGrid');
-      if (allProblemsList.length === 0) {
-        breakdownGrid.innerHTML = `<div class="text-xs text-gray-500 text-center py-3 col-span-full">ไม่พบข้อมูลโจทย์ในระบบ</div>`;
-      } else {
-        breakdownGrid.innerHTML = allProblemsList.map(p => {
-          const pSubs = userSubs.filter(s => String(s.problem_id) === String(p.id));
-          const attempts = pSubs.length;
-          const bestSub = pSubs.reduce((best, cur) => (cur.score > best.score ? cur : best), pSubs[0] || { score: 0, status: 'Not Submitted' });
-          const isPassed = pSubs.some(s => s.status === 'Accepted' || s.status === 'AC');
+      breakdownGrid.innerHTML = allProblemsList.map(p => {
+        const pSubs = userSubs.filter(s => String(s.problem_id) === String(p.id));
+        const attempts = pSubs.length;
+        const isPassed = pSubs.some(s => s.status === 'Accepted' || s.status === 'AC');
 
-          let badgeClass = 'bg-white/5 text-gray-400 border-white/10';
-          let statusText = 'ยังไม่เคยส่ง';
-          if (isPassed) {
-            badgeClass = 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40';
-            statusText = `ผ่านแล้ว (${bestSub.score || p.max_score} คะแนน)`;
-          } else if (attempts > 0) {
-            badgeClass = 'bg-rose-500/20 text-rose-300 border-rose-500/40';
-            statusText = `พยายามแล้ว (${attempts} ครั้ง)`;
-          }
-
-          return `
-            <div class="tech-glass p-3 rounded-2xl border ${badgeClass} space-y-1.5">
-              <div class="flex justify-between items-center">
-                <span class="font-bold text-white font-mono text-xs">${p.problem_code || 'P' + p.id}</span>
-                <span class="text-[10px] opacity-80">${attempts} ส่ง</span>
-              </div>
-              <div class="text-xs font-semibold truncate" title="${p.title}">${p.title}</div>
-              <div class="flex justify-between items-center pt-1 border-t border-white/10">
-                <span class="text-[10px] opacity-90">${statusText}</span>
-                ${attempts > 0 ? `<button type="button" onclick="inspectSubmissionCode('${bestSub.id}')" class="text-[10px] bg-cyan-500/20 hover:bg-cyan-500/40 text-cyan-300 px-2 py-0.5 rounded transition cursor-pointer font-semibold">ดูโค้ดล่าสุด</button>` : ''}
-              </div>
-            </div>
-          `;
-        }).join('');
-      }
-
-      // รายการ Submissions ทั้งหมดของนักเรียนคนนี้
-      document.getElementById('udSubmissionsList').innerHTML = userSubs.map(s => {
-        const probInfo = problemMap[s.problem_id] || { code: 'P' + s.problem_id, title: 'Problem' };
-        const isAc = s.status === 'Accepted' || s.status === 'AC';
-        const badgeClass = isAc ? 'bg-emerald-500/20 text-emerald-300' : 'bg-rose-500/20 text-rose-300';
-        const timeStr = s.created_at ? new Date(s.created_at).toLocaleString('th-TH') : '';
+        let badgeClass = 'bg-white/5 text-gray-400 border-white/10';
+        let statusText = 'ยังไม่เคยส่ง';
+        if (isPassed) {
+          badgeClass = 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40';
+          statusText = 'ผ่านแล้ว (AC)';
+        } else if (attempts > 0) {
+          badgeClass = 'bg-rose-500/20 text-rose-300 border-rose-500/40';
+          statusText = `ไม่ผ่าน (${attempts} ครั้ง)`;
+        }
 
         return `
-          <div class="bg-black/50 border border-white/10 p-3 rounded-xl flex justify-between items-center text-xs">
-            <div>
-              <span class="font-semibold text-cyan-300 font-mono">${probInfo.code}</span> <span class="text-white">${probInfo.title}</span>
-              <span class="text-gray-400 block text-[11px]">${s.language || 'C++'} &bull; ${timeStr}</span>
+          <div class="tech-glass p-3 rounded-2xl border ${badgeClass} space-y-1">
+            <div class="flex justify-between items-center text-xs font-mono">
+              <span class="font-bold text-white">${p.problem_code || 'P' + p.id}</span>
+              <span>${attempts} ส่ง</span>
             </div>
-            <div class="flex items-center gap-2">
-              <span class="font-bold px-2 py-0.5 rounded-lg ${badgeClass}">${s.status}</span>
-              <button type="button" onclick="inspectSubmissionCode('${s.id}')" class="bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 px-2.5 py-1 rounded-lg transition cursor-pointer font-semibold">ตรวจโค้ด</button>
-            </div>
+            <div class="text-xs truncate" title="${p.title}">${p.title}</div>
+            <div class="text-[10px] opacity-90">${statusText}</div>
           </div>
         `;
-      }).join('') || '<div class="text-xs text-gray-500 text-center py-4">ยังไม่มีประวัติการส่งโค้ด</div>';
+      }).join('');
 
       const modal = document.getElementById('userDetailModal');
       modal.classList.remove('hidden');
@@ -466,15 +579,23 @@
       statusBadge.className = `px-3 py-1 rounded-lg text-xs font-bold ${isAc ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-rose-500/20 text-rose-300 border border-rose-500/40'}`;
       statusBadge.textContent = sub.status || 'Unknown';
 
-      // จำลองหรือดึงผลการตรวจ Testcases (ถ้ามีเก็บไว้ใน Field เช่น sub.testcase_results หรือ sub.output)
+      // แสดงรายละเอียดผลการตรวจ Testcases หรือข้อผิดพลาดที่เกิดขึ้น
       const testcaseBox = document.getElementById('scModalTestcasesDetails');
-      if (sub.testcase_results || sub.details) {
-        testcaseBox.textContent = typeof sub.testcase_results === 'string' ? sub.testcase_results : JSON.stringify(sub.testcase_results || sub.details, null, 2);
+      if (sub.testcase_results || sub.details || sub.error_message) {
+        let detailsHtml = '';
+        if (sub.error_message) {
+          detailsHtml += `<div class="text-rose-400 font-bold mb-2">Error / Compiler Message:</div><pre class="bg-black/50 p-2 rounded text-rose-300">${sub.error_message}</pre>`;
+        }
+        if (sub.testcase_results) {
+          detailsHtml += `<div class="text-cyan-300 font-bold mt-2 mb-1">Testcase Results:</div>`;
+          detailsHtml += typeof sub.testcase_results === 'string' ? sub.testcase_results : JSON.stringify(sub.testcase_results, null, 2);
+        }
+        testcaseBox.innerHTML = detailsHtml || JSON.stringify(sub, null, 2);
       } else {
         testcaseBox.innerHTML = `
           <div>คะแนนที่ได้: <span class="text-emerald-400 font-bold">${sub.score ?? (isAc ? 100 : 0)} คะแนน</span></div>
           <div>สถานะการตรวจ: <span class="text-cyan-300">${sub.status}</span></div>
-          <div class="text-gray-500 mt-1">// ข้อมูลผลการตรวจราย Testcase (Standard Judge Output)</div>
+          <div class="text-gray-400 mt-1">// รายละเอียดเพิ่มเติม: โค้ดนี้ถูกประเมินโดย Grader สำเร็จแล้ว (ไม่มี Error ลึกระดับระบบ)</div>
         `;
       }
 
@@ -494,24 +615,6 @@
       navigator.clipboard.writeText(code).then(() => {
         showToast('คัดลอกสำเร็จ', 'คัดลอกซอร์สโค้ดลงคลิปบอร์ดเรียบร้อยแล้ว');
       });
-    }
-
-    function exportUsersCsv() {
-      if (!allUsersList.length) return;
-      const headers = ['UserID', 'DisplayName', 'Email', 'Role', 'SolvedProblemsCount', 'TotalSubmissions'];
-      const rows = [headers];
-      allUsersList.forEach(u => {
-        rows.push([u.id, `"${u.username}"`, `"${u.email}"`, u.role, u.acCount, u.totalSubs]);
-      });
-      const csv = rows.map(r => r.join(',')).join('\n');
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `st8_users_report_${new Date().toISOString().slice(0, 10)}.csv`;
-      a.click();
-      URL.revokeObjectURL(url);
-      showToast('Export สำเร็จ', 'ดาวน์โหลดไฟล์ CSV รายงานผู้ใช้เรียบร้อยแล้ว');
     }
 
     ensureAdminSession(fetchUsersAndSubmissions);

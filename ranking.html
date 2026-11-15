@@ -49,6 +49,11 @@
     .modal-box { transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.28s ease; }
     .modal-open .modal-box { transform: scale(1) translateY(0); opacity: 1; }
     .modal-closed .modal-box { transform: scale(0.95) translateY(12px); opacity: 0; }
+
+    /* HOVER HIGHLIGHT TABLE COL & ROW */
+    td.matrix-cell { transition: background-color 0.15s ease; }
+    tr.matrix-row:hover td.matrix-cell { background-color: rgba(56, 189, 248, 0.06); }
+    td.matrix-cell.col-hover { background-color: rgba(56, 189, 248, 0.08) !important; }
   </style>
 </head>
 <body class="min-h-screen flex flex-col relative overflow-x-hidden cyber-grid selection:bg-cyan-500 selection:text-black">
@@ -106,7 +111,7 @@
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-gradient-to-r from-amber-950/40 via-cyan-950/25 to-blue-950/20 p-5 md:p-6 rounded-3xl border border-cyan-500/20">
       <div>
         <h2 class="text-xl md:text-2xl font-bold text-white mb-1"><i class="fa-solid fa-ranking-star text-amber-400 mr-2"></i> บอร์ดจัดอันดับคะแนน (TOI Scoreboard)</h2>
-        <p class="text-xs text-gray-400">คะแนนรวมอยู่ด้านหลังสุด &bull; เรียงโจทย์ตามรหัส &bull; กราฟเส้นพัฒนาการตามเวลา</p>
+        <p class="text-xs text-gray-400">Hover ไฮไลต์แถวและคอลัมน์ &bull; เช็กสถานะโจทย์รายบุคคล &bull; กราฟเส้นพัฒนาการตามเวลา</p>
       </div>
       <button type="button" onclick="loadScoreboardEnvironment()" class="tech-glass hover:bg-cyan-500/15 text-cyan-300 border border-cyan-500/35 px-4 py-2.5 rounded-xl text-xs font-semibold transition cursor-pointer shrink-0">
         <i class="fa-solid fa-rotate mr-1.5"></i> รีเฟรชผลคะแนน
@@ -232,6 +237,14 @@
         <div class="tech-glass p-3.5 rounded-2xl border border-cyan-500/25 text-center">
           <div class="text-[11px] text-gray-400">อัตราผ่าน (AC Rate)</div>
           <div id="modalStatAcRate" class="text-xl font-bold text-cyan-300 mt-0.5 font-mono">0%</div>
+        </div>
+      </div>
+
+      <!-- PROBLEM SOLVED BREAKDOWN (สถานะโจทย์แต่ละข้อว่าผ่าน/ไม่ผ่าน) -->
+      <div class="tech-glass p-4 rounded-2xl border border-cyan-500/20 space-y-3">
+        <h4 class="text-xs font-bold text-cyan-300 uppercase tracking-wider"><i class="fa-solid fa-list-check mr-1.5"></i> สถานะโจทย์รอบนี้ (ผ่าน / ยังไม่ผ่าน)</h4>
+        <div id="modalProblemStatusGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 max-h-40 overflow-y-auto pr-1">
+          <!-- Rendered dynamically -->
         </div>
       </div>
 
@@ -540,14 +553,13 @@
       const tbody = document.getElementById('ioiTableBody');
       const query = (document.getElementById('sbSearchInput').value || '').trim().toLowerCase();
 
-      const probHeaders = activeProblemColumns.map(col => `
-        <th class="px-3 py-3.5 text-center min-w-[78px]" title="${col.title}">
+      const probHeaders = activeProblemColumns.map((col, cIdx) => `
+        <th class="px-3 py-3.5 text-center min-w-[78px]" data-col-index="${cIdx + 3}" title="${col.title}">
           <div class="font-bold text-cyan-300">${col.label}</div>
           <div class="text-[10px] text-gray-400 font-normal">(${col.maxScore})</div>
         </th>
       `).join('');
 
-      // ย้ายคอลัมน์ "คะแนนรวม" มาไว้ด้านหลังสุด (หลังคอลัมน์โจทย์ทั้งหมด)
       thead.innerHTML = `
         <tr>
           <th class="px-3 py-3.5 text-center w-14">กราฟ</th>
@@ -574,17 +586,17 @@
         else if (trueRank === 2) rankBadge = `<span class="px-2 py-0.5 rounded bg-slate-300/20 text-slate-200 font-bold text-xs">2</span>`;
         else if (trueRank === 3) rankBadge = `<span class="px-2 py-0.5 rounded bg-amber-700/25 text-amber-300 font-bold text-xs">3</span>`;
 
-        const problemCells = activeProblemColumns.map(col => {
+        const problemCells = activeProblemColumns.map((col, cIdx) => {
           const attempts = row.attemptsByProblem[col.id] || 0;
           const score = row.bestByProblem[col.id] || 0;
-          if (attempts === 0) return `<td class="px-2 py-3 text-center text-gray-600 font-mono text-xs">-</td>`;
+          if (attempts === 0) return `<td class="px-2 py-3 text-center text-gray-600 font-mono text-xs matrix-cell" data-col-index="${cIdx + 3}">-</td>`;
 
           let cellStyle = 'bg-rose-500/15 text-rose-300 border-rose-500/30';
           if (score >= col.maxScore) cellStyle = 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 font-bold';
           else if (score > 0) cellStyle = 'bg-amber-500/20 text-amber-300 border-amber-500/40 font-semibold';
 
           return `
-            <td class="px-2 py-2.5 text-center">
+            <td class="px-2 py-2.5 text-center matrix-cell" data-col-index="${cIdx + 3}">
               <div class="inline-flex flex-col items-center justify-center min-w-[54px] py-1 px-2 rounded-xl border ${cellStyle}">
                 <span class="text-xs leading-tight">${score}</span>
                 <span class="text-[9px] opacity-75 leading-none mt-0.5">${attempts} ส่ง</span>
@@ -594,12 +606,12 @@
         }).join('');
 
         return `
-          <tr class="hover:bg-cyan-500/5 transition ${isChecked ? 'bg-cyan-500/10' : ''} ${isMe ? 'bg-cyan-950/25 border-l-2 border-cyan-400' : ''}">
-            <td class="px-3 py-3 text-center">
+          <tr class="matrix-row hover:bg-cyan-500/5 transition ${isChecked ? 'bg-cyan-500/10' : ''} ${isMe ? 'bg-cyan-950/25 border-l-2 border-cyan-400' : ''}">
+            <td class="px-3 py-3 text-center matrix-cell" data-col-index="0">
               <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleChartUser('${row.userId}')" class="w-4 h-4 accent-cyan-400 cursor-pointer rounded">
             </td>
-            <td class="px-3 py-3 text-center whitespace-nowrap">${rankBadge}</td>
-            <td class="px-4 py-3">
+            <td class="px-3 py-3 text-center whitespace-nowrap matrix-cell" data-col-index="1">${rankBadge}</td>
+            <td class="px-4 py-3 matrix-cell" data-col-index="2">
               <button type="button" onclick="openStudentProfileModal('${row.userId}')" class="text-left group cursor-pointer">
                 <div class="font-bold text-white text-sm group-hover:text-cyan-300 transition flex items-center gap-1.5">
                   ${row.displayName} ${isMe ? '<span class="text-[10px] px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300">คุณ</span>' : ''}
@@ -608,12 +620,28 @@
               </button>
             </td>
             ${problemCells}
-            <td class="px-4 py-3 text-center whitespace-nowrap">
+            <td class="px-4 py-3 text-center whitespace-nowrap matrix-cell" data-col-index="${3 + activeProblemColumns.length}">
               <span class="text-base font-bold text-cyan-300 bg-cyan-500/15 px-3 py-1 rounded-xl border border-cyan-500/30 font-mono">${row.totalScore}</span>
             </td>
           </tr>
         `;
       }).join('');
+
+      bindTableHoverHighlight();
+    }
+
+    function bindTableHoverHighlight() {
+      const cells = document.querySelectorAll('td.matrix-cell');
+      cells.forEach(cell => {
+        cell.addEventListener('mouseenter', () => {
+          const colIdx = cell.getAttribute('data-col-index');
+          document.querySelectorAll(`td.matrix-cell[data-col-index="${colIdx}"]`).forEach(c => c.classList.add('col-hover'));
+        });
+        cell.addEventListener('mouseleave', () => {
+          const colIdx = cell.getAttribute('data-col-index');
+          document.querySelectorAll(`td.matrix-cell[data-col-index="${colIdx}"]`).forEach(c => c.classList.remove('col-hover'));
+        });
+      });
     }
 
     async function openStudentProfileModal(userId) {
@@ -646,6 +674,38 @@
       const acSubs = userSubs.filter(s => s.status === 'Accepted' || s.status === 'AC').length;
       const acRate = totalSubs > 0 ? Math.round((acSubs / totalSubs) * 100) : 0;
       document.getElementById('modalStatAcRate').textContent = `${acRate}%`;
+
+      // Render Problem Status Breakdown Grid
+      const probStatusGrid = document.getElementById('modalProblemStatusGrid');
+      probStatusGrid.innerHTML = activeProblemColumns.map(col => {
+        const score = row.bestByProblem[col.id] || 0;
+        const isPassed = score >= col.maxScore;
+        const isAttempted = (row.attemptsByProblem[col.id] || 0) > 0;
+
+        let badgeClass = 'bg-white/5 text-gray-400 border-white/10';
+        let statusText = 'ยังไม่ส่ง';
+        let iconClass = 'fa-circle-minus text-gray-500';
+
+        if (isPassed) {
+          badgeClass = 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40';
+          statusText = `ผ่านแล้ว (${score} คะแนน)`;
+          iconClass = 'fa-circle-check text-emerald-400';
+        } else if (isAttempted) {
+          badgeClass = 'bg-rose-500/20 text-rose-300 border-rose-500/40';
+          statusText = `ยังไม่ผ่าน (${score} คะแนน)`;
+          iconClass = 'fa-circle-xmark text-rose-400';
+        }
+
+        return `
+          <div class="flex items-center justify-between p-2.5 rounded-xl border ${badgeClass} text-xs">
+            <div>
+              <div class="font-bold text-white">${col.label}</div>
+              <div class="text-[10px] opacity-80">${statusText}</div>
+            </div>
+            <i class="fa-solid ${iconClass} text-sm"></i>
+          </div>
+        `;
+      }).join('');
 
       const listContainer = document.getElementById('modalSubmissionHistoryList');
       if (userSubs.length === 0) {

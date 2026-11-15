@@ -60,7 +60,7 @@
       <div class="tech-glass p-4 rounded-2xl border border-cyan-500/20 grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
         <div class="md:col-span-5">
           <label class="block text-[11px] text-cyan-300 font-semibold mb-1">เลือกรอบการแข่งขัน (Contest):</label>
-          <select id="contestSelect" onchange="recomputeIoiScoreboard()" class="w-full bg-black/70 border border-cyan-500/30 focus:border-cyan-400 focus:outline-none rounded-xl px-3.5 py-2 text-sm text-white cursor-pointer">
+          <select id="contestSelect" onchange="onContestChange()" class="w-full bg-black/70 border border-cyan-500/30 focus:border-cyan-400 focus:outline-none rounded-xl px-3.5 py-2 text-sm text-white cursor-pointer">
             <option value="ALL">รวมโจทย์ทั้งหมดในระบบ (Global Practice)</option>
           </select>
         </div>
@@ -210,6 +210,7 @@
     let scoreChartInstance = null;
     let individualChartInstance = null;
     let isFreezeActive = false;
+    let realtimeChannel = null;
 
     const CHART_PALETTE = [
       '#38bdf8', '#fbbf24', '#34d399', '#f472b6', '#a78bfa',
@@ -242,20 +243,82 @@
         selectEl.value = String(allContests[0].id);
       }
 
+      // ดึงสถานะ is_frozen ของ Contest ที่เลือกปัจจุบันมาตั้งค่าปุ่ม
+      updateFreezeButtonState();
       recomputeIoiScoreboard();
+      setupRealtimeSubscription();
     }
 
-    function toggleScoreboardFreeze() {
-      isFreezeActive = !isFreezeActive;
+    function setupRealtimeSubscription() {
+      if (realtimeChannel) supabaseClient.removeChannel(realtimeChannel);
+
+      realtimeChannel = supabaseClient.channel('public:admin_scoreboard_sync')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'submissions' }, () => {
+          loadScoreboardEnvironment();
+        })
+        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'contests' }, payload => {
+          const selectedContestId = document.getElementById('contestSelect').value;
+          if (selectedContestId !== 'ALL' && String(payload.new.id) === String(selectedContestId)) {
+            const idx = allContests.findIndex(c => String(c.id) === String(payload.new.id));
+            if (idx !== -1) allContests[idx] = payload.new;
+            updateFreezeButtonState();
+            recomputeIoiScoreboard();
+          }
+        })
+        .subscribe();
+    }
+
+    function updateFreezeButtonState() {
+      const selectedContestId = document.getElementById('contestSelect').value;
+      if (selectedContestId === 'ALL') {
+        isFreezeActive = false;
+      } else {
+        const currentContest = allContests.find(c => String(c.id) === String(selectedContestId));
+        isFreezeActive = currentContest ? !!currentContest.is_frozen : false;
+      }
+
       const btn = document.getElementById('freezeToggleBtn');
       if (isFreezeActive) {
         btn.className = 'w-full py-2 px-3 rounded-xl text-xs font-bold border border-cyan-400 bg-cyan-500/20 text-cyan-200 transition cursor-pointer flex items-center justify-center gap-2 shadow-md shadow-cyan-500/20';
         btn.innerHTML = '<i class="fa-solid fa-snowflake fa-spin text-cyan-300"></i> <span>Freeze: เปิดใช้งาน (ซ่อน 30 นาทีท้าย)</span>';
-        showToast('เปิดโหมด Freeze แล้ว', 'ซ่อนผลคะแนนช่วง 30 นาทีสุดท้ายของ Contest');
       } else {
         btn.className = 'w-full py-2 px-3 rounded-xl text-xs font-semibold border border-cyan-500/30 bg-black/60 text-gray-300 hover:border-amber-400 transition cursor-pointer flex items-center justify-center gap-2';
         btn.innerHTML = '<i class="fa-solid fa-snowflake text-cyan-400"></i> <span>Freeze: ปิดอยู่</span>';
       }
+    }
+
+    async function toggleScoreboardFreeze() {
+      const selectedContestId = document.getElementById('contestSelect').value;
+      if (selectedContestId === 'ALL') {
+        showToast('แจ้งเตือน', 'โหมด Freeze ใช้ได้เฉพาะเมื่อเลือก Contest เฉพาะกิจเท่านั้น', true);
+        return;
+      }
+
+      isFreezeActive = !isFreezeActive;
+
+      // บันทึกสถานะลง Supabase ทันทีเพื่อให้ซิงค์กับหน้าอื่น ๆ
+      const { error } = await supabaseClient
+        .from('contests')
+        .update({ is_frozen: isFreezeActive })
+        .eq('id', selectedContestId);
+
+      if (error) {
+        showToast('เกิดข้อผิดพลาด', error.message, true);
+        isFreezeActive = !isFreezeActive; // rollback
+        return;
+      }
+
+      updateFreezeButtonState();
+      if (isFreezeActive) {
+        showToast('เปิดโหมด Freeze แล้ว', 'ซ่อนผลคะแนนช่วง 30 นาทีสุดท้ายของ Contest เรียบร้อย');
+      } else {
+        showToast('ปิดโหมด Freeze แล้ว', 'แสดงผลคะแนนตามเวลาจริงปกติ');
+      }
+      recomputeIoiScoreboard();
+    }
+
+    function onContestChange() {
+      updateFreezeButtonState();
       recomputeIoiScoreboard();
     }
 
@@ -294,7 +357,7 @@
           const baseProb = probLookup[cp.problem_id] || {};
           return {
             id: cp.problem_id,
-            label: cp.problem_label || String.fromCharCode(65 + idx),
+            label: cp.problem_label || baseProb.problem_code || String.fromCharCode(65 + idx),
             title: baseProb.title || `Problem #${cp.problem_id}`,
             maxScore: Number(cp.custom_score || baseProb.max_score || 100)
           };
@@ -401,7 +464,7 @@
 
       const probHeaders = activeProblemColumns.map((col, cIdx) => `
         <th class="px-3 py-3.5 text-center min-w-[78px]" data-col-index="${cIdx + 3}" title="${col.title}">
-          <div class="font-bold text-cyan-300">${col.label}</div>
+          <div class="font-bold text-cyan-300 font-mono">${col.label}</div>
           <div class="text-[10px] text-gray-400 font-normal">(${col.maxScore})</div>
         </th>
       `).join('');
@@ -547,7 +610,7 @@
         return `
           <div class="flex items-center justify-between p-2.5 rounded-xl border ${badgeClass} text-xs">
             <div>
-              <div class="font-bold text-white">${col.label}</div>
+              <div class="font-bold text-white font-mono">${col.label}</div>
               <div class="text-[10px] opacity-80">${statusText}</div>
             </div>
             <i class="fa-solid ${iconClass} text-sm"></i>

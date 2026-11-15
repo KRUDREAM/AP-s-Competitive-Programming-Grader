@@ -65,7 +65,7 @@
     </div>
   </div>
 
-  <!-- ANNOUNCEMENT POP-UP MODAL (เด้งขึ้นมาเมื่อมีประกาศใหม่แบบ Realtime) -->
+  <!-- ANNOUNCEMENT POP-UP MODAL -->
   <div id="announcementModal" onclick="if(event.target === this) closeAnnouncementModal()" class="fixed inset-0 z-[110] flex items-center justify-center px-4 bg-black/85 backdrop-blur-md opacity-0 pointer-events-none transition-all duration-300">
     <div class="tech-modal rounded-3xl p-6 md:p-8 max-w-lg w-full relative space-y-4 border border-cyan-500/35 animate-modal-in">
       <button type="button" onclick="closeAnnouncementModal()" class="absolute top-5 right-5 text-gray-400 hover:text-white w-9 h-9 rounded-full bg-cyan-500/10 flex items-center justify-center cursor-pointer hover:bg-cyan-500/25 transition">
@@ -131,7 +131,6 @@
         <a href="problems.html" class="hover:text-cyan-400 transition"><i class="fa-solid fa-laptop-code mr-1 text-cyan-500"></i> คลังโจทย์</a>
         <a href="scoreboard.html" class="text-cyan-400 font-semibold transition"><i class="fa-solid fa-ranking-star mr-1"></i> Scoreboard</a>
         
-        <!-- เมนูประกาศระบบพร้อมไอคอนรูประฆัง -->
         <a href="announcement.html" class="relative hover:text-cyan-400 transition hover:scale-110 flex items-center gap-1.5 text-amber-400 font-bold" title="ประกาศระบบ">
           <i class="fa-solid fa-bell text-sm"></i> ประกาศระบบ
           <span id="announcementBadgeDot" class="hidden absolute -top-1 -right-2 w-2 h-2 bg-rose-500 rounded-full animate-ping"></span>
@@ -147,14 +146,14 @@
   <!-- MAIN CONTAINER -->
   <main class="flex-1 max-w-6xl mx-auto px-4 md:px-8 py-8 md:py-10 space-y-6 w-full relative z-10">
 
-    <!-- ERROR VIEW (แสดงเมื่อไม่มี ?id= ใน URL) -->
+    <!-- ERROR VIEW -->
     <div id="scoreboardErrorView" class="hidden tech-glass p-10 rounded-3xl border border-rose-500/40 text-center space-y-4 shadow-2xl">
       <div class="w-16 h-16 bg-rose-500/20 border border-rose-500/40 rounded-2xl flex items-center justify-center mx-auto text-rose-400 text-2xl shadow-lg">
         <i class="fa-solid fa-triangle-exclamation"></i>
       </div>
       <div class="space-y-1">
         <h2 class="text-xl md:text-2xl font-bold text-white">ERROR: ไม่พบรหัสห้องแข่งขัน (Contest ID)</h2>
-        <p class="text-xs text-gray-400 max-w-md mx-auto">กรุณาเข้าสู่หน้าตารางคะแนนผ่านปุ่มเปิดดู Scoreboard ในหน้าห้องแข่งขัน Contest เพื่อระบุคอนเทสต์ที่ต้องการตรวจสอบผลคะแนน</p>
+        <p class="text-xs text-gray-400 max-w-md mx-auto">กรุณาเข้าสู่หน้าตารางคะแนนผ่านปุ่มเปิดดู Scoreboard ในหน้าห้องแข่งขัน Contest</p>
       </div>
       <div>
         <a href="contest.html" class="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-cyan-500 text-white px-6 py-2.5 rounded-xl text-xs font-bold shadow-lg hover:opacity-95 transition">
@@ -168,11 +167,13 @@
       <!-- HEADER BANNER -->
       <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-gradient-to-r from-amber-950/40 via-cyan-950/25 to-blue-950/20 p-5 md:p-6 rounded-3xl border border-cyan-500/20">
         <div>
-          <div class="inline-flex items-center gap-2 bg-emerald-500/15 border border-emerald-500/35 text-emerald-300 px-3 py-1 rounded-full text-[11px] font-semibold mb-2">
-            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span> LIVE REALTIME SCOREBOARD
+          <div class="flex items-center gap-2 flex-wrap mb-1">
+            <span id="liveStatusIndicator" class="inline-flex items-center gap-1.5 bg-emerald-500/15 border border-emerald-500/35 text-emerald-300 px-3 py-1 rounded-full text-[11px] font-semibold">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span> LIVE REALTIME SCOREBOARD
+            </span>
           </div>
           <h2 id="scoreboardContestTitle" class="text-xl md:text-2xl font-bold text-white mb-1">ตารางคะแนนการแข่งขัน</h2>
-          <p class="text-xs text-gray-400">อัปเดตผลคะแนนแบบเรียลไทม์ &bull; Hover ไฮไลต์แถวและคอลัมน์ &bull; กราฟเส้นพัฒนาการ</p>
+          <p class="text-xs text-gray-400">อัปเดตผลคะแนนแบบเรียลไทม์ &bull; รองรับระบบ Freeze Scoreboard ช่วง 30 นาทีสุดท้าย</p>
         </div>
         <div class="flex items-center gap-2">
           <a id="backToContestRoomBtn" href="contest.html" class="tech-glass hover:bg-cyan-500/15 text-cyan-300 border border-cyan-500/35 px-4 py-2.5 rounded-xl text-xs font-semibold transition cursor-pointer inline-flex items-center gap-1.5">
@@ -207,7 +208,7 @@
       <div class="tech-glass p-5 rounded-2xl border border-cyan-500/25 space-y-4">
         <div class="flex flex-wrap justify-between items-center gap-3">
           <div>
-            <h3 class="text-sm md:text-base font-bold text-white"><i class="fa-solid fa-chart-line text-cyan-400 mr-1.5"></i> กราฟพัฒนาการคะแนนตามเวลา (Realtime)</h3>
+            <h3 class="text-sm md:text-base font-bold text-white"><i class="fa-solid fa-chart-line text-cyan-400 mr-1.5"></i> กราฟพัฒนาการคะแนนตามเวลา</h3>
             <p class="text-xs text-gray-400">ติ๊กเลือกช่อง "กราฟ" หน้าชื่อในตารางเพื่อเปรียบเทียบจังหวะการทำคะแนน</p>
           </div>
           <div class="flex items-center gap-2">
@@ -336,16 +337,12 @@
     function showContestPopup(title) {
       document.getElementById('popupContestTitleText').textContent = title || 'ห้องแข่งขันออนไลน์';
       const popup = document.getElementById('contestPopupNotice');
-      if (popup) {
-        popup.classList.remove('translate-x-[130%]');
-      }
+      if (popup) popup.classList.remove('translate-x-[130%]');
     }
 
     function closeContestPopup() {
       const popup = document.getElementById('contestPopupNotice');
-      if (popup) {
-        popup.classList.add('translate-x-[130%]');
-      }
+      if (popup) popup.classList.add('translate-x-[130%]');
     }
 
     async function initScoreboardPage() {
@@ -456,22 +453,35 @@
         };
       });
 
-      // จัดเรียงรหัสโจทย์ตามลำดับ sort_order จากน้อยไปมาก
       const sortedContestProbs = allContestProblems.slice().sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
 
-      // กำหนดรหัสข้อเป็น A, B, C, D... จากข้อแรกไปข้อสุดท้ายตามลำดับที่จัดไว้
       activeProblemColumns = sortedContestProbs.map((cp, idx) => {
         const baseProb = probLookup[cp.problem_id] || {};
         return {
           id: cp.problem_id,
-          label: String.fromCharCode(65 + idx), // A, B, C, D...
+          label: String.fromCharCode(65 + idx),
           title: baseProb.title || `Problem #${cp.problem_id}`,
           maxScore: Number(cp.custom_score || baseProb.max_score || 100)
         };
       });
 
       const startMs = currentContestObj ? new Date(currentContestObj.start_time).getTime() : 0;
-      const endMs = currentContestObj ? new Date(currentContestObj.end_time).getTime() : Infinity;
+      let endMs = currentContestObj ? new Date(currentContestObj.end_time).getTime() : Infinity;
+
+      // ตรวจสอบโหมด Freeze (ตัดเวลา 30 นาทีท้ายออกอัตโนมัติ หากเข้าสู่ช่วง 30 นาทีสุดท้ายของการแข่งขัน)
+      const nowMs = Date.now();
+      const thirtyMinsMs = 30 * 60 * 1000;
+      const isFreezeTime = nowMs >= (endMs - thirtyMinsMs) && nowMs <= endMs;
+
+      const liveIndicator = document.getElementById('liveStatusIndicator');
+      if (isFreezeTime) {
+        endMs = endMs - thirtyMinsMs; // ตัดซับมิชชัน 30 นาทีท้ายออกตามกฎ Freeze
+        liveIndicator.className = 'inline-flex items-center gap-1.5 bg-amber-500/20 border border-amber-500/40 text-amber-300 px-3 py-1 rounded-full text-[11px] font-semibold';
+        liveIndicator.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span> FREEZE SCOREBOARD ACTIVE (30 นาทีสุดท้าย)';
+      } else {
+        liveIndicator.className = 'inline-flex items-center gap-1.5 bg-emerald-500/15 border border-emerald-500/35 text-emerald-300 px-3 py-1 rounded-full text-[11px] font-semibold';
+        liveIndicator.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span> LIVE REALTIME SCOREBOARD';
+      }
 
       const relevantSubs = allSubmissions.filter(s => {
         const inProbSet = activeProblemColumns.some(col => String(col.id) === String(s.problem_id));
@@ -558,13 +568,15 @@
         </th>
       `).join('');
 
+      // ลำดับหัวตาราง: [กราฟ] [อันดับ] [ชื่อผู้แข่งขัน] [โจทย์ข้อ A, B, C...] [คะแนนรวม (ไว้หลังสุด)]
+      const totalColIdx = 3 + activeProblemColumns.length;
       thead.innerHTML = `
         <tr>
-          <th class="px-3 py-3.5 text-center w-14">กราฟ</th>
-          <th class="px-3 py-3.5 text-center w-20">อันดับ</th>
-          <th class="px-4 py-3.5 min-w-[180px]">ชื่อผู้แข่งขัน</th>
+          <th class="px-3 py-3.5 text-center w-14" data-col-index="0">กราฟ</th>
+          <th class="px-3 py-3.5 text-center w-20" data-col-index="1">อันดับ</th>
+          <th class="px-4 py-3.5 min-w-[180px]" data-col-index="2">ชื่อผู้แข่งขัน</th>
           ${probHeaders}
-          <th class="px-4 py-3.5 text-center whitespace-nowrap">คะแนนรวม</th>
+          <th class="px-4 py-3.5 text-center whitespace-nowrap" data-col-index="${totalColIdx}">คะแนนรวม</th>
         </tr>
       `;
 
@@ -619,22 +631,23 @@
               </button>
             </td>
             ${problemCells}
-            <td class="px-4 py-3 text-center whitespace-nowrap matrix-cell" data-col-index="${3 + activeProblemColumns.length}">
+            <td class="px-4 py-3 text-center whitespace-nowrap matrix-cell" data-col-index="${totalColIdx}">
               <span class="text-base font-bold text-cyan-300 bg-cyan-500/15 px-3 py-1 rounded-xl border border-cyan-500/30 font-mono">${row.totalScore}</span>
             </td>
           </tr>
         `;
       }).join('');
 
+      // แถวสรุปจำนวนคนผ่าน (AC) ไว้ด้านล่างสุด (Footer)
       const acCountsByProb = {};
       activeProblemColumns.forEach(col => {
         acCountsByProb[col.id] = computedRows.filter(r => (r.bestByProblem[col.id] || 0) >= col.maxScore).length;
       });
 
-      const footProbCells = activeProblemColumns.map(col => {
+      const footProbCells = activeProblemColumns.map((col, cIdx) => {
         const count = acCountsByProb[col.id] || 0;
         return `
-          <td class="px-2 py-3 text-center">
+          <td class="px-2 py-3 text-center matrix-cell" data-col-index="${cIdx + 3}">
             <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 text-xs font-mono">
               <i class="fa-solid fa-check text-[10px]"></i> ${count} คน
             </span>
@@ -644,11 +657,11 @@
 
       tfoot.innerHTML = `
         <tr>
-          <td colspan="3" class="px-4 py-3.5 text-right font-bold text-cyan-300">
+          <td colspan="3" class="px-4 py-3.5 text-right font-bold text-cyan-300" data-col-index="0">
             <i class="fa-solid fa-users mr-1"></i> จำนวนผู้ผ่านข้อนี้ทั้งหมด:
           </td>
           ${footProbCells}
-          <td></td>
+          <td class="px-4 py-3 text-center font-bold text-cyan-300" data-col-index="${totalColIdx}">-</td>
         </tr>
       `;
 

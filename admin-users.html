@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>จัดการข้อมูลผู้ใช้และตรวจโค้ด | ST8 CP-Grader Admin</title>
+  <title>จัดการข้อมูลผู้ใช้และตรวจการส่งโค้ด | ST8 CP-Grader Admin</title>
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -31,7 +31,7 @@
       <div class="bg-gradient-to-r from-blue-950/40 via-cyan-950/30 to-purple-950/25 p-5 rounded-2xl border border-cyan-500/20 flex flex-wrap justify-between items-center gap-3">
         <div>
           <h2 class="text-lg md:text-xl font-bold text-white"><i class="fa-solid fa-users-gear text-cyan-400 mr-2"></i> จัดการผู้ใช้และตรวจการส่งโค้ดเชิงลึก (Users & Submissions Audit)</h2>
-          <p class="text-xs text-gray-400">ตรวจสอบสถิติผู้ใช้ ดูประวัติการส่งโค้ดทุกครั้งแบบเรียลไทม์ และตรวจ Source Code รายบุคคล</p>
+          <p class="text-xs text-gray-400">ตรวจสอบสถิติผู้ใช้ ดูประวัติการส่งโค้ดรายบุคคลแยกตามรายข้อ และตรวจ Source Code ได้อย่างละเอียด</p>
         </div>
         <div class="flex items-center gap-2">
           <button type="button" onclick="exportUsersCsv()" class="tech-glass hover:bg-emerald-500/15 text-emerald-300 border border-emerald-500/35 px-3.5 py-2 rounded-xl text-xs font-semibold transition cursor-pointer">
@@ -131,9 +131,9 @@
     </main>
   </div>
 
-  <!-- USER DETAIL POPUP MODAL -->
+  <!-- USER DETAIL & PROBLEM BREAKDOWN MODAL -->
   <div id="userDetailModal" onclick="if(event.target === this) closeUserDetailModal()" class="fixed inset-0 z-50 hidden items-center justify-center px-4 bg-black/85 backdrop-blur-md">
-    <div class="tech-modal rounded-3xl p-6 md:p-8 max-w-3xl w-full max-h-[90vh] overflow-y-auto relative space-y-5">
+    <div class="tech-modal rounded-3xl p-6 md:p-8 max-w-4xl w-full max-h-[90vh] overflow-y-auto relative space-y-6">
       <button type="button" onclick="closeUserDetailModal()" class="absolute top-5 right-5 text-gray-400 hover:text-white w-9 h-9 rounded-full bg-white/10 flex items-center justify-center cursor-pointer"><i class="fa-solid fa-xmark text-xs"></i></button>
       
       <div class="flex items-center gap-4">
@@ -146,8 +146,15 @@
 
       <div id="udModalStats" class="grid grid-cols-3 gap-3 text-center"></div>
 
-      <div class="space-y-2">
-        <h4 class="text-xs font-bold text-cyan-300 uppercase tracking-wider"><i class="fa-solid fa-clock-rotate-left mr-1.5"></i> ประวัติการส่งโค้ดของนักเรียนคนนี้</h4>
+      <!-- PROBLEM BREAKDOWN MATRIX (รายข้อ) -->
+      <div class="space-y-3">
+        <h4 class="text-xs font-bold text-cyan-300 uppercase tracking-wider"><i class="fa-solid fa-list-check mr-1.5"></i> สถิติการทำโจทย์แยกตามรายข้อ (Problem Breakdown)</h4>
+        <div id="udProblemBreakdownGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 max-h-60 overflow-y-auto pr-1"></div>
+      </div>
+
+      <!-- ALL SUBMISSIONS HISTORY FOR THIS USER -->
+      <div class="space-y-3">
+        <h4 class="text-xs font-bold text-cyan-300 uppercase tracking-wider"><i class="fa-solid fa-clock-rotate-left mr-1.5"></i> ประวัติการส่งโค้ดทั้งหมด (Submissions History)</h4>
         <div id="udSubmissionsList" class="space-y-2 max-h-60 overflow-y-auto pr-1"></div>
       </div>
     </div>
@@ -174,6 +181,14 @@
       <div class="relative">
         <pre class="bg-black/80 border border-cyan-500/20 rounded-2xl p-4 text-xs font-mono text-cyan-200 overflow-x-auto max-h-[50vh] leading-relaxed"><code id="scModalCodeContent">// กำลังโหลดซอร์สโค้ด...</code></pre>
       </div>
+
+      <!-- TESTCASES / JUDGE RESULT DETAILS -->
+      <div class="space-y-2 pt-2">
+        <h4 class="text-xs font-bold text-gray-300 uppercase tracking-wider"><i class="fa-solid fa-list-check mr-1.5"></i> ผลการตรวจ Testcases</h4>
+        <div id="scModalTestcasesDetails" class="bg-black/60 border border-white/10 p-3 rounded-xl text-xs text-gray-300 space-y-1 font-mono">
+          -
+        </div>
+      </div>
     </div>
   </div>
 
@@ -183,6 +198,7 @@
 
     let allUsersList = [];
     let allSubsList = [];
+    let allProblemsList = [];
     let problemMap = {};
     let profileMap = {};
 
@@ -190,15 +206,18 @@
       const [{ data: profiles }, { data: subs }, { data: probs }] = await Promise.all([
         supabaseClient.from('profiles').select('*'),
         supabaseClient.from('submissions').select('*').order('created_at', { ascending: false }),
-        supabaseClient.from('problems').select('id, problem_code, title')
+        supabaseClient.from('problems').select('*')
       ]);
 
       allSubsList = subs || [];
+      allProblemsList = probs || [];
       
-      (probs || []).forEach(p => { 
+      allProblemsList.forEach(p => { 
         problemMap[p.id] = {
+          id: p.id,
           code: p.problem_code || `P${p.id}`,
           title: p.title || 'Untitled',
+          maxScore: Number(p.max_score) || 100,
           fullName: `${p.problem_code || 'P' + p.id} - ${p.title || 'Untitled'}`
         }; 
       });
@@ -290,12 +309,9 @@
           </td>
           <td class="px-4 py-3.5 text-center font-bold text-emerald-400">${u.acCount} ข้อ</td>
           <td class="px-4 py-3.5 text-center text-gray-300">${u.totalSubs} ครั้ง</td>
-          <td class="px-4 py-3.5 text-right whitespace-nowrap space-x-1.5">
-            <button type="button" onclick="openUserDetail('${u.id}')" class="bg-cyan-500/20 text-cyan-300 hover:bg-cyan-500 hover:text-black px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer">
-              <i class="fa-solid fa-eye mr-1"></i> ดูข้อมูล
-            </button>
-            <button type="button" onclick="toggleUserRole('${u.id}', '${u.role}')" class="bg-white/5 text-gray-300 hover:bg-amber-500/20 hover:text-amber-300 border border-white/10 px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer">
-              สลับสิทธิ์
+          <td class="px-4 py-3.5 text-right whitespace-nowrap">
+            <button type="button" onclick="openUserDetail('${u.id}')" class="bg-cyan-500/20 text-cyan-300 hover:bg-cyan-500 hover:text-black px-3.5 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer">
+              <i class="fa-solid fa-eye mr-1"></i> ดูข้อมูลเชิงลึก
             </button>
           </td>
         </tr>
@@ -348,13 +364,6 @@
       }).join('');
     }
 
-    async function toggleUserRole(userId, currentRole) {
-      const nextRole = currentRole === 'admin' ? 'user' : 'admin';
-      const { error } = await supabaseClient.from('profiles').update({ role: nextRole }).eq('id', userId);
-      if (error) showToast('เปลี่ยนสิทธิ์ไม่สำเร็จ', error.message, true);
-      else { showToast('อัปเดตสิทธิ์แล้ว', `เปลี่ยนสิทธิ์ผู้ใช้เป็น ${nextRole.toUpperCase()} เรียบร้อย`); fetchUsersAndSubmissions(); }
-    }
-
     function openUserDetail(userId) {
       const user = allUsersList.find(u => String(u.id) === String(userId));
       if (!user) return;
@@ -373,6 +382,44 @@
         <div class="tech-glass p-3 rounded-2xl"><div class="text-xs text-gray-400">อัตราผ่าน</div><div class="text-lg font-bold text-amber-300">${acRate}%</div></div>
       `;
 
+      // สร้างตาราง Problem Breakdown รายข้อสำหรับนักเรียนคนนี้
+      const breakdownGrid = document.getElementById('udProblemBreakdownGrid');
+      if (allProblemsList.length === 0) {
+        breakdownGrid.innerHTML = `<div class="text-xs text-gray-500 text-center py-3 col-span-full">ไม่พบข้อมูลโจทย์ในระบบ</div>`;
+      } else {
+        breakdownGrid.innerHTML = allProblemsList.map(p => {
+          const pSubs = userSubs.filter(s => String(s.problem_id) === String(p.id));
+          const attempts = pSubs.length;
+          const bestSub = pSubs.reduce((best, cur) => (cur.score > best.score ? cur : best), pSubs[0] || { score: 0, status: 'Not Submitted' });
+          const isPassed = pSubs.some(s => s.status === 'Accepted' || s.status === 'AC');
+
+          let badgeClass = 'bg-white/5 text-gray-400 border-white/10';
+          let statusText = 'ยังไม่เคยส่ง';
+          if (isPassed) {
+            badgeClass = 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40';
+            statusText = `ผ่านแล้ว (${bestSub.score || p.max_score} คะแนน)`;
+          } else if (attempts > 0) {
+            badgeClass = 'bg-rose-500/20 text-rose-300 border-rose-500/40';
+            statusText = `พยายามแล้ว (${attempts} ครั้ง)`;
+          }
+
+          return `
+            <div class="tech-glass p-3 rounded-2xl border ${badgeClass} space-y-1.5">
+              <div class="flex justify-between items-center">
+                <span class="font-bold text-white font-mono text-xs">${p.problem_code || 'P' + p.id}</span>
+                <span class="text-[10px] opacity-80">${attempts} ส่ง</span>
+              </div>
+              <div class="text-xs font-semibold truncate" title="${p.title}">${p.title}</div>
+              <div class="flex justify-between items-center pt-1 border-t border-white/10">
+                <span class="text-[10px] opacity-90">${statusText}</span>
+                ${attempts > 0 ? `<button type="button" onclick="inspectSubmissionCode('${bestSub.id}')" class="text-[10px] bg-cyan-500/20 hover:bg-cyan-500/40 text-cyan-300 px-2 py-0.5 rounded transition cursor-pointer font-semibold">ดูโค้ดล่าสุด</button>` : ''}
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      // รายการ Submissions ทั้งหมดของนักเรียนคนนี้
       document.getElementById('udSubmissionsList').innerHTML = userSubs.map(s => {
         const probInfo = problemMap[s.problem_id] || { code: 'P' + s.problem_id, title: 'Problem' };
         const isAc = s.status === 'Accepted' || s.status === 'AC';
@@ -387,7 +434,7 @@
             </div>
             <div class="flex items-center gap-2">
               <span class="font-bold px-2 py-0.5 rounded-lg ${badgeClass}">${s.status}</span>
-              <button type="button" onclick="inspectSubmissionCode('${s.id}')" class="bg-white/10 hover:bg-cyan-500/30 text-white px-2.5 py-1 rounded-lg transition cursor-pointer">ตรวจโค้ด</button>
+              <button type="button" onclick="inspectSubmissionCode('${s.id}')" class="bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 px-2.5 py-1 rounded-lg transition cursor-pointer font-semibold">ตรวจโค้ด</button>
             </div>
           </div>
         `;
@@ -418,6 +465,18 @@
       const isAc = sub.status === 'Accepted' || sub.status === 'AC';
       statusBadge.className = `px-3 py-1 rounded-lg text-xs font-bold ${isAc ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-rose-500/20 text-rose-300 border border-rose-500/40'}`;
       statusBadge.textContent = sub.status || 'Unknown';
+
+      // จำลองหรือดึงผลการตรวจ Testcases (ถ้ามีเก็บไว้ใน Field เช่น sub.testcase_results หรือ sub.output)
+      const testcaseBox = document.getElementById('scModalTestcasesDetails');
+      if (sub.testcase_results || sub.details) {
+        testcaseBox.textContent = typeof sub.testcase_results === 'string' ? sub.testcase_results : JSON.stringify(sub.testcase_results || sub.details, null, 2);
+      } else {
+        testcaseBox.innerHTML = `
+          <div>คะแนนที่ได้: <span class="text-emerald-400 font-bold">${sub.score ?? (isAc ? 100 : 0)} คะแนน</span></div>
+          <div>สถานะการตรวจ: <span class="text-cyan-300">${sub.status}</span></div>
+          <div class="text-gray-500 mt-1">// ข้อมูลผลการตรวจราย Testcase (Standard Judge Output)</div>
+        `;
+      }
 
       const modal = document.getElementById('sourceCodeModal');
       modal.classList.remove('hidden');

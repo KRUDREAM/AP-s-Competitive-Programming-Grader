@@ -244,7 +244,7 @@
       <!-- MONACO EDITOR -->
       <div id="monacoContainer" class="flex-1 min-h-0 w-full relative"></div>
 
-      <!-- BOTTOM CONSOLE (กระชับ ไม่ล้นจอ และรวมปุ่มสั่งการไว้ที่เดียว) -->
+      <!-- BOTTOM CONSOLE -->
       <div class="h-52 shrink-0 bg-[#060a17] border-t border-cyan-500/25 flex flex-col">
         <div class="h-9 px-3 bg-black/60 border-b border-cyan-500/15 flex items-center justify-between gap-2 overflow-x-auto">
           <div class="flex items-center gap-1.5 shrink-0">
@@ -692,7 +692,6 @@
       return await Promise.any([wandboxPromise, judge0Promise]);
     }
 
-    // [Turbo Judge] ทำการรัน Test Cases ทั้งหมดแบบขนาน (Parallel Batch Execution) เพื่อความเร็วสูงสุด
     async function runBatchTestCases(fullCode, lang, testCases) {
       const promises = testCases.map(tc => executeCppSingleCall(fullCode, lang, tc.input || ''));
       return await Promise.all(promises);
@@ -737,7 +736,7 @@
       return (str || '').replace(/\r\n/g, '\n').split('\n').map(line => line.trimEnd()).join('\n').trim();
     }
 
-async function submitSolution() {
+    async function submitSolution() {
       if (!currentProblem || !currentUser) return;
       const btn = document.getElementById('submitCodeBtn');
       const verdictBox = document.getElementById('verdictResultContainer');
@@ -799,7 +798,7 @@ async function submitSolution() {
         const maxScore = currentProblem.max_score || 100;
         const score = finalStatus === 'Accepted' ? maxScore : Math.round((passedCount / totalCases) * maxScore);
 
-        // 1. บันทึก Submission ลงฐานข้อมูลทุกครั้งที่กดส่ง
+        // บันทึก Submission ลงตาราง submissions พร้อมใช้ problem_id ให้ตรงกับฐานข้อมูล
         const { error: subErr } = await supabaseClient.from('submissions').insert([{
           user_id: currentUser.id,
           problem_id: parseInt(problemId),
@@ -815,9 +814,9 @@ async function submitSolution() {
           console.error("Insert submission error:", subErr.message);
         }
 
-        // 2. ระบบจัดการ XP (ให้ครั้งเดียวต่อโจทย์ข้อนี้ หากผ่าน Accepted แล้วจะไม่บวกเพิ่มซ้ำ)
+        // ระบบจัดการ XP (ให้ครั้งเดียวต่อโจทย์ข้อนี้ หากผ่าน Accepted แล้วจะไม่บวกเพิ่มซ้ำ)
         if (finalStatus === 'Accepted' && !hasUserSolvedThisProblem && currentUserProfile) {
-          const xpToAdd = currentProblem.xp_reward || maxScore; // ใช้ค่าที่แอดมินตั้ง หรือใช้ max_score เป็นค่าเริ่มต้น
+          const xpToAdd = currentProblem.xp_reward || maxScore;
           const newXp = (currentUserProfile.xp || 0) + xpToAdd;
           
           await supabaseClient.from('profiles').update({ xp: newXp }).eq('id', currentUser.id);

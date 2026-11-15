@@ -102,13 +102,13 @@
 
     <div class="flex items-center gap-2 shrink-0">
       <span id="engineStatusPill" class="hidden md:inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-xl bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
-        <i class="fa-solid fa-bolt text-amber-400"></i> Turbo Judge Ready
+        <i class="fa-solid fa-bolt text-amber-400"></i> Turbo Judge
       </span>
 
       <div class="hidden lg:flex items-center bg-black/50 p-1 rounded-xl border border-cyan-500/20 text-[11px]">
         <button type="button" onclick="setSplitRatio(28)" class="px-2 py-1 rounded-lg text-gray-300 hover:bg-cyan-500/20 hover:text-cyan-300 transition cursor-pointer">โค้ดกว้าง</button>
-        <button type="button" onclick="setSplitRatio(48)" class="px-2 py-1 rounded-lg text-gray-300 hover:bg-cyan-500/20 hover:text-cyan-300 transition cursor-pointer">สมดุล A4</button>
-        <button type="button" onclick="setSplitRatio(62)" class="px-2 py-1 rounded-lg text-gray-300 hover:bg-cyan-500/20 hover:text-cyan-300 transition cursor-pointer">อ่านโจทย์กว้าง</button>
+        <button type="button" onclick="setSplitRatio(48)" class="px-2 py-1 rounded-lg text-gray-300 hover:bg-cyan-500/20 hover:text-cyan-300 transition cursor-pointer">สมดุล</button>
+        <button type="button" onclick="setSplitRatio(62)" class="px-2 py-1 rounded-lg text-gray-300 hover:bg-cyan-500/20 hover:text-cyan-300 transition cursor-pointer">อ่านโจทย์</button>
       </div>
 
       <span id="navUserBadge" class="text-xs font-semibold text-cyan-300 bg-cyan-950/70 border border-cyan-500/30 px-3 py-1.5 rounded-xl hidden md:inline-flex items-center gap-1.5"></span>
@@ -124,14 +124,14 @@
       <div class="h-12 shrink-0 px-3 bg-[#090f22] border-b border-cyan-500/20 flex items-center justify-between gap-1.5 overflow-x-auto">
         <div class="flex items-center gap-1.5">
           <button type="button" id="leftTabBtnStmt" onclick="switchLeftTab('stmt')" class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow transition cursor-pointer flex items-center gap-1.5 shrink-0">
-            <i class="fa-solid fa-book-open"></i> โจทย์ (Statement)
+            <i class="fa-solid fa-book-open"></i> โจทย์
           </button>
           <button type="button" id="leftTabBtnSubs" onclick="switchLeftTab('subs')" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-gray-300 hover:bg-white/5 transition cursor-pointer flex items-center gap-1.5 shrink-0">
-            <i class="fa-solid fa-clock-rotate-left text-cyan-400"></i> ประวัติส่ง
+            <i class="fa-solid fa-clock-rotate-left text-cyan-400"></i> ประวัติ
             <span id="mySubsCountBadge" class="text-[10px] px-1.5 py-0.2 rounded-full bg-cyan-500/20 text-cyan-300">0</span>
           </button>
           <button type="button" id="leftTabBtnChat" onclick="switchLeftTab('chat')" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-gray-300 hover:bg-white/5 transition cursor-pointer flex items-center gap-1.5 shrink-0">
-            <i class="fa-solid fa-comments text-amber-400"></i> ถาม-ตอบ
+            <i class="fa-solid fa-comments text-amber-400"></i> แชต
             <span id="chatCountBadge" class="text-[10px] px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-300">0</span>
           </button>
         </div>
@@ -203,28 +203,7 @@
           <p class="text-xs text-gray-400 text-center py-8">กำลังโหลดข้อความ...</p>
         </div>
 
-        <div id="chatAttachmentBar" class="hidden px-3.5 py-2 bg-cyan-950/70 border-t border-cyan-500/30 flex items-center justify-between text-xs shrink-0">
-          <div class="flex items-center gap-2 truncate">
-            <i class="fa-solid fa-paperclip text-cyan-400"></i>
-            <span id="chatAttachedLabel" class="text-cyan-200 font-semibold truncate">แนบ #SUB</span>
-            <label class="inline-flex items-center gap-1 text-[11px] text-gray-300 cursor-pointer ml-2">
-              <input type="checkbox" id="chatCodePublicCheck" checked class="accent-cyan-400">
-              <span>ให้คนผ่านข้อนี้ดูโค้ดได้</span>
-            </label>
-          </div>
-          <button type="button" onclick="clearChatAttachment()" class="text-gray-400 hover:text-rose-400 cursor-pointer ml-2"><i class="fa-solid fa-xmark"></i></button>
-        </div>
-
         <form id="chatSendForm" class="p-3 bg-[#080e20] border-t border-cyan-500/20 flex items-center gap-2 shrink-0">
-          <div class="relative">
-            <button type="button" onclick="toggleAttachSubMenu()" class="w-9 h-9 rounded-xl bg-white/5 hover:bg-cyan-500/20 text-cyan-300 border border-cyan-500/25 flex items-center justify-center transition cursor-pointer" title="แนบ Submission">
-              <i class="fa-solid fa-paperclip text-xs"></i>
-            </button>
-            <div id="attachSubPopup" class="hidden absolute bottom-11 left-0 w-64 tech-modal rounded-2xl p-2.5 border border-cyan-500/35 shadow-2xl z-40 space-y-1.5">
-              <div class="text-[11px] font-bold text-cyan-300 px-2 py-1 border-b border-white/10">เลือก Submission ที่ต้องการแนบ</div>
-              <div id="attachSubOptionsList" class="max-h-44 overflow-y-auto space-y-1 text-xs"></div>
-            </div>
-          </div>
           <input type="text" id="chatMessageInput" autocomplete="off" placeholder="พิมพ์ข้อความถามเพื่อน..." class="flex-1 bg-black/65 border border-cyan-500/25 focus:border-cyan-400 focus:outline-none rounded-xl px-3.5 py-2 text-xs text-white">
           <button type="submit" class="bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-95 text-white px-4 py-2 rounded-xl text-xs font-bold shadow transition cursor-pointer shrink-0">
             <i class="fa-solid fa-paper-plane"></i>
@@ -240,24 +219,24 @@
     <section id="rightPane" class="flex-1 h-[55vh] lg:h-full flex flex-col bg-[#050914] min-w-0 overflow-hidden">
       
       <!-- EDITOR TOOLBAR -->
-      <div class="h-12 shrink-0 px-3.5 bg-[#080d1e] border-b border-cyan-500/15 flex items-center justify-between gap-2 overflow-x-auto">
-        <div class="flex items-center gap-2">
-          <select id="langSelect" onchange="handleLanguageChange()" class="bg-black/70 border border-cyan-500/30 focus:border-cyan-400 focus:outline-none rounded-xl px-3 py-1.5 text-xs font-semibold text-white cursor-pointer">
-            <option value="cpp">C++ 17 (GCC Fast)</option>
-            <option value="c">C (GCC Fast)</option>
+      <div class="h-12 shrink-0 px-3 bg-[#080d1e] border-b border-cyan-500/15 flex items-center justify-between gap-2 overflow-x-auto">
+        <div class="flex items-center gap-2 min-w-0">
+          <select id="langSelect" onchange="handleLanguageChange()" class="bg-black/70 border border-cyan-500/30 focus:border-cyan-400 focus:outline-none rounded-xl px-2.5 py-1 text-xs font-semibold text-white cursor-pointer shrink-0">
+            <option value="cpp">C++ 17</option>
+            <option value="c">C</option>
           </select>
 
-          <label class="bg-white/5 hover:bg-cyan-500/15 text-gray-200 hover:text-cyan-300 border border-white/15 px-3 py-1.5 rounded-xl text-xs font-medium transition cursor-pointer flex items-center gap-1.5 shrink-0">
-            <i class="fa-solid fa-upload text-cyan-400"></i> <span>อัปโหลด</span>
+          <label class="bg-white/5 hover:bg-cyan-500/15 text-gray-200 hover:text-cyan-300 border border-white/15 px-2.5 py-1 rounded-xl text-xs font-medium transition cursor-pointer flex items-center gap-1 shrink-0">
+            <i class="fa-solid fa-upload text-cyan-400"></i> <span class="hidden sm:inline">อัปโหลด</span>
             <input type="file" id="codeFileInput" accept=".cpp,.cc,.cxx,.c,.txt" onchange="handleCodeFileUpload(event)" class="hidden">
           </label>
 
-          <button type="button" onclick="resetEditorTemplate()" class="bg-white/5 hover:bg-white/10 text-gray-300 px-2.5 py-1.5 rounded-xl text-xs transition cursor-pointer shrink-0" title="รีเซ็ตโค้ดเริ่มต้น">
+          <button type="button" onclick="resetEditorTemplate()" class="bg-white/5 hover:bg-white/10 text-gray-300 px-2 py-1 rounded-xl text-xs transition cursor-pointer shrink-0" title="รีเซ็ตโค้ด">
             <i class="fa-solid fa-rotate-left"></i>
           </button>
 
-          <button type="button" id="viewGraderMainBtn" onclick="openGraderMainModal()" class="hidden bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/35 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer shrink-0">
-            <i class="fa-solid fa-eye mr-1"></i> ดูโค้ด main()
+          <button type="button" id="viewGraderMainBtn" onclick="openGraderMainModal()" class="hidden bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/35 px-2 py-1 rounded-xl text-xs font-semibold transition cursor-pointer shrink-0">
+            ดู main()
           </button>
         </div>
       </div>
@@ -265,48 +244,48 @@
       <!-- MONACO EDITOR -->
       <div id="monacoContainer" class="flex-1 min-h-0 w-full relative"></div>
 
-      <!-- BOTTOM CONSOLE -->
-      <div class="h-56 shrink-0 bg-[#060a17] border-t border-cyan-500/25 flex flex-col">
-        <div class="h-10 px-3.5 bg-black/60 border-b border-cyan-500/15 flex items-center justify-between">
-          <div class="flex items-center gap-1.5">
-            <button type="button" id="consoleTabTest" onclick="switchConsoleTab('test')" class="px-3 py-1 rounded-lg text-xs font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 cursor-pointer">
-              <i class="fa-solid fa-terminal mr-1"></i> ทดสอบรัน (Custom Input)
+      <!-- BOTTOM CONSOLE (กระชับ ไม่ล้นจอ และรวมปุ่มสั่งการไว้ที่เดียว) -->
+      <div class="h-52 shrink-0 bg-[#060a17] border-t border-cyan-500/25 flex flex-col">
+        <div class="h-9 px-3 bg-black/60 border-b border-cyan-500/15 flex items-center justify-between gap-2 overflow-x-auto">
+          <div class="flex items-center gap-1.5 shrink-0">
+            <button type="button" id="consoleTabTest" onclick="switchConsoleTab('test')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 cursor-pointer">
+              <i class="fa-solid fa-terminal mr-1"></i> ทดสอบรัน
             </button>
-            <button type="button" id="consoleTabVerdict" onclick="switchConsoleTab('verdict')" class="px-3 py-1 rounded-lg text-xs font-semibold text-gray-400 hover:text-white cursor-pointer">
-              <i class="fa-solid fa-gavel mr-1"></i> ผลตรวจส่งโค้ด (Verdict)
+            <button type="button" id="consoleTabVerdict" onclick="switchConsoleTab('verdict')" class="px-2.5 py-1 rounded-lg text-xs font-semibold text-gray-400 hover:text-white cursor-pointer">
+              <i class="fa-solid fa-gavel mr-1"></i> ผลตรวจ (Verdict)
             </button>
           </div>
 
-          <div class="flex items-center gap-2">
-            <button type="button" onclick="loadSampleIntoCustomInput()" class="text-[11px] text-amber-300 hover:text-amber-200 cursor-pointer mr-2 hidden sm:inline-block">
-              <i class="fa-solid fa-flask mr-1"></i> โหลด Sample
+          <div class="flex items-center gap-1.5 shrink-0">
+            <button type="button" onclick="loadSampleIntoCustomInput()" class="text-[11px] text-amber-300 hover:text-amber-200 cursor-pointer mr-1 hidden sm:inline-block">
+              <i class="fa-solid fa-flask"></i> Sample
             </button>
-            <button type="button" id="runSampleBtn" onclick="runCustomTest()" class="bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 px-3 py-1 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5">
-              <i class="fa-solid fa-play"></i> รันทดสอบ
+            <button type="button" id="runSampleBtn" onclick="runCustomTest()" class="bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1">
+              <i class="fa-solid fa-play"></i> รัน
             </button>
-            <button type="button" id="submitCodeBtn" onclick="submitSolution()" class="bg-gradient-to-r from-emerald-600 to-teal-500 hover:opacity-95 text-white px-3.5 py-1 rounded-xl text-xs font-bold shadow-lg shadow-emerald-500/20 transition cursor-pointer flex items-center gap-1.5">
-              <i class="fa-solid fa-bolt"></i> ส่งตรวจ (Submit)
+            <button type="button" id="submitCodeBtn" onclick="submitSolution()" class="bg-gradient-to-r from-emerald-600 to-teal-500 hover:opacity-95 text-white px-3 py-1 rounded-lg text-xs font-bold shadow-lg shadow-emerald-500/20 transition cursor-pointer flex items-center gap-1">
+              <i class="fa-solid fa-bolt"></i> ส่งตรวจ
             </button>
           </div>
         </div>
 
         <div id="consoleAreaTest" class="flex-1 grid grid-cols-2 divide-x divide-cyan-500/15 min-h-0">
-          <div class="flex flex-col p-2.5 min-h-0">
+          <div class="flex flex-col p-2 min-h-0">
             <span class="text-[10px] font-bold text-gray-400 uppercase mb-1">Standard Input (stdin)</span>
-            <textarea id="customInputBox" placeholder="ใส่ข้อมูล Input ที่ต้องการทดสอบ..." class="flex-1 w-full bg-black/60 border border-white/10 focus:border-cyan-400 focus:outline-none rounded-xl p-2 text-xs text-white font-code resize-none"></textarea>
+            <textarea id="customInputBox" placeholder="ใส่ Input..." class="flex-1 w-full bg-black/60 border border-white/10 focus:border-cyan-400 focus:outline-none rounded-xl p-2 text-xs text-white font-code resize-none"></textarea>
           </div>
-          <div class="flex flex-col p-2.5 min-h-0">
+          <div class="flex flex-col p-2 min-h-0">
             <div class="flex justify-between items-center mb-1">
               <span class="text-[10px] font-bold text-emerald-400 uppercase">Program Output (stdout)</span>
               <span id="runExecStats" class="text-[10px] text-gray-400 font-code"></span>
             </div>
-            <pre id="customOutputBox" class="flex-1 w-full bg-black/70 border border-white/10 rounded-xl p-2 text-xs text-gray-200 font-code overflow-auto whitespace-pre-wrap">กดปุ่ม "รันทดสอบ" เพื่อดูผลลัพธ์...</pre>
+            <pre id="customOutputBox" class="flex-1 w-full bg-black/70 border border-white/10 rounded-xl p-2 text-xs text-gray-200 font-code overflow-auto whitespace-pre-wrap">กดปุ่ม "รัน" เพื่อทดสอบ...</pre>
           </div>
         </div>
 
         <div id="consoleAreaVerdict" class="hidden flex-1 p-3 overflow-y-auto">
           <div id="verdictResultContainer" class="text-xs text-gray-400 flex items-center justify-center h-full">
-            ยังไม่มีผลการส่งตรวจในรอบนี้ — กดปุ่ม "ส่งตรวจ (Submit)" ด้านบนเพื่อตรวจกับชุดทดสอบทั้งหมด
+            ยังไม่มีผลการส่งตรวจ — กดปุ่ม "ส่งตรวจ" เพื่อรันทุก Test Cases
           </div>
         </div>
       </div>
@@ -327,7 +306,7 @@
       </div>
       <pre id="viewCodeModalBody" class="flex-1 bg-black/80 border border-cyan-500/20 rounded-2xl p-4 text-xs text-cyan-100 font-code overflow-auto leading-relaxed"></pre>
       <div class="flex justify-end gap-2.5">
-        <button type="button" onclick="copyModalCode()" class="bg-white/5 hover:bg-white/10 text-gray-200 px-4 py-2 rounded-xl text-xs font-semibold cursor-pointer">คัดลอกโค้ด</button>
+        <button type="button" onclick="copyModalCode()" class="bg-white/5 hover:bg-white/10 text-gray-200 px-4 py-2 rounded-xl text-xs font-semibold cursor-pointer">คัดลอก</button>
         <button type="button" onclick="loadModalCodeToEditor()" class="bg-gradient-to-r from-blue-600 to-cyan-500 text-white px-4 py-2 rounded-xl text-xs font-bold cursor-pointer">โหลดลง Editor</button>
       </div>
     </div>
@@ -379,7 +358,7 @@
         ? 'fa-solid fa-circle-exclamation text-rose-400 text-base'
         : 'fa-solid fa-circle-check text-cyan-400 text-base';
       toast.classList.remove('translate-x-[130%]');
-      setTimeout(() => toast.classList.add('translate-x-[130%]', 3200));
+      setTimeout(() => toast.classList.add('translate-x-[130%]'), 3200);
     }
 
     function setSplitRatio(pct) {
@@ -511,11 +490,11 @@
       document.getElementById('consoleAreaTest').classList.toggle('hidden', !isTest);
       document.getElementById('consoleAreaVerdict').classList.toggle('hidden', isTest);
       document.getElementById('consoleTabTest').className = isTest
-        ? 'px-3 py-1 rounded-lg text-xs font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 cursor-pointer'
-        : 'px-3 py-1 rounded-lg text-xs font-semibold text-gray-400 hover:text-white cursor-pointer';
+        ? 'px-2.5 py-1 rounded-lg text-xs font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 cursor-pointer'
+        : 'px-2.5 py-1 rounded-lg text-xs font-semibold text-gray-400 hover:text-white cursor-pointer';
       document.getElementById('consoleTabVerdict').className = !isTest
-        ? 'px-3 py-1 rounded-lg text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 cursor-pointer'
-        : 'px-3 py-1 rounded-lg text-xs font-semibold text-gray-400 hover:text-white cursor-pointer';
+        ? 'px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 cursor-pointer'
+        : 'px-2.5 py-1 rounded-lg text-xs font-semibold text-gray-400 hover:text-white cursor-pointer';
     }
 
     function switchLeftTab(tab) {
@@ -713,6 +692,12 @@
       return await Promise.any([wandboxPromise, judge0Promise]);
     }
 
+    // [Turbo Judge] ทำการรัน Test Cases ทั้งหมดแบบขนาน (Parallel Batch Execution) เพื่อความเร็วสูงสุด
+    async function runBatchTestCases(fullCode, lang, testCases) {
+      const promises = testCases.map(tc => executeCppSingleCall(fullCode, lang, tc.input || ''));
+      return await Promise.all(promises);
+    }
+
     async function runCustomTest() {
       const btn = document.getElementById('runSampleBtn');
       const outBox = document.getElementById('customOutputBox');
@@ -723,7 +708,7 @@
 
       switchConsoleTab('test');
       btn.disabled = true;
-      btn.innerHTML = '<i class="fa-solid fa-bolt fa-spin"></i> กำลังรัน...';
+      btn.innerHTML = '<i class="fa-solid fa-bolt fa-spin"></i> รัน...';
       outBox.textContent = 'กำลังคอมไพล์และรัน...';
       statsEl.textContent = '';
 
@@ -738,13 +723,13 @@
         } else if (result.status === 'RE') {
           outBox.textContent = `[Runtime Error]\n${result.stderr}\n${result.stdout}`;
         } else {
-          outBox.textContent = result.stdout || '(ไม่มี Output แสดงผล)';
+          outBox.textContent = result.stdout || '(ไม่มี Output)';
         }
       } catch (err) {
         outBox.textContent = `Error: ${err.message}`;
       } finally {
         btn.disabled = false;
-        btn.innerHTML = '<i class="fa-solid fa-play"></i> รันทดสอบ';
+        btn.innerHTML = '<i class="fa-solid fa-play"></i> รัน';
       }
     }
 
@@ -764,11 +749,11 @@
 
       switchConsoleTab('verdict');
       btn.disabled = true;
-      btn.innerHTML = '<i class="fa-solid fa-bolt fa-spin"></i> กำลังตรวจ...';
+      btn.innerHTML = '<i class="fa-solid fa-bolt fa-spin"></i> ตรวจ...';
       verdictBox.innerHTML = `
         <div class="text-center space-y-2 py-4">
           <i class="fa-solid fa-bolt text-2xl text-cyan-400 animate-pulse"></i>
-          <p class="text-xs font-bold text-cyan-300">กำลังตรวจ ${testCases.length} Test Cases...</p>
+          <p class="text-xs font-bold text-cyan-300">กำลังตรวจ ${testCases.length} Test Cases (Turbo Mode)...</p>
         </div>
       `;
 
@@ -779,43 +764,43 @@
         let caseResults = [];
 
         const effectiveCases = testCases.length > 0 ? testCases : [{ input: '', output: '' }];
+        
+        // เรียกใช้ฟังก์ชันประมวลผลแบบขนานพร้อมกันทั้งหมดเพื่อความเร็วสูงสุด
+        const rawResponses = await runBatchTestCases(fullCode, lang, effectiveCases);
 
-        for (let i = 0; i < effectiveCases.length; i++) {
-          const tc = effectiveCases[i];
-          const res = await executeCppSingleCall(fullCode, lang, tc.input || '');
-          maxExecTime = Math.max(maxExecTime, res.elapsed || 0);
-
-          if (res.status === 'CE') {
-            finalStatus = 'Compilation Error';
-            caseResults.push({ index: i + 1, verdict: 'CE', detail: res.compilerError });
-            break;
-          } else if (res.status === 'TLE' || (res.elapsed && res.elapsed > timeLimitSec)) {
-            if (finalStatus === 'Accepted') finalStatus = 'Time Limit Exceeded';
-            caseResults.push({ index: i + 1, verdict: 'TLE', time: res.elapsed });
-          } else if (res.status !== 'OK') {
-            if (finalStatus === 'Accepted') finalStatus = 'Runtime Error';
-            caseResults.push({ index: i + 1, verdict: 'RE', time: res.elapsed });
-          } else if (testCases.length === 0) {
-            passedCount++;
-            caseResults.push({ index: 1, verdict: 'AC', time: res.elapsed });
-          } else {
-            const actual = normalizeOutput(res.stdout);
-            const expected = normalizeOutput(tc.output);
-            if (actual === expected) {
+        if (rawResponses[0] && rawResponses[0].status === 'CE') {
+          finalStatus = 'Compilation Error';
+          caseResults.push({ index: 1, verdict: 'CE', detail: rawResponses[0].compilerError });
+        } else {
+          rawResponses.forEach((res, idx) => {
+            maxExecTime = Math.max(maxExecTime, res.elapsed || 0);
+            if (res.status === 'TLE' || (res.elapsed && res.elapsed > timeLimitSec)) {
+              if (finalStatus === 'Accepted') finalStatus = 'Time Limit Exceeded';
+              caseResults.push({ index: idx + 1, verdict: 'TLE', time: res.elapsed });
+            } else if (res.status !== 'OK') {
+              if (finalStatus === 'Accepted') finalStatus = 'Runtime Error';
+              caseResults.push({ index: idx + 1, verdict: 'RE', time: res.elapsed });
+            } else if (testCases.length === 0) {
               passedCount++;
-              caseResults.push({ index: i + 1, verdict: 'AC', time: res.elapsed });
+              caseResults.push({ index: 1, verdict: 'AC', time: res.elapsed });
             } else {
-              if (finalStatus === 'Accepted') finalStatus = 'Wrong Answer';
-              caseResults.push({ index: i + 1, verdict: 'WA', time: res.elapsed });
+              const actual = normalizeOutput(res.stdout);
+              const expected = normalizeOutput(testCases[idx].output);
+              if (actual === expected) {
+                passedCount++;
+                caseResults.push({ index: idx + 1, verdict: 'AC', time: res.elapsed });
+              } else {
+                if (finalStatus === 'Accepted') finalStatus = 'Wrong Answer';
+                caseResults.push({ index: idx + 1, verdict: 'WA', time: res.elapsed });
+              }
             }
-          }
+          });
         }
 
         const totalCases = Math.max(testCases.length, 1);
         const maxScore = currentProblem.max_score || 100;
         const score = finalStatus === 'Accepted' ? maxScore : Math.round((passedCount / totalCases) * maxScore);
 
-        // บันทึก Submission ลงตาราง submissions ทุกครั้งที่มีการกดส่งตรวจเสมอ
         await supabaseClient.from('submissions').insert([{
           user_id: currentUser.id,
           problem_id: parseInt(problemId),
@@ -838,30 +823,27 @@
         const badgeColor = isAc ? 'text-emerald-400 bg-emerald-500/15 border-emerald-500/40' : 'text-rose-400 bg-rose-500/15 border-rose-500/40';
         const chipsHtml = caseResults.map(c => {
           const cls = c.verdict === 'AC' ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' : 'bg-rose-500/20 text-rose-300 border-rose-500/40';
-          return `<span class="px-2.5 py-1 rounded-lg border text-[11px] font-code font-bold ${cls}">#${c.index}: ${c.verdict} ${c.time ? `(${c.time}s)` : ''}</span>`;
+          return `<span class="px-2 py-0.5 rounded border text-[10px] font-code font-bold ${cls}">#${c.index}:${c.verdict}</span>`;
         }).join('');
 
         verdictBox.innerHTML = `
-          <div class="w-full space-y-3">
-            <div class="flex flex-wrap items-center justify-between gap-2 p-3 rounded-2xl border ${badgeColor}">
-              <div class="flex items-center gap-2.5">
-                <i class="fa-solid ${isAc ? 'fa-circle-check' : 'fa-circle-xmark'} text-lg"></i>
-                <div>
-                  <div class="font-bold text-sm">${finalStatus}</div>
-                  <div class="text-[11px] opacity-85">ผ่าน ${passedCount}/${totalCases} เคส &bull; คะแนน ${score}/${maxScore}</div>
-                </div>
+          <div class="w-full space-y-2">
+            <div class="flex items-center justify-between p-2.5 rounded-xl border ${badgeColor}">
+              <div>
+                <div class="font-bold text-xs">${finalStatus}</div>
+                <div class="text-[10px] opacity-85">ผ่าน ${passedCount}/${totalCases} เคส &bull; ${score} คะแนน</div>
               </div>
-              <span class="text-xs font-code font-semibold">Max Time: ${maxExecTime}s</span>
+              <span class="text-[10px] font-code font-semibold">Time: ${maxExecTime}s</span>
             </div>
-            <div class="flex flex-wrap gap-1.5">${chipsHtml}</div>
+            <div class="flex flex-wrap gap-1">${chipsHtml}</div>
           </div>
         `;
-        showToast(isAc ? 'ยินดีด้วย! Accepted' : `ผลตรวจ: ${finalStatus}`, `ได้คะแนน ${score}/${maxScore} คะแนน`, !isAc);
+        showToast(isAc ? 'Accepted!' : `ผลตรวจ: ${finalStatus}`, `ได้ ${score} คะแนน`, !isAc);
       } catch (err) {
         verdictBox.innerHTML = `<p class="text-xs text-rose-400">เกิดข้อผิดพลาด: ${err.message}</p>`;
       } finally {
         btn.disabled = false;
-        btn.innerHTML = '<i class="fa-solid fa-bolt"></i> ส่งตรวจ (Submit)';
+        btn.innerHTML = '<i class="fa-solid fa-bolt"></i> ส่งตรวจ';
       }
     }
 
@@ -874,25 +856,22 @@
 
       const listEl = document.getElementById('mySubmissionsList');
       if (mySubmissionsCache.length === 0) {
-        listEl.innerHTML = `<div class="text-center py-10 text-xs text-gray-400 border border-dashed border-cyan-500/20 rounded-2xl">ยังไม่เคยส่งโค้ดข้อนี้</div>`;
+        listEl.innerHTML = `<div class="text-center py-8 text-xs text-gray-400 border border-dashed border-cyan-500/20 rounded-2xl">ยังไม่มีประวัติการส่ง</div>`;
         return;
       }
       listEl.innerHTML = mySubmissionsCache.map(s => {
         const isAc = s.status === 'Accepted' || s.status === 'AC';
         const statusCls = isAc ? 'text-emerald-300 bg-emerald-500/15 border-emerald-500/35' : 'text-rose-300 bg-rose-500/15 border-rose-500/35';
         return `
-          <div class="tech-glass rounded-2xl p-3.5 border border-cyan-500/20 flex flex-wrap items-center justify-between gap-3">
-            <div class="space-y-1">
-              <div class="flex items-center gap-2">
-                <span class="text-xs font-bold px-2.5 py-0.5 rounded-full border ${statusCls}">${s.status}</span>
+          <div class="tech-glass rounded-2xl p-3 border border-cyan-500/20 flex items-center justify-between gap-2">
+            <div class="space-y-0.5 min-w-0">
+              <div class="flex items-center gap-1.5 truncate">
+                <span class="text-[10px] font-bold px-2 py-0.2 rounded-full border ${statusCls}">${s.status}</span>
                 <span class="text-xs font-code text-cyan-300 font-bold">#SUB-${s.id}</span>
-                <span class="text-[11px] px-2 py-0.5 rounded bg-white/5 text-gray-300 uppercase font-code">${s.language || 'cpp'}</span>
               </div>
-              <div class="text-[11px] text-gray-400">คะแนน: <b class="text-white">${s.score ?? 0}</b> &bull; เวลา: ${s.execution_time || 0}s</div>
+              <div class="text-[10px] text-gray-400">คะแนน: ${s.score ?? 0} &bull; ${s.execution_time || 0}s</div>
             </div>
-            <div class="flex items-center gap-1.5">
-              <button type="button" onclick="openSubmissionCodeById('${s.id}')" class="bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 border border-cyan-500/35 px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer"><i class="fa-solid fa-code mr-1"></i> ดูโค้ด</button>
-            </div>
+            <button type="button" onclick="openSubmissionCodeById('${s.id}')" class="bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 border border-cyan-500/35 px-2.5 py-1 rounded-xl text-xs transition shrink-0">ดูโค้ด</button>
           </div>
         `;
       }).join('');

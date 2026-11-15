@@ -86,6 +86,7 @@
 
       <nav class="hidden md:flex items-center gap-6 text-xs font-medium text-gray-300">
         <a href="index.html" class="hover:text-cyan-400 transition"><i class="fa-solid fa-house mr-1 text-cyan-500"></i> หน้าหลัก</a>
+        <a href="contest.html" class="hover:text-cyan-400 transition"><i class="fa-solid fa-trophy mr-1 text-cyan-500"></i> Contest</a>
         <a href="problems.html" class="hover:text-cyan-400 transition"><i class="fa-solid fa-laptop-code mr-1 text-cyan-500"></i> คลังโจทย์</a>
         <a href="ranking.html" class="text-cyan-400 font-semibold transition"><i class="fa-solid fa-ranking-star mr-1"></i> Scoreboard</a>
         <a href="announcement.html" class="hover:text-cyan-400 transition flex items-center gap-1.5">
@@ -331,6 +332,7 @@
           <div id="userDropdown" class="absolute right-0 mt-2 w-56 tech-modal rounded-2xl shadow-2xl py-2 hidden border border-cyan-500/30 z-50 text-left">
             ${adminLink}
             <a href="index.html" class="block px-4 py-2.5 text-xs text-gray-300 hover:bg-cyan-500/10 hover:text-cyan-300 transition"><i class="fa-solid fa-house mr-2 text-cyan-400"></i> หน้าหลัก</a>
+            <a href="contest.html" class="block px-4 py-2.5 text-xs text-gray-300 hover:bg-cyan-500/10 hover:text-cyan-300 transition"><i class="fa-solid fa-trophy mr-2 text-cyan-400"></i> Contest Arena</a>
             <a href="problems.html" class="block px-4 py-2.5 text-xs text-gray-300 hover:bg-cyan-500/10 hover:text-cyan-300 transition"><i class="fa-solid fa-laptop-code mr-2 text-cyan-400"></i> คลังโจทย์</a>
             <a href="ranking.html" class="block px-4 py-2.5 text-xs text-cyan-300 font-bold hover:bg-cyan-500/10 transition"><i class="fa-solid fa-ranking-star mr-2 text-cyan-400"></i> Scoreboard</a>
             <button type="button" onclick="openStudentProfileModal('${currentUser ? currentUser.id : ''}')" class="w-full text-left px-4 py-2.5 text-xs text-gray-300 hover:bg-cyan-500/10 hover:text-cyan-300 transition cursor-pointer"><i class="fa-solid fa-user-gear mr-2 text-cyan-400"></i> โปรไฟล์ & ตั้งค่า</button>
@@ -914,13 +916,13 @@
             x: {
               title: { display: true, text: 'เวลาที่ส่งได้คะแนน (Time)', color: '#9ca3af', font: { family: 'Kanit', size: 12 } },
               ticks: { color: '#9ca3af', font: { family: 'Kanit', size: 11 } },
-              grid: { color: 'rgba(56, 189, 248, 0.08)' }
+              grid: { color: 'rgba(56,189,248,0.08)' }
             },
             y: {
               beginAtZero: true,
               title: { display: true, text: 'คะแนนรวม (Score)', color: '#9ca3af', font: { family: 'Kanit', size: 12 } },
               ticks: { color: '#9ca3af', font: { family: 'Kanit', size: 11 } },
-              grid: { color: 'rgba(56, 189, 248, 0.08)' }
+              grid: { color: 'rgba(56,189,248,0.08)' }
             }
           }
         }

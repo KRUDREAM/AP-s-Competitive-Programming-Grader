@@ -461,7 +461,7 @@
           </div>
         </div>
 
-        <!-- 2 ปุ่มเลือก: บันทึก Draft หรือ ส่งเข้าส่วนกลาง -->
+        <!-- 2 ปุ่มเลือก: บันทึก Draft หรือ ส่งส่วนกลาง -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
           <button type="submit" id="btnSubmitDraft" class="bg-white/10 hover:bg-white/15 text-gray-200 font-semibold py-3.5 rounded-xl text-xs transition border border-white/15 cursor-pointer flex items-center justify-center gap-2">
             <i class="fa-solid fa-file-pen text-amber-300"></i> บันทึกเป็นแบบร่าง (Draft) — เทสต์เองได้
@@ -556,6 +556,7 @@
     let solvedProblemIds = new Set();
     let attemptedProblemIds = new Set();
     let acCountByProblem = {};
+    let totalTriedCountByProblem = {}; // เก็บจำนวนคนที่เคยลองทำโจทย์ข้อนั้น ๆ (unique users ที่ส่ง submission)
 
     let activeTags = [];
     let customTagsList = JSON.parse(localStorage.getItem('st8_custom_tags')) || ["Graph", "Dynamic Programming", "Sorting", "Math", "Greedy", "String", "Bitmask", "Tree", "Binary Search"];
@@ -1187,20 +1188,35 @@
       allProblemsCache = probsRes.data || [];
 
       const uniqueAcUsersByProb = {};
+      const uniqueTriedUsersByProb = {};
+
       (subsRes.data || []).forEach(s => {
+        const pid = s.problem_id;
+        const uid = s.user_id;
+
+        // นับจำนวนคนที่เคยส่ง (Tried)
+        if (!uniqueTriedUsersByProb[pid]) uniqueTriedUsersByProb[pid] = new Set();
+        uniqueTriedUsersByProb[pid].add(uid);
+
+        // นับจำนวนคนที่ผ่าน (Accepted)
         const isAc = s.status === 'Accepted' || s.status === 'AC';
         if (isAc) {
-          if (!uniqueAcUsersByProb[s.problem_id]) uniqueAcUsersByProb[s.problem_id] = new Set();
-          uniqueAcUsersByProb[s.problem_id].add(s.user_id);
+          if (!uniqueAcUsersByProb[pid]) uniqueAcUsersByProb[pid] = new Set();
+          uniqueAcUsersByProb[pid].add(uid);
         }
-        if (currentUser && String(s.user_id) === String(currentUser.id)) {
-          attemptedProblemIds.add(String(s.problem_id));
-          if (isAc) solvedProblemIds.add(String(s.problem_id));
+
+        if (currentUser && String(uid) === String(currentUser.id)) {
+          attemptedProblemIds.add(String(pid));
+          if (isAc) solvedProblemIds.add(String(pid));
         }
       });
 
       Object.keys(uniqueAcUsersByProb).forEach(pid => {
         acCountByProblem[pid] = uniqueAcUsersByProb[pid].size;
+      });
+
+      Object.keys(uniqueTriedUsersByProb).forEach(pid => {
+        totalTriedCountByProblem[pid] = uniqueTriedUsersByProb[pid].size;
       });
 
       renderQuickTagFilterBar();
@@ -1361,11 +1377,12 @@
           } else if (p.is_verified) {
             approvalStatusBadge = `<span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/35">อนุมัติแล้ว</span>`;
           } else {
-            approvalStatusBadge = `<span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/35">รอ Admin อนุมัติ</span>`;
+            approvalStatusBadge = `<span class="text-[10px] py-0.5 px-2 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/35">รอ Admin อนุมัติ</span>`;
           }
         }
 
         const acUsers = acCountByProblem[p.id] || 0;
+        const totalTried = totalTriedCountByProblem[p.id] || 0;
         const isOwner = currentUser && String(p.created_by) === String(currentUser.id);
 
         return `
@@ -1388,7 +1405,7 @@
             </td>
             <td class="px-4 py-3.5 text-center whitespace-nowrap">${diffBadge}</td>
             <td class="px-4 py-3.5 text-center whitespace-nowrap text-xs text-gray-300">
-              <i class="fa-solid fa-users text-emerald-400/80 mr-1"></i> ${acUsers} คน
+              <i class="fa-solid fa-users text-emerald-400/80 mr-1"></i> ผ่าน <span class="text-emerald-400 font-bold">${acUsers}</span> จาก <span class="text-cyan-300 font-bold">${totalTried}</span> คน
             </td>
             <td class="px-4 py-3.5 text-right whitespace-nowrap">
               <div class="inline-flex items-center gap-2">
@@ -1398,7 +1415,7 @@
                     </button>`
                   : ''
                 }
-                ${(p.is_verified || isOwner)
+                {(p.is_verified || isOwner)
                   ? `<button type="button" onclick="handleSolveClick('${p.id}')" class="bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-95 text-white px-4 py-2 rounded-xl transition text-xs font-bold shadow-md shadow-cyan-500/15 cursor-pointer">
                       <i class="fa-solid fa-code mr-1"></i> ${p.is_draft ? 'ทดสอบ (Draft)' : 'ทำโจทย์'}
                     </button>`

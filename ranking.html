@@ -35,6 +35,16 @@
       50% { opacity: 0.45; transform: scale(1.05); }
     }
     .glow-orb { animation: cyberPulse 8s ease-in-out infinite; }
+    @keyframes bellRing {
+      0% { transform: rotate(0); }
+      15% { transform: rotate(15deg); }
+      30% { transform: rotate(-15deg); }
+      45% { transform: rotate(10deg); }
+      60% { transform: rotate(-10deg); }
+      75% { transform: rotate(5deg); }
+      100% { transform: rotate(0); }
+    }
+    .bell-shake { animation: bellRing 0.8s ease-in-out infinite; }
     .modal-backdrop { transition: opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1); }
     .modal-box { transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.28s ease; }
     .modal-open .modal-box { transform: scale(1) translateY(0); opacity: 1; }
@@ -73,7 +83,13 @@
         <a href="index.html" class="hover:text-cyan-400 transition"><i class="fa-solid fa-house mr-1 text-cyan-500"></i> หน้าหลัก</a>
         <a href="problems.html" class="hover:text-cyan-400 transition"><i class="fa-solid fa-laptop-code mr-1 text-cyan-500"></i> คลังโจทย์</a>
         <a href="ranking.html" class="text-cyan-400 font-semibold transition"><i class="fa-solid fa-ranking-star mr-1"></i> Scoreboard</a>
-        <a href="announcement.html" class="hover:text-cyan-400 transition flex items-center gap-1.5">ประกาศระบบ</a>
+        <a href="announcement.html" class="hover:text-cyan-400 transition flex items-center gap-1.5">
+          <span class="relative flex items-center">
+            <i id="navBellIcon" class="fa-solid fa-bell text-cyan-400"></i>
+            <span id="navUnreadBadge" class="hidden absolute -top-1.5 -right-2 w-4 h-4 rounded-full bg-rose-500 text-white text-[9px] font-bold flex items-center justify-center">0</span>
+          </span>
+          ประกาศระบบ
+        </a>
       </nav>
 
       <div id="authNavArea" class="flex items-center gap-2.5">
@@ -107,20 +123,20 @@
       </div>
 
       <div class="md:col-span-5">
-        <label class="block text-[11px] text-cyan-300 font-semibold mb-1">ค้นหา Username:</label>
+        <label class="block text-[11px] text-cyan-300 font-semibold mb-1">ค้นหาผู้เข้าแข่งขัน:</label>
         <div class="relative">
           <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-cyan-400 text-xs"></i>
-          <input type="text" id="sbSearchInput" oninput="renderIoiTable()" placeholder="พิมพ์ Username..." class="w-full bg-black/70 border border-cyan-500/25 focus:border-cyan-400 focus:outline-none rounded-xl pl-9 pr-4 py-2 text-sm text-white">
+          <input type="text" id="sbSearchInput" oninput="renderIoiTable()" placeholder="พิมพ์ชื่อผู้เข้าแข่งขัน..." class="w-full bg-black/70 border border-cyan-500/25 focus:border-cyan-400 focus:outline-none rounded-xl pl-9 pr-4 py-2 text-sm text-white">
         </div>
       </div>
     </div>
 
-    <!-- PROGRESSION CHART (TOI STEPPED JUMP) -->
+    <!-- PROGRESSION CHART -->
     <div class="tech-glass p-5 rounded-2xl border border-cyan-500/25 space-y-4">
       <div class="flex flex-wrap justify-between items-center gap-3">
         <div>
           <h3 class="text-sm md:text-base font-bold text-white"><i class="fa-solid fa-chart-line text-cyan-400 mr-1.5"></i> กราฟพัฒนาการคะแนนตามเวลา (จังหวะการพุ่งของคะแนน)</h3>
-          <p class="text-xs text-gray-400">ติ๊กเลือกช่อง "กราฟ" หน้า Username ในตารางด้านล่างเพื่อเปรียบเทียบจังหวะการทำคะแนน</p>
+          <p class="text-xs text-gray-400">ติ๊กเลือกช่อง "กราฟ" หน้าชื่อในตารางด้านล่างเพื่อเปรียบเทียบจังหวะการทำคะแนน</p>
         </div>
         <div class="flex items-center gap-2">
           <button type="button" onclick="selectTopUsersForChart(5)" class="bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer">
@@ -162,31 +178,46 @@
           U
         </div>
         <div>
-          <h3 id="modalProfileTitleUsername" class="text-xl font-bold text-white">username</h3>
-          <p id="modalProfileEmail" class="text-xs text-gray-400">email@domain.com</p>
+          <h3 id="modalProfileDisplayName" class="text-xl font-bold text-white">Display Name</h3>
+          <p id="modalProfileSubtitle" class="text-xs text-gray-400">โปรไฟล์ผู้แข่งขัน</p>
           <div class="mt-1.5 flex flex-wrap gap-1.5" id="modalUserBadgesContainer"></div>
         </div>
       </div>
 
-      <!-- EDIT PROFILE FORM (Display Name Editable, Username Locked) -->
-      <form id="editProfileForm" onsubmit="handleUpdateProfile(event)" class="tech-glass p-4 rounded-2xl border border-cyan-500/20 space-y-3.5">
-        <h4 class="text-xs font-bold text-cyan-300 uppercase tracking-wider"><i class="fa-solid fa-id-card mr-1.5"></i> ตั้งค่าข้อมูลส่วนตัว</h4>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <div>
-            <label class="block text-[11px] text-gray-400 mb-1">Username (แก้ไขไม่ได้)</label>
-            <input type="text" id="editUsernameInput" disabled class="w-full bg-black/80 border border-white/10 rounded-xl px-3.5 py-2 text-xs text-gray-400 cursor-not-allowed font-mono">
+      <!-- EDIT PROFILE FORM (เฉพาะเจ้าของบัญชีถึงจะเห็นและแก้ไขได้) -->
+      <div id="myProfileSettingsSection" class="hidden tech-glass p-4 rounded-2xl border border-cyan-500/20 space-y-3.5">
+        <h4 class="text-xs font-bold text-cyan-300 uppercase tracking-wider"><i class="fa-solid fa-gear mr-1.5"></i> ตั้งค่าข้อมูลส่วนตัว</h4>
+        <form id="editProfileForm" onsubmit="handleUpdateProfile(event)" class="space-y-3">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[11px] text-gray-400 mb-1">Username (แก้ไขไม่ได้)</label>
+              <input type="text" id="editUsernameInput" disabled class="w-full bg-black/80 border border-white/10 rounded-xl px-3.5 py-2 text-xs text-gray-400 cursor-not-allowed font-mono">
+            </div>
+            <div>
+              <label class="block text-[11px] text-cyan-300 mb-1">Display Name (ชื่อที่แสดง)</label>
+              <input type="text" id="editDisplayNameInput" required class="w-full bg-black/60 border border-cyan-500/30 focus:border-cyan-400 focus:outline-none rounded-xl px-3.5 py-2 text-xs text-white">
+            </div>
           </div>
-          <div>
-            <label class="block text-[11px] text-cyan-300 mb-1">Display Name (ชื่อที่แสดง)</label>
-            <input type="text" id="editDisplayNameInput" required class="w-full bg-black/60 border border-cyan-500/30 focus:border-cyan-400 focus:outline-none rounded-xl px-3.5 py-2 text-xs text-white">
+          <div class="flex justify-end">
+            <button type="submit" class="bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-95 text-white font-bold px-4 py-2 rounded-xl text-xs transition cursor-pointer">
+              บันทึก Display Name
+            </button>
           </div>
+        </form>
+
+        <div class="border-t border-cyan-500/20 pt-3">
+          <h5 class="text-xs font-bold text-amber-300 mb-2"><i class="fa-solid fa-key mr-1"></i> เปลี่ยนรหัสผ่านใหม่</h5>
+          <form id="changePassForm" onsubmit="handlePasswordReset(event)" class="space-y-2.5">
+            <input type="password" id="newPassInput" required minlength="6" placeholder="รหัสผ่านใหม่ (อย่างน้อย 6 ตัวอักษร)" class="w-full bg-black/60 border border-cyan-500/25 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-cyan-400 font-mono">
+            <div class="flex justify-between items-center">
+              <span id="passMsg" class="text-xs"></span>
+              <button type="submit" class="bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 px-4 py-2 rounded-xl text-xs font-semibold transition cursor-pointer">
+                อัปเดตรหัสผ่าน
+              </button>
+            </div>
+          </form>
         </div>
-        <div class="flex justify-end">
-          <button type="submit" class="bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-95 text-white font-bold px-4 py-2 rounded-xl text-xs transition cursor-pointer">
-            บันทึก Display Name
-          </button>
-        </div>
-      </form>
+      </div>
 
       <!-- STATS & XP -->
       <div class="grid grid-cols-3 gap-3">
@@ -204,10 +235,18 @@
         </div>
       </div>
 
+      <!-- INDIVIDUAL PROGRESSION CHART -->
+      <div class="tech-glass p-4 rounded-2xl border border-cyan-500/20 space-y-2">
+        <h4 class="text-xs font-bold text-cyan-300"><i class="fa-solid fa-chart-line mr-1.5"></i> กราฟพัฒนาการคะแนนตามเวลา (รายบุคคล)</h4>
+        <div class="relative w-full h-48 bg-black/60 rounded-xl p-2 border border-cyan-500/15">
+          <canvas id="individualProgressionChart"></canvas>
+        </div>
+      </div>
+
       <!-- SUBMISSION HISTORY -->
       <div class="space-y-3">
-        <h4 class="text-sm font-bold text-cyan-300"><i class="fa-solid fa-clock-rotate-left mr-1.5"></i> ประวัติการส่งโค้ดล่าสุด</h4>
-        <div id="modalSubmissionHistoryList" class="max-h-48 overflow-y-auto space-y-2 pr-1">
+        <h4 class="text-sm font-bold text-cyan-300"><i class="fa-solid fa-clock-rotate-left mr-1.5"></i> ประวัติการส่งโค้ด</h4>
+        <div id="modalSubmissionHistoryList" class="max-h-40 overflow-y-auto space-y-2 pr-1">
           <div class="text-xs text-gray-500 text-center py-4">กำลังโหลดประวัติ...</div>
         </div>
       </div>
@@ -221,6 +260,9 @@
 
     let currentUser = null;
     let currentUserProfile = null;
+    let readAnnouncementIds = JSON.parse(localStorage.getItem('st8_read_announcements')) || [];
+    let allAnnouncementsCache = [];
+
     let allContests = [];
     let allContestProblems = [];
     let allProblems = [];
@@ -231,6 +273,7 @@
     let computedRows = [];
     let selectedChartUserIds = new Set();
     let scoreChartInstance = null;
+    let individualChartInstance = null;
 
     const CHART_PALETTE = [
       '#38bdf8', '#fbbf24', '#34d399', '#f472b6', '#a78bfa',
@@ -303,13 +346,38 @@
       window.location.href = 'index.html';
     }
 
+    async function fetchAnnouncementsBadge() {
+      const { data } = await supabaseClient.from('announcements').select('id');
+      if (data) {
+        allAnnouncementsCache = data;
+        updateNotificationBadge();
+      }
+    }
+
+    function updateNotificationBadge() {
+      const unreadCount = allAnnouncementsCache.filter(ann => !readAnnouncementIds.includes(String(ann.id))).length;
+      const badge = document.getElementById('navUnreadBadge');
+      const bell = document.getElementById('navBellIcon');
+      if (badge && bell) {
+        if (unreadCount > 0) {
+          badge.textContent = unreadCount;
+          badge.classList.remove('hidden');
+          bell.classList.add('bell-shake', 'text-amber-400');
+        } else {
+          badge.classList.add('hidden');
+          bell.classList.remove('bell-shake', 'text-amber-400');
+        }
+      }
+    }
+
     async function initScoreboardPage() {
+      await fetchAnnouncementsBadge();
       const { data: { session } } = await supabaseClient.auth.getSession();
       if (session && session.user) {
         currentUser = session.user;
         const { data: prof } = await supabaseClient.from('profiles').select('*').eq('id', currentUser.id).maybeSingle();
         currentUserProfile = prof;
-        const dispName = (prof && (prof.username || prof.display_name)) || currentUser.email.split('@')[0];
+        const dispName = (prof && (prof.display_name || prof.username)) || currentUser.email.split('@')[0];
         const isAdmin = prof && prof.role === 'admin';
         updateNavbarLoggedIn(dispName, isAdmin);
       }
@@ -376,7 +444,6 @@
         const contestObj = allContests.find(c => String(c.id) === String(selectedContestId));
         const linked = allContestProblems.filter(cp => String(cp.contest_id) === String(selectedContestId));
         
-        // เรียงลำดับโจทย์ตามรหัสโจทย์ (problem_code)
         const sortedLinked = linked.map(cp => {
           const base = probLookup[cp.problem_id] || {};
           return { ...cp, problem_code: base.problem_code || `P${cp.problem_id}` };
@@ -484,13 +551,13 @@
         <tr>
           <th class="px-3 py-3.5 text-center w-14">กราฟ</th>
           <th class="px-3 py-3.5 text-center w-20">อันดับ</th>
-          <th class="px-4 py-3.5 min-w-[180px]">Username (คลิกดูโปรไฟล์)</th>
+          <th class="px-4 py-3.5 min-w-[180px]">ชื่อผู้ใช้ (คลิกดูโปรไฟล์)</th>
           <th class="px-4 py-3.5 text-center whitespace-nowrap">คะแนนรวม</th>
           ${probHeaders}
         </tr>
       `;
 
-      const filtered = computedRows.filter(r => !query || r.username.toLowerCase().includes(query));
+      const filtered = computedRows.filter(r => !query || r.displayName.toLowerCase().includes(query) || r.username.toLowerCase().includes(query));
       if (filtered.length === 0) {
         tbody.innerHTML = `<tr><td colspan="${4 + activeProblemColumns.length}" class="p-8 text-center text-gray-400">ยังไม่มีข้อมูลคะแนนในรอบนี้</td></tr>`;
         return;
@@ -533,10 +600,10 @@
             <td class="px-3 py-3 text-center whitespace-nowrap">${rankBadge}</td>
             <td class="px-4 py-3">
               <button type="button" onclick="openStudentProfileModal('${row.userId}')" class="text-left group cursor-pointer">
-                <div class="font-bold text-cyan-300 text-sm group-hover:underline flex items-center gap-1.5 font-mono">
-                  @${row.username} ${isMe ? '<span class="text-[10px] px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 font-sans">คุณ</span>' : ''}
+                <div class="font-bold text-white text-sm group-hover:text-cyan-300 transition flex items-center gap-1.5">
+                  ${row.displayName} ${isMe ? '<span class="text-[10px] px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300">คุณ</span>' : ''}
                 </div>
-                <div class="text-[11px] text-gray-400">${row.displayName} &bull; ${row.fullSolvedCount} ข้อ</div>
+                <div class="text-[11px] text-gray-400">@${row.username} &bull; ${row.fullSolvedCount} ข้อ</div>
               </button>
             </td>
             <td class="px-4 py-3 text-center whitespace-nowrap">
@@ -552,16 +619,21 @@
       const row = computedRows.find(r => String(r.userId) === String(userId));
       if (!row) return;
 
-      document.getElementById('modalProfileTitleUsername').textContent = '@' + row.username;
-      document.getElementById('modalProfileEmail').textContent = row.email;
-      document.getElementById('modalAvatarChar').textContent = row.username.charAt(0).toUpperCase();
-
-      document.getElementById('editUsernameInput').value = row.username;
-      document.getElementById('editDisplayNameInput').value = row.displayName;
-
-      // จัดการเปิด/ปิดฟอร์มแก้ไข (ให้แก้ไขเฉพาะของตัวเอง)
       const isMyProfile = currentUser && String(userId) === String(currentUser.id);
-      document.getElementById('editDisplayNameInput').disabled = !isMyProfile;
+
+      document.getElementById('modalProfileDisplayName').textContent = row.displayName;
+      document.getElementById('modalProfileSubtitle').textContent = isMyProfile ? 'โปรไฟล์ส่วนตัว & การตั้งค่า' : 'โปรไฟล์ผู้เข้าแข่งขัน';
+      document.getElementById('modalAvatarChar').textContent = row.displayName.charAt(0).toUpperCase();
+
+      const settingsSection = document.getElementById('myProfileSettingsSection');
+      if (isMyProfile) {
+        settingsSection.classList.remove('hidden');
+        document.getElementById('editUsernameInput').value = row.username;
+        document.getElementById('editDisplayNameInput').value = row.displayName;
+        document.getElementById('passMsg').textContent = '';
+      } else {
+        settingsSection.classList.add('hidden');
+      }
 
       document.getElementById('modalStatXp').textContent = `${row.xp} XP`;
       document.getElementById('modalStatSolved').textContent = `${row.fullSolvedCount} ข้อ`;
@@ -602,6 +674,7 @@
       }
 
       openSmoothModal('studentProfileModal');
+      renderIndividualChart(row);
     }
 
     function closeStudentProfileModal() {
@@ -625,6 +698,57 @@
         loadScoreboardEnvironment();
         closeStudentProfileModal();
       }
+    }
+
+    async function handlePasswordReset(e) {
+      e.preventDefault();
+      const newPass = document.getElementById('newPassInput').value;
+      const msg = document.getElementById('passMsg');
+
+      const { error } = await supabaseClient.auth.updateUser({ password: newPass });
+      if (error) {
+        msg.textContent = `❌ ${error.message}`;
+        msg.className = 'text-xs text-rose-400 font-semibold';
+      } else {
+        msg.textContent = '✅ เปลี่ยนรหัสผ่านสำเร็จ!';
+        msg.className = 'text-xs text-emerald-400 font-semibold';
+        document.getElementById('newPassInput').value = '';
+      }
+    }
+
+    function renderIndividualChart(row) {
+      const ctx = document.getElementById('individualProgressionChart').getContext('2d');
+      if (individualChartInstance) individualChartInstance.destroy();
+
+      const timeline = row.timeline || [];
+      const labels = timeline.map(pt => pt.timeLabel);
+      const data = timeline.map(pt => pt.totalScore);
+
+      individualChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels.length > 0 ? labels : ['เริ่มต้น'],
+          datasets: [{
+            label: 'คะแนนสะสมตามเวลา',
+            data: data.length > 0 ? data : [0],
+            borderColor: '#38bdf8',
+            backgroundColor: 'rgba(56, 189, 248, 0.15)',
+            borderWidth: 2,
+            stepped: true,
+            tension: 0,
+            pointRadius: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { color: '#9ca3af', font: { size: 10 } }, grid: { color: 'rgba(56,189,248,0.05)' } },
+            y: { beginAtZero: true, ticks: { color: '#9ca3af', font: { size: 10 } }, grid: { color: 'rgba(56,189,248,0.05)' } }
+          }
+        }
+      });
     }
 
     function toggleChartUser(userId) {
@@ -665,7 +789,7 @@
         return `
           <span class="inline-flex items-center gap-2 px-3 py-1 rounded-xl text-xs font-semibold bg-black/60 border" style="border-color: ${color}; color: ${color};">
             <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${color};"></span>
-            <span>@${u.username} (${u.totalScore})</span>
+            <span>${u.displayName} (${u.totalScore})</span>
             <button type="button" onclick="toggleChartUser('${u.userId}')" class="hover:text-white ml-0.5 cursor-pointer">&times;</button>
           </span>
         `;
@@ -693,12 +817,12 @@
         });
 
         return {
-          label: '@' + u.username,
+          label: u.displayName,
           data: dataPoints,
           borderColor: color,
           backgroundColor: color + '20',
           borderWidth: 2.5,
-          stepped: true, // กราฟขั้นบันไดแสดงจังหวะพุ่ง (Stepped Line)
+          stepped: true,
           tension: 0,
           pointRadius: 4,
           pointHoverRadius: 7

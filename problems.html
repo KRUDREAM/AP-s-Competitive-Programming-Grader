@@ -85,6 +85,7 @@
         <a href="index.html" class="hover:text-cyan-400 transition"><i class="fa-solid fa-house mr-1 text-cyan-500"></i> หน้าหลัก</a>
         <a href="ranking.html" class="hover:text-cyan-400 transition"><i class="fa-solid fa-ranking-star mr-1 text-cyan-500"></i> Ranking</a>
         <a href="problems.html" class="text-cyan-400 font-semibold transition"><i class="fa-solid fa-laptop-code mr-1"></i> คลังโจทย์</a>
+        <a href="announcement.html" class="hover:text-cyan-400 transition"><i class="fa-solid fa-bullhorn mr-1 text-cyan-500"></i> ประกาศระบบ</a>
       </nav>
 
       <!-- AUTH / USER DROPDOWN AREA -->
@@ -129,13 +130,6 @@
           <span>โจทย์ที่ฉันเสนอ</span>
           <span id="countMineBadge" class="text-[11px] px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300">0</span>
         </button>
-
-        <!-- TAB ประกาศ (Announcements) -->
-        <button type="button" id="tabBtnAnnouncements" onclick="switchProblemTab('announcements')" class="flex-1 md:flex-initial px-4 py-2.5 rounded-xl text-xs md:text-sm font-semibold text-gray-300 hover:text-white hover:bg-white/5 transition cursor-pointer flex items-center justify-center gap-2">
-          <i class="fa-solid fa-bullhorn text-cyan-400"></i>
-          <span>ประกาศระบบ</span>
-          <span id="countAnnounceBadge" class="text-[11px] px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300">0</span>
-        </button>
       </div>
 
       <div id="tabSubtitleHint" class="text-xs text-cyan-300/90 font-medium">
@@ -143,8 +137,8 @@
       </div>
     </div>
 
-    <!-- SEARCH, FILTER & QUICK TAGS BAR (ซ่อนเมื่ออยู่ tab ประกาศ) -->
-    <div id="filterAndSearchSection" class="tech-glass rounded-2xl p-4 border border-cyan-500/20 space-y-3">
+    <!-- SEARCH, FILTER & QUICK TAGS BAR -->
+    <div class="tech-glass rounded-2xl p-4 border border-cyan-500/20 space-y-3">
       <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
         <div class="md:col-span-6 relative">
           <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-cyan-400 text-xs"></i>
@@ -176,8 +170,8 @@
       </div>
     </div>
 
-    <!-- PROBLEMS TABLE CONTAINER -->
-    <div id="problemsTableContainer" class="tech-glass rounded-2xl overflow-x-auto border border-cyan-500/20">
+    <!-- PROBLEMS TABLE -->
+    <div class="tech-glass rounded-2xl overflow-x-auto border border-cyan-500/20">
       <table class="w-full text-left text-sm">
         <thead class="bg-cyan-950/50 text-cyan-300 border-b border-cyan-500/20 text-xs uppercase">
           <tr>
@@ -194,20 +188,6 @@
           <tr><td colspan="7" class="p-8 text-center text-gray-400">กำลังโหลดรายการโจทย์...</td></tr>
         </tbody>
       </table>
-    </div>
-
-    <!-- ANNOUNCEMENTS SECTION CONTAINER (ซ่อนเป็นค่าเริ่มต้น) -->
-    <div id="announcementsSectionContainer" class="hidden space-y-4">
-      <div class="flex justify-between items-center bg-cyan-950/40 p-4 rounded-2xl border border-cyan-500/20">
-        <div>
-          <h3 class="font-bold text-white text-base"><i class="fa-solid fa-bullhorn text-cyan-400 mr-2"></i> บอร์ดประกาศและข่าวสารระบบ</h3>
-          <p class="text-xs text-gray-400">ประกาศสำคัญ กิจกรรม และอัปเดตต่างๆ จากทีมงานผู้ดูแลระบบ</p>
-        </div>
-        <div id="adminAnnounceActionBtn"></div>
-      </div>
-      <div id="announcementsListContainer" class="space-y-3">
-        <div class="tech-glass p-6 rounded-2xl text-center text-gray-400 text-xs">กำลังโหลดประกาศ...</div>
-      </div>
     </div>
   </main>
 
@@ -495,42 +475,6 @@
     </div>
   </div>
 
-  <!-- MODAL: CREATE/EDIT ANNOUNCEMENT (หลังบ้าน) -->
-  <div id="announcementModal" onclick="if(event.target === this) closeAnnouncementModal()" class="modal-backdrop modal-closed fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/85 backdrop-blur-md opacity-0 pointer-events-none">
-    <div class="modal-box tech-modal rounded-3xl p-6 md:p-8 max-w-lg w-full relative border border-cyan-500/30 space-y-5">
-      <button type="button" onclick="closeAnnouncementModal()" class="absolute top-5 right-5 text-gray-400 hover:text-white w-9 h-9 rounded-full bg-cyan-500/10 hover:bg-cyan-500/20 flex items-center justify-center transition cursor-pointer">
-        <i class="fa-solid fa-xmark text-sm"></i>
-      </button>
-
-      <div class="text-center">
-        <h3 id="annModalTitle" class="text-lg font-bold text-white mb-1"><i class="fa-solid fa-bullhorn text-cyan-400 mr-2"></i> สร้างประกาศใหม่</h3>
-        <p class="text-xs text-gray-400">ประกาศข่าวสารแจ้งเตือนให้ผู้ใช้งานระบบทุกคนทราบ</p>
-      </div>
-
-      <form id="announcementForm" class="space-y-4">
-        <input type="hidden" id="annFormMode" value="create">
-        <input type="hidden" id="annEditId" value="">
-
-        <div>
-          <label class="block text-xs font-medium text-cyan-300 mb-1">หัวข้อประกาศ (Title) *</label>
-          <input type="text" id="annTitleInput" required placeholder="เช่น อัปเดตระบบโจทย์ชุดใหม่..." class="w-full bg-black/60 border border-cyan-500/20 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-400">
-        </div>
-
-        <div>
-          <label class="block text-xs font-medium text-cyan-300 mb-1">เนื้อหาประกาศ (Content) *</label>
-          <textarea id="annContentInput" required rows="5" placeholder="รายละเอียดเนื้อหาประกาศ..." class="w-full bg-black/60 border border-cyan-500/20 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-cyan-400 resize-y"></textarea>
-        </div>
-
-        <div class="flex items-center gap-2">
-          <input type="checkbox" id="annPinnedInput" class="w-4 h-4 rounded bg-black/60 border-cyan-500/30 text-cyan-500 focus:ring-0 cursor-pointer">
-          <label for="annPinnedInput" class="text-xs text-cyan-300 font-medium cursor-pointer">ปักหมุดประกาศนี้ไว้ด้านบนสุด</label>
-        </div>
-
-        <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-bold py-3 rounded-xl text-xs transition shadow-lg shadow-cyan-500/20 cursor-pointer">บันทึกประกาศ</button>
-      </form>
-    </div>
-  </div>
-
   <!-- POPUP: TEST CASE -->
   <div id="singleTestCaseModal" onclick="if(event.target === this) closeSingleTestCaseModal()" class="modal-backdrop modal-closed fixed inset-0 z-[60] flex items-center justify-center px-4 bg-black/85 backdrop-blur-md opacity-0 pointer-events-none">
     <div class="modal-box tech-modal rounded-3xl p-6 md:p-7 max-w-2xl w-full relative space-y-5 border border-cyan-500/35">
@@ -606,12 +550,10 @@
 
     if (typeof marked !== 'undefined') marked.setOptions({ breaks: true, gfm: true });
 
-    let currentTab = 'official'; // 'official' | 'community' | 'mine' | 'announcements'
+    let currentTab = 'official'; // 'official' | 'community' | 'mine'
     let allProblemsCache = [];
-    let allAnnouncementsCache = [];
     let currentUser = null;
     let currentUserProfile = null;
-    let isAdminUser = false;
     let solvedProblemIds = new Set();
     let attemptedProblemIds = new Set();
     let acCountByProblem = {};
@@ -652,7 +594,6 @@
     }
 
     function updateNavbarLoggedIn(username, isAdmin = false) {
-      isAdminUser = isAdmin;
       const adminLink = isAdmin
         ? `<a href="admin.html" class="block px-4 py-2.5 text-xs text-rose-300 font-bold hover:bg-rose-500/15 transition"><i class="fa-solid fa-user-shield mr-2 text-rose-400"></i> ระบบจัดการ Admin</a>`
         : '';
@@ -667,6 +608,7 @@
             ${adminLink}
             <a href="index.html" class="block px-4 py-2.5 text-xs text-gray-300 hover:bg-cyan-500/10 hover:text-cyan-300 transition"><i class="fa-solid fa-house mr-2 text-cyan-400"></i> หน้าหลัก</a>
             <a href="ranking.html" class="block px-4 py-2.5 text-xs text-gray-300 hover:bg-cyan-500/10 hover:text-cyan-300 transition"><i class="fa-solid fa-ranking-star mr-2 text-cyan-400"></i> บอร์ดจัดอันดับ</a>
+            <a href="announcement.html" class="block px-4 py-2.5 text-xs text-gray-300 hover:bg-cyan-500/10 hover:text-cyan-300 transition"><i class="fa-solid fa-bullhorn mr-2 text-cyan-400"></i> ประกาศระบบ</a>
             <button type="button" onclick="toggleStatsModal(true)" class="w-full text-left px-4 py-2.5 text-xs text-gray-300 hover:bg-cyan-500/10 hover:text-cyan-300 transition cursor-pointer"><i class="fa-solid fa-chart-line mr-2 text-cyan-400"></i> สถิติพัฒนาการ &amp; Submission</button>
             <button type="button" onclick="toggleChangePassModal(true)" class="w-full text-left px-4 py-2.5 text-xs text-gray-300 hover:bg-cyan-500/10 hover:text-cyan-300 transition cursor-pointer"><i class="fa-solid fa-key mr-2 text-cyan-400"></i> เปลี่ยนรหัสผ่าน</button>
             <div class="border-t border-cyan-500/20 my-1"></div>
@@ -1138,84 +1080,6 @@
 
     function closeProblemModal() { closeSmoothModal('problemModal'); }
 
-    // --- ANNOUNCEMENT MANAGEMENT (หลังบ้าน) ---
-    function openAnnouncementModal(mode = 'create', ann = null) {
-      const form = document.getElementById('announcementForm');
-      form.reset();
-      document.getElementById('annFormMode').value = mode;
-      document.getElementById('annEditId').value = '';
-
-      if (mode === 'edit' && ann) {
-        document.getElementById('annFormMode').value = 'edit';
-        document.getElementById('annEditId').value = ann.id;
-        document.getElementById('annTitleInput').value = ann.title || '';
-        document.getElementById('annContentInput').value = ann.content || '';
-        document.getElementById('annPinnedInput').checked = !!ann.is_pinned;
-        document.getElementById('annModalTitle').innerHTML = '<i class="fa-solid fa-pen-to-square text-cyan-400 mr-2"></i> แก้ไขประกาศ';
-      } else {
-        document.getElementById('annModalTitle').innerHTML = '<i class="fa-solid fa-bullhorn text-cyan-400 mr-2"></i> สร้างประกาศใหม่';
-      }
-      openSmoothModal('announcementModal');
-    }
-
-    function closeAnnouncementModal() { closeSmoothModal('announcementModal'); }
-
-    document.getElementById('announcementForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      if (!isAdminUser) {
-        showToast('สิทธิ์ไม่เพียงพอ', 'เฉพาะผู้ดูแลระบบ (Admin) เท่านั้นที่สามารถจัดการประกาศได้', true);
-        return;
-      }
-
-      const mode = document.getElementById('annFormMode').value;
-      const id = document.getElementById('annEditId').value;
-      const title = document.getElementById('annTitleInput').value.trim();
-      const content = document.getElementById('annContentInput').value.trim();
-      const is_pinned = document.getElementById('annPinnedInput').checked;
-
-      const payload = {
-        title,
-        content,
-        is_pinned,
-        author: (currentUserProfile && (currentUserProfile.display_name || currentUserProfile.username)) || 'Admin',
-        created_at: new Date().toISOString()
-      };
-
-      if (mode === 'create') {
-        const { error } = await supabaseClient.from('announcements').insert([payload]);
-        if (error) {
-          showToast('เกิดข้อผิดพลาด', error.message, true);
-        } else {
-          showToast('สร้างประกาศสำเร็จ', 'ประกาศถูกเผยแพร่สู่ระบบเรียบร้อย');
-          closeAnnouncementModal();
-          await initProblemBank();
-          renderAnnouncementsView();
-        }
-      } else {
-        const { error } = await supabaseClient.from('announcements').update(payload).eq('id', id);
-        if (error) {
-          showToast('เกิดข้อผิดพลาด', error.message, true);
-        } else {
-          showToast('อัปเดตประกาศสำเร็จ', 'บันทึกการแก้ไขประกาศเรียบร้อย');
-          closeAnnouncementModal();
-          await initProblemBank();
-          renderAnnouncementsView();
-        }
-      }
-    });
-
-    async function deleteAnnouncement(id) {
-      if (!confirm('คุณต้องการลบประกาศนี้ใช่หรือไม่?')) return;
-      const { error } = await supabaseClient.from('announcements').delete().eq('id', id);
-      if (error) {
-        showToast('เกิดข้อผิดพลาด', error.message, true);
-      } else {
-        showToast('ลบประกาศสำเร็จ', 'ลบรายการประกาศออกจากระบบแล้ว');
-        await initProblemBank();
-        renderAnnouncementsView();
-      }
-    }
-
     // --- SUBMIT STUDENT PROBLEM ---
     document.getElementById('problemForm').addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -1318,14 +1182,12 @@
         myTabBtn.classList.add('flex');
       }
 
-      const [probsRes, subsRes, annRes] = await Promise.all([
+      const [probsRes, subsRes] = await Promise.all([
         supabaseClient.from('problems').select('*').order('id', { ascending: false }),
-        supabaseClient.from('submissions').select('user_id, problem_id, status'),
-        supabaseClient.from('announcements').select('*').order('created_at', { ascending: false })
+        supabaseClient.from('submissions').select('user_id, problem_id, status')
       ]);
 
       allProblemsCache = probsRes.data || [];
-      allAnnouncementsCache = annRes.data || [];
 
       const uniqueAcUsersByProb = {};
       const uniqueTriedUsersByProb = {};
@@ -1359,8 +1221,7 @@
 
       renderQuickTagFilterBar();
       updateTabCounters();
-      if (currentTab === 'announcements') renderAnnouncementsView();
-      else renderFilteredProblems();
+      renderFilteredProblems();
     }
 
     function toggleQuickTagFilter(tag) {
@@ -1392,12 +1253,10 @@
       const officialCount = allProblemsCache.filter(p => isAvailableNow(p) && getProblemSource(p) === 'official').length;
       const communityCount = allProblemsCache.filter(p => isAvailableNow(p) && getProblemSource(p) === 'community').length;
       const mineCount = currentUser ? allProblemsCache.filter(p => String(p.created_by) === String(currentUser.id)).length : 0;
-      const announceCount = allAnnouncementsCache.length;
 
       document.getElementById('countOfficialBadge').textContent = officialCount;
       document.getElementById('countCommunityBadge').textContent = communityCount;
       document.getElementById('countMineBadge').textContent = mineCount;
-      document.getElementById('countAnnounceBadge').textContent = announceCount;
     }
 
     function switchProblemTab(tabName) {
@@ -1406,88 +1265,24 @@
       const activeOfficial = 'flex-1 md:flex-initial px-4 py-2.5 rounded-xl text-xs md:text-sm font-bold bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-md transition cursor-pointer flex items-center justify-center gap-2';
       const activeCommunity = 'flex-1 md:flex-initial px-4 py-2.5 rounded-xl text-xs md:text-sm font-bold bg-gradient-to-r from-amber-500 to-orange-500 text-black shadow-md transition cursor-pointer flex items-center justify-center gap-2';
       const activeMine = 'flex-1 md:flex-initial px-4 py-2.5 rounded-xl text-xs md:text-sm font-bold bg-gradient-to-r from-purple-600 to-indigo-500 text-white shadow-md transition cursor-pointer flex items-center justify-center gap-2';
-      const activeAnnounce = 'flex-1 md:flex-initial px-4 py-2.5 rounded-xl text-xs md:text-sm font-bold bg-gradient-to-r from-cyan-600 to-teal-500 text-white shadow-md transition cursor-pointer flex items-center justify-center gap-2';
       const inactiveCls = 'flex-1 md:flex-initial px-4 py-2.5 rounded-xl text-xs md:text-sm font-semibold text-gray-300 hover:text-white hover:bg-white/5 transition cursor-pointer flex items-center justify-center gap-2';
 
       document.getElementById('tabBtnOfficial').className = tabName === 'official' ? activeOfficial : inactiveCls;
       document.getElementById('tabBtnCommunity').className = tabName === 'community' ? activeCommunity : inactiveCls;
-      document.getElementById('tabBtnAnnouncements').className = tabName === 'announcements' ? activeAnnounce : inactiveCls;
       if (currentUser) {
         document.getElementById('tabBtnMine').className = tabName === 'mine' ? activeMine : inactiveCls;
       }
 
       const hintEl = document.getElementById('tabSubtitleHint');
-      const filterSection = document.getElementById('filterAndSearchSection');
-      const tableContainer = document.getElementById('problemsTableContainer');
-      const announceSection = document.getElementById('announcementsSectionContainer');
-
       if (tabName === 'official') {
         hintEl.innerHTML = '<i class="fa-solid fa-shield-halved text-cyan-400 mr-1"></i> แสดงโจทย์มาตรฐานที่จัดทำโดยทีมงาน ST8';
-        filterSection.classList.remove('hidden');
-        tableContainer.classList.remove('hidden');
-        announceSection.classList.add('hidden');
-        renderFilteredProblems();
       } else if (tabName === 'community') {
         hintEl.innerHTML = '<i class="fa-solid fa-users text-amber-400 mr-1"></i> แสดงโจทย์สร้างสรรค์จากนักเรียนและผ่านการรับรองแล้ว';
-        filterSection.classList.remove('hidden');
-        tableContainer.classList.remove('hidden');
-        announceSection.classList.add('hidden');
-        renderFilteredProblems();
-      } else if (tabName === 'mine') {
-        hintEl.innerHTML = '<i class="fa-solid fa-file-signature text-purple-400 mr-1"></i> ติดตามสถานะและแก้ไขโจทย์ที่คุณสร้างขึ้น';
-        filterSection.classList.remove('hidden');
-        tableContainer.classList.remove('hidden');
-        announceSection.classList.add('hidden');
-        renderFilteredProblems();
-      } else if (tabName === 'announcements') {
-        hintEl.innerHTML = '<i class="fa-solid fa-bullhorn text-cyan-400 mr-1"></i> แสดงประกาศ ข่าวสาร และการแจ้งเตือนจากผู้ดูแลระบบ';
-        filterSection.classList.add('hidden');
-        tableContainer.classList.add('hidden');
-        announceSection.classList.remove('hidden');
-        renderAnnouncementsView();
-      }
-    }
-
-    function renderAnnouncementsView() {
-      const container = document.getElementById('announcementsListContainer');
-      const actionBtnContainer = document.getElementById('adminAnnounceActionBtn');
-
-      if (isAdminUser) {
-        actionBtnContainer.innerHTML = `<button type="button" onclick="openAnnouncementModal('create')" class="bg-gradient-to-r from-blue-600 to-cyan-500 text-white px-4 py-2 rounded-xl text-xs font-bold transition shadow-md cursor-pointer"><i class="fa-solid fa-plus mr-1"></i> สร้างประกาศใหม่</button>`;
       } else {
-        actionBtnContainer.innerHTML = '';
+        hintEl.innerHTML = '<i class="fa-solid fa-file-signature text-purple-400 mr-1"></i> ติดตามสถานะและแก้ไขโจทย์ที่คุณสร้างขึ้น';
       }
 
-      if (!allAnnouncementsCache || allAnnouncementsCache.length === 0) {
-        container.innerHTML = `<div class="tech-glass p-8 rounded-2xl text-center text-gray-400 text-xs">ยังไม่มีประกาศจากระบบในขณะนี้</div>`;
-        return;
-      }
-
-      container.innerHTML = allAnnouncementsCache.map(ann => {
-        const isPinned = ann.is_pinned;
-        const dateStr = ann.created_at ? new Date(ann.created_at).toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' }) : '';
-        const adminActions = isAdminUser ? `
-          <div class="flex items-center gap-2 mt-3 pt-3 border-t border-cyan-500/15">
-            <button type="button" onclick='openAnnouncementModal("edit", ${JSON.stringify(ann).replace(/'/g, "&#39;")})' class="text-xs bg-amber-500/15 text-amber-300 px-3 py-1.5 rounded-lg border border-amber-500/30 hover:bg-amber-500/25 transition cursor-pointer"><i class="fa-solid fa-pen mr-1"></i> แก้ไข</button>
-            <button type="button" onclick="deleteAnnouncement('${ann.id}')" class="text-xs bg-rose-500/15 text-rose-400 px-3 py-1.5 rounded-lg border border-rose-500/30 hover:bg-rose-500/25 transition cursor-pointer"><i class="fa-solid fa-trash mr-1"></i> ลบ</button>
-          </div>
-        ` : '';
-
-        return `
-          <div class="tech-glass p-5 rounded-2xl border ${isPinned ? 'border-amber-500/40 bg-amber-950/10' : 'border-cyan-500/20'} space-y-2">
-            <div class="flex flex-wrap justify-between items-start gap-2">
-              <div class="flex items-center gap-2 flex-wrap">
-                ${isPinned ? '<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/35"><i class="fa-solid fa-thumbtack mr-1"></i> ปักหมุด</span>' : ''}
-                <h4 class="font-bold text-white text-sm md:text-base">${ann.title}</h4>
-              </div>
-              <span class="text-[11px] text-gray-400 font-mono"><i class="fa-regular fa-clock mr-1"></i> ${dateStr}</span>
-            </div>
-            <p class="text-xs md:text-sm text-gray-300 whitespace-pre-line leading-relaxed">${ann.content}</p>
-            <div class="text-[11px] text-cyan-400 font-medium">ผู้ประกาศ: ${ann.author || 'Admin'}</div>
-            ${adminActions}
-          </div>
-        `;
-      }).join('');
+      renderFilteredProblems();
     }
 
     function renderActionButtons(p, isOwner, isSolved) {

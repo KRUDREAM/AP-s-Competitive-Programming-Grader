@@ -85,7 +85,7 @@
       <div class="tech-glass p-5 rounded-2xl border border-cyan-500/25 space-y-4">
         <div class="flex flex-wrap justify-between items-center gap-3">
           <div>
-            <h3 class="text-sm md:text-base font-bold text-white"><i class="fa-solid fa-chart-line text-cyan-400 mr-1.5"></i> กราฟพัฒนาการคะแนนรวมตามเวลา (จังหวะการพุ่งของคะแนน)</h3>
+            <h3 class="text-sm md:text-base font-bold text-white"><i class="fa-solid fa-chart-line text-cyan-400 mr-1.5"></i> กราฟพัฒนาการคะแนนตามเวลา</h3>
             <p class="text-xs text-gray-400">ติ๊กเลือกช่อง "กราฟ" ในตารางด้านล่างเพื่อเปรียบเทียบคะแนนหลายคนพร้อมกัน</p>
           </div>
           <div class="flex items-center gap-2">
@@ -123,6 +123,7 @@
           <tbody id="ioiTableBody" class="divide-y divide-cyan-500/10">
             <tr><td colspan="6" class="p-6 text-center text-gray-400">กำลังประมวลผลตารางคะแนน...</td></tr>
           </tbody>
+          <tfoot id="ioiTableFoot" class="bg-cyan-950/40 border-t border-cyan-500/25 text-xs text-cyan-300"></tfoot>
         </table>
       </div>
     </main>
@@ -221,7 +222,7 @@
         supabaseClient.from('contest_problems').select('*').order('sort_order', { ascending: true }),
         supabaseClient.from('problems').select('id, problem_code, title, max_score, is_verified'),
         supabaseClient.from('submissions').select('*').order('created_at', { ascending: true }),
-        supabaseClient.from('profiles').select('id, username, full_name, email, role')
+        supabaseClient.from('profiles').select('id, username, display_name, full_name, email, role')
       ]);
 
       allContests = contestsRes.data || [];
@@ -265,8 +266,9 @@
 
       const userLookup = {};
       allProfiles.forEach(u => {
+        const bestName = u.display_name || u.full_name || u.username || u.email?.split('@')[0] || `User-${String(u.id).slice(0, 6)}`;
         userLookup[u.id] = {
-          name: u.username || u.full_name || u.email || `User-${String(u.id).slice(0, 6)}`,
+          name: bestName,
           email: u.email || '-',
           role: u.role || 'user'
         };
@@ -393,6 +395,7 @@
     function renderIoiTable() {
       const thead = document.getElementById('ioiTableHead');
       const tbody = document.getElementById('ioiTableBody');
+      const tfoot = document.getElementById('ioiTableFoot');
       const query = (document.getElementById('sbSearchInput').value || '').trim().toLowerCase();
 
       const probHeaders = activeProblemColumns.map((col, cIdx) => `
@@ -402,19 +405,22 @@
         </th>
       `).join('');
 
+      // ลำดับหัวตาราง: [กราฟ] [อันดับ] [ผู้เข้าแข่งขัน] [โจทย์ข้อ 1, 2, 3...] [คะแนนรวม (ไว้หลังสุด)]
+      const totalColIdx = 3 + activeProblemColumns.length;
       thead.innerHTML = `
         <tr>
           <th class="px-3 py-3.5 text-center w-14" data-col-index="0">กราฟ</th>
           <th class="px-3 py-3.5 text-center w-20" data-col-index="1">อันดับ</th>
           <th class="px-4 py-3.5 min-w-[180px]" data-col-index="2">ผู้เข้าแข่งขัน (คลิกเพื่อดูโปรไฟล์)</th>
-          <th class="px-4 py-3.5 text-center whitespace-nowrap" data-col-index="${3 + activeProblemColumns.length}">คะแนนรวม</th>
           ${probHeaders}
+          <th class="px-4 py-3.5 text-center whitespace-nowrap" data-col-index="${totalColIdx}">คะแนนรวม</th>
         </tr>
       `;
 
       const filtered = computedRows.filter(r => !query || r.name.toLowerCase().includes(query));
       if (filtered.length === 0) {
         tbody.innerHTML = `<tr><td colspan="${4 + activeProblemColumns.length}" class="p-8 text-center text-gray-400">ยังไม่มีข้อมูลคะแนนในรอบการแข่งขันนี้</td></tr>`;
+        tfoot.innerHTML = '';
         return;
       }
 
@@ -455,13 +461,32 @@
                 <div class="text-[11px] text-gray-400">เต็ม ${row.fullSolvedCount}/${activeProblemColumns.length} ข้อ</div>
               </button>
             </td>
-            <td class="px-4 py-3 text-center whitespace-nowrap matrix-cell" data-col-index="${3 + activeProblemColumns.length}">
+            ${problemCells}
+            <td class="px-4 py-3 text-center whitespace-nowrap matrix-cell" data-col-index="${totalColIdx}">
               <span class="text-base font-bold text-cyan-300 bg-cyan-500/15 px-3 py-1 rounded-xl border border-cyan-500/30 font-mono">${row.totalScore}</span>
             </td>
-            ${problemCells}
           </tr>
         `;
       }).join('');
+
+      // คำนวณจำนวนคนที่ผ่าน (AC) ในแต่ละข้อ สำหรับแสดงแถว Footer ด้านล่างสุด
+      const acCountsByProb = activeProblemColumns.map(col => {
+        return computedRows.filter(r => (r.bestByProblem[col.id] || 0) >= col.maxScore).length;
+      });
+
+      const footerCells = acCountsByProb.map((cnt, cIdx) => `
+        <td class="px-2 py-3 text-center font-mono text-emerald-400 font-bold" data-col-index="${cIdx + 3}">
+          <i class="fa-solid fa-check text-[10px] mr-1"></i>${cnt} คน
+        </td>
+      `).join('');
+
+      tfoot.innerHTML = `
+        <tr>
+          <td colspan="3" class="px-4 py-3 text-right font-bold text-gray-300">จำนวนคนที่ผ่านโจทย์ (AC):</td>
+          ${footerCells}
+          <td class="px-4 py-3 text-center font-bold text-cyan-300">-</td>
+        </tr>
+      `;
 
       bindTableHoverHighlight();
     }
@@ -716,11 +741,11 @@
 
     function exportIoiScoreboardCsv() {
       if (!computedRows.length) return;
-      const headers = ['Rank', 'Name', 'Total_Score', ...activeProblemColumns.map(c => `${c.label}(${c.maxScore})`)];
+      const headers = ['Rank', 'Name', ...activeProblemColumns.map(c => `${c.label}(${c.maxScore})`), 'Total_Score'];
       const rows = [headers];
       computedRows.forEach((r, idx) => {
         const perProb = activeProblemColumns.map(col => r.bestByProblem[col.id] || 0);
-        rows.push([idx + 1, `"${r.name}"`, r.totalScore, ...perProb]);
+        rows.push([idx + 1, `"${r.name}"`, ...perProb, r.totalScore]);
       });
       const csv = rows.map(r => r.join(',')).join('\n');
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });

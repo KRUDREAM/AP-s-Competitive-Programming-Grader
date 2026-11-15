@@ -265,7 +265,7 @@
       <!-- MONACO EDITOR -->
       <div id="monacoContainer" class="flex-1 min-h-0 w-full relative"></div>
 
-      <!-- BOTTOM CONSOLE (ย้ายปุ่มรันทดสอบและส่งตรวจมาไว้ใกล้คอนโซล/ช่อง Input) -->
+      <!-- BOTTOM CONSOLE -->
       <div class="h-56 shrink-0 bg-[#060a17] border-t border-cyan-500/25 flex flex-col">
         <div class="h-10 px-3.5 bg-black/60 border-b border-cyan-500/15 flex items-center justify-between">
           <div class="flex items-center gap-1.5">
@@ -277,7 +277,6 @@
             </button>
           </div>
 
-          <!-- ปุ่มรันทดสอบและส่งตรวจ (ย้ายมาไว้ใกล้กับส่วนจัดการทดสอบด้านล่างสุด) -->
           <div class="flex items-center gap-2">
             <button type="button" onclick="loadSampleIntoCustomInput()" class="text-[11px] text-amber-300 hover:text-amber-200 cursor-pointer mr-2 hidden sm:inline-block">
               <i class="fa-solid fa-flask mr-1"></i> โหลด Sample
@@ -366,9 +365,6 @@
 
     let leftPaneWidthPct = parseFloat(localStorage.getItem('st8_split_left_pct')) || 48;
     let isLeftCollapsed = false;
-
-    let selectedChatAttachmentId = null;
-    let chatMessagesCache = [];
 
     const DEFAULT_TEMPLATES = {
       cpp: `#include <bits/stdc++.h>\nusing namespace std;\n\nint main() {\n    ios::sync_with_stdio(false);\n    cin.tie(nullptr);\n    \n    // เขียนโค้ดของคุณที่นี่\n    \n    return 0;\n}`,
@@ -533,8 +529,6 @@
       document.getElementById('leftPaneStmt').classList.toggle('hidden', tab !== 'stmt');
       document.getElementById('leftPaneSubs').classList.toggle('hidden', tab !== 'subs');
       document.getElementById('leftPaneChat').classList.toggle('hidden', tab !== 'chat');
-
-      if (tab === 'chat') scrollChatToBottom();
     }
 
     async function initEditorPage() {
@@ -575,16 +569,12 @@
       renderProblemStatement(prob);
 
       await loadMySubmissions();
-      await loadChatMessages();
-      subscribeRealtimeChat();
     }
 
     function renderProblemStatement(p) {
       document.title = `${p.problem_code || 'P' + p.id} : ${p.title} | ST8 CP-Grader`;
       document.getElementById('navProbCode').textContent = p.problem_code || 'ST8-P' + p.id;
       document.getElementById('navProbTitle').textContent = p.title;
-      document.getElementById('navTimeLimit').textContent = p.time_limit || 1.0;
-      document.getElementById('navMemLimit').textContent = p.memory_limit || 256;
 
       const diffEl = document.getElementById('navProbDiff');
       diffEl.textContent = p.difficulty || 'Medium';
@@ -679,73 +669,6 @@
       try { return decodeURIComponent(escape(atob(str))); } catch { return str; }
     }
 
-    function buildSingleCompileCppWrapper(userCode, testCases) {
-      const marker = '___ST8_CASE_END_991827___';
-      const inputsArray = testCases.map(tc => JSON.stringify(tc.input || '')).join(',\n        ');
-
-      return `
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <string>
-#include <vector>
-#include <unistd.h>
-#include <sys/wait.h>
-
-namespace __st8_user_ns {
-${userCode}
-}
-
-int main() {
-    std::vector<std::string> __inputs = {
-        ${inputsArray}
-    };
-    for (size_t i = 0; i < __inputs.size(); ++i) {
-        int in_pipe[2], out_pipe[2];
-        if (pipe(in_pipe) != 0 || pipe(out_pipe) != 0) break;
-
-        pid_t pid = fork();
-        if (pid == 0) {
-            close(in_pipe[1]);
-            close(out_pipe[0]);
-            dup2(in_pipe[0], STDIN_FILENO);
-            dup2(out_pipe[1], STDOUT_FILENO);
-            close(in_pipe[0]);
-            close(out_pipe[1]);
-            int rc = __st8_user_ns::main();
-            fflush(stdout);
-            _exit(rc);
-        } else if (pid > 0) {
-            close(in_pipe[0]);
-            close(out_pipe[1]);
-            if (!__inputs[i].empty()) {
-                ssize_t w = write(in_pipe[1], __inputs[i].data(), __inputs[i].size());
-                (void)w;
-            }
-            close(in_pipe[1]);
-
-            std::string captured;
-            char buf[4096];
-            ssize_t n;
-            while ((n = read(out_pipe[0], buf, sizeof(buf))) > 0) {
-                captured.append(buf, n);
-            }
-            close(out_pipe[0]);
-
-            int status = 0;
-            waitpid(pid, &status, 0);
-            int code = WIFEXITED(status) ? WEXITSTATUS(status) : -1;
-            printf("${marker}:%d\\n", code);
-            fwrite(captured.data(), 1, captured.size(), stdout);
-            printf("\\n${marker}_NEXT\\n");
-            fflush(stdout);
-        }
-    }
-    return 0;
-}
-`;
-    }
-
     async function executeCppSingleCall(code, lang, stdin) {
       const startTime = performance.now();
       const wandboxPromise = fetch('https://wandbox.org/api/compile.json', {
@@ -788,44 +711,6 @@ int main() {
       });
 
       return await Promise.any([wandboxPromise, judge0Promise]);
-    }
-
-    async function runCppSingleCompileBatch(fullCode, lang, testCases) {
-      try {
-        const marker = '___ST8_CASE_END_991827___';
-        const wrapped = buildSingleCompileCppWrapper(fullCode, testCases);
-        const batchRes = await executeCppSingleCall(wrapped, lang, '');
-
-        if (batchRes.status === 'OK' && batchRes.stdout.includes(marker)) {
-          const blocks = batchRes.stdout.split(`\n${marker}_NEXT\n`);
-          const parsedResults = [];
-          const perCaseTime = parseFloat((batchRes.elapsed / Math.max(1, testCases.length)).toFixed(3));
-
-          for (let i = 0; i < testCases.length; i++) {
-            const blk = blocks[i] || '';
-            const firstLineEnd = blk.indexOf('\n');
-            const headerLine = firstLineEnd !== -1 ? blk.slice(0, firstLineEnd) : blk;
-            const body = firstLineEnd !== -1 ? blk.slice(firstLineEnd + 1) : '';
-            const exitCode = parseInt(headerLine.split(':')[1] || '0', 10);
-
-            if (exitCode !== 0) {
-              parsedResults.push({ status: 'RE', stdout: body, stderr: `Exit code ${exitCode}`, compilerError: '', elapsed: perCaseTime });
-            } else {
-              parsedResults.push({ status: 'OK', stdout: body, stderr: '', compilerError: '', elapsed: perCaseTime });
-            }
-          }
-          return parsedResults;
-        }
-      } catch {}
-
-      const first = await executeCppSingleCall(fullCode, lang, testCases[0].input || '');
-      if (first.status === 'CE') return [first];
-      if (testCases.length === 1) return [first];
-
-      const rest = await Promise.all(
-        testCases.slice(1).map(tc => executeCppSingleCall(fullCode, lang, tc.input || ''))
-      );
-      return [first, ...rest];
     }
 
     async function runCustomTest() {
@@ -894,41 +779,43 @@ int main() {
         let caseResults = [];
 
         const effectiveCases = testCases.length > 0 ? testCases : [{ input: '', output: '' }];
-        const rawResponses = await runCppSingleCompileBatch(fullCode, lang, effectiveCases);
 
-        if (rawResponses[0] && rawResponses[0].status === 'CE') {
-          finalStatus = 'Compilation Error';
-          caseResults.push({ index: 1, verdict: 'CE', detail: rawResponses[0].compilerError });
-        } else {
-          rawResponses.forEach((res, idx) => {
-            maxExecTime = Math.max(maxExecTime, res.elapsed || 0);
-            if (res.status === 'TLE' || (res.elapsed && res.elapsed > timeLimitSec)) {
-              if (finalStatus === 'Accepted') finalStatus = 'Time Limit Exceeded';
-              caseResults.push({ index: idx + 1, verdict: 'TLE', time: res.elapsed });
-            } else if (res.status !== 'OK') {
-              if (finalStatus === 'Accepted') finalStatus = 'Runtime Error';
-              caseResults.push({ index: idx + 1, verdict: 'RE', time: res.elapsed });
-            } else if (testCases.length === 0) {
+        for (let i = 0; i < effectiveCases.length; i++) {
+          const tc = effectiveCases[i];
+          const res = await executeCppSingleCall(fullCode, lang, tc.input || '');
+          maxExecTime = Math.max(maxExecTime, res.elapsed || 0);
+
+          if (res.status === 'CE') {
+            finalStatus = 'Compilation Error';
+            caseResults.push({ index: i + 1, verdict: 'CE', detail: res.compilerError });
+            break;
+          } else if (res.status === 'TLE' || (res.elapsed && res.elapsed > timeLimitSec)) {
+            if (finalStatus === 'Accepted') finalStatus = 'Time Limit Exceeded';
+            caseResults.push({ index: i + 1, verdict: 'TLE', time: res.elapsed });
+          } else if (res.status !== 'OK') {
+            if (finalStatus === 'Accepted') finalStatus = 'Runtime Error';
+            caseResults.push({ index: i + 1, verdict: 'RE', time: res.elapsed });
+          } else if (testCases.length === 0) {
+            passedCount++;
+            caseResults.push({ index: 1, verdict: 'AC', time: res.elapsed });
+          } else {
+            const actual = normalizeOutput(res.stdout);
+            const expected = normalizeOutput(tc.output);
+            if (actual === expected) {
               passedCount++;
-              caseResults.push({ index: 1, verdict: 'AC', time: res.elapsed });
+              caseResults.push({ index: i + 1, verdict: 'AC', time: res.elapsed });
             } else {
-              const actual = normalizeOutput(res.stdout);
-              const expected = normalizeOutput(testCases[idx].output);
-              if (actual === expected) {
-                passedCount++;
-                caseResults.push({ index: idx + 1, verdict: 'AC', time: res.elapsed });
-              } else {
-                if (finalStatus === 'Accepted') finalStatus = 'Wrong Answer';
-                caseResults.push({ index: idx + 1, verdict: 'WA', time: res.elapsed });
-              }
+              if (finalStatus === 'Accepted') finalStatus = 'Wrong Answer';
+              caseResults.push({ index: i + 1, verdict: 'WA', time: res.elapsed });
             }
-          });
+          }
         }
 
         const totalCases = Math.max(testCases.length, 1);
         const maxScore = currentProblem.max_score || 100;
         const score = finalStatus === 'Accepted' ? maxScore : Math.round((passedCount / totalCases) * maxScore);
 
+        // บันทึก Submission ลงตาราง submissions ทุกครั้งที่มีการกดส่งตรวจเสมอ
         await supabaseClient.from('submissions').insert([{
           user_id: currentUser.id,
           problem_id: parseInt(problemId),
@@ -1036,58 +923,6 @@ int main() {
         showToast('โหลดสำเร็จ', 'นำโค้ดใส่ Editor แล้ว');
       }
     }
-
-    async function loadChatMessages() {
-      if (!problemId) return;
-      const { data } = await supabaseClient.from('problem_chat_messages').select('*').eq('problem_id', problemId).order('created_at', { ascending: true });
-      chatMessagesCache = data || [];
-      renderChatMessages();
-    }
-
-    function subscribeRealtimeChat() {
-      supabaseClient.channel(`problem-chat-${problemId}`).on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'problem_chat_messages', filter: `problem_id=eq.${problemId}` }, (payload) => {
-        if (!chatMessagesCache.some(m => m.id === payload.new.id)) {
-          chatMessagesCache.push(payload.new);
-          renderChatMessages();
-        }
-      }).subscribe();
-    }
-
-    function renderChatMessages() {
-      const container = document.getElementById('chatMessagesContainer');
-      document.getElementById('chatCountBadge').textContent = chatMessagesCache.length;
-      if (chatMessagesCache.length === 0) {
-        container.innerHTML = `<div class="text-center py-10 text-xs text-gray-400">ยังไม่มีข้อความสนทนา</div>`;
-        return;
-      }
-      container.innerHTML = chatMessagesCache.map(m => {
-        const isMine = currentUser && String(m.user_id) === String(currentUser.id);
-        const timeStr = m.created_at ? new Date(m.created_at).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }) : '';
-        return `
-          <div class="flex flex-col ${isMine ? 'items-end' : 'items-start'}">
-            <div class="text-[10px] text-gray-400 mb-0.5">${escapeHtml(m.sender_name)} • ${timeStr}</div>
-            <div class="max-w-[85%] ${isMine ? 'bg-blue-600 text-white' : 'tech-glass text-gray-100'} px-3.5 py-2 rounded-2xl text-xs">${escapeHtml(m.message)}</div>
-          </div>
-        `;
-      }).join('');
-      scrollChatToBottom();
-    }
-
-    function scrollChatToBottom() {
-      const c = document.getElementById('chatMessagesContainer');
-      if (c) c.scrollTop = c.scrollHeight;
-    }
-
-    document.getElementById('chatSendForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      if (!currentUser || !problemId) return;
-      const input = document.getElementById('chatMessageInput');
-      const msgText = input.value.trim();
-      if (!msgText) return;
-      const senderName = (currentUserProfile && (currentUserProfile.display_name || currentUserProfile.username)) || currentUser.email.split('@')[0];
-      input.value = '';
-      await supabaseClient.from('problem_chat_messages').insert([{ problem_id: parseInt(problemId), user_id: currentUser.id, sender_name: senderName, message: msgText }]);
-    });
 
     function escapeHtml(str) {
       return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');

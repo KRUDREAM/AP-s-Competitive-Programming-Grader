@@ -798,10 +798,10 @@
         const maxScore = currentProblem.max_score || 100;
         const score = finalStatus === 'Accepted' ? maxScore : Math.round((passedCount / totalCases) * maxScore);
 
-        // บันทึก Submission ลงตาราง submissions พร้อมใช้ problem_id ให้ตรงกับฐานข้อมูล
+// บันทึก Submission ลงตาราง submissions (เอา parseInt ออก เพราะ id เป็น UUID)
         const { error: subErr } = await supabaseClient.from('submissions').insert([{
           user_id: currentUser.id,
-          problem_id: parseInt(problemId),
+          problem_id: problemId, // <-- ส่งค่าตรงๆ ไม่ต้องใช้ parseInt
           source_code: userCode,
           language: lang,
           status: finalStatus,

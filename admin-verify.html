@@ -67,12 +67,15 @@
               </div>
               <p class="text-xs text-gray-400 mt-1">ผู้เสนอ: <span class="text-amber-300 font-medium">${p.author || 'ไม่ระบุ'}</span> &bull; ความยาก: <span class="text-white">${p.difficulty}</span> &bull; แท็ก: ${p.tags || '-'}</p>
             </div>
-            <div class="flex gap-2">
-              <button type="button" onclick="approveProblem('${p.id}')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl text-xs font-semibold transition cursor-pointer flex items-center gap-1.5">
-                <i class="fa-solid fa-check"></i> อนุมัติเผยแพร่
+            <div class="flex gap-2 flex-wrap">
+              <button type="button" onclick="testProblemInEditor('${p.id}')" class="bg-cyan-600 hover:bg-cyan-500 text-white px-3.5 py-2 rounded-xl text-xs font-semibold transition cursor-pointer flex items-center gap-1.5">
+                <i class="fa-solid fa-code"></i> ทดสอบใน Editor
               </button>
-              <button type="button" onclick="rejectProblem('${p.id}')" class="bg-rose-600/20 text-rose-400 hover:bg-rose-600 hover:text-white px-4 py-2 rounded-xl text-xs font-semibold transition cursor-pointer flex items-center gap-1.5">
-                <i class="fa-solid fa-trash"></i> ปฏิเสธ / ลบ
+              <button type="button" onclick="approveProblem('${p.id}')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-2 rounded-xl text-xs font-semibold transition cursor-pointer flex items-center gap-1.5">
+                <i class="fa-solid fa-check"></i> อนุมัติ
+              </button>
+              <button type="button" onclick="rejectProblem('${p.id}')" class="bg-rose-600/20 text-rose-400 hover:bg-rose-600 hover:text-white px-3.5 py-2 rounded-xl text-xs font-semibold transition cursor-pointer flex items-center gap-1.5">
+                <i class="fa-solid fa-trash"></i> ปฏิเสธ
               </button>
             </div>
           </div>
@@ -80,6 +83,10 @@
           <div class="bg-black/50 p-3.5 rounded-xl border border-white/10 text-xs text-gray-300 max-h-40 overflow-y-auto whitespace-pre-wrap">${p.statement || '(ไม่มีเนื้อหา Statement)'}</div>
         </div>
       `).join('');
+    }
+
+    function testProblemInEditor(id) {
+      window.open(`editor.html?id=${id}`, '_blank');
     }
 
     async function approveProblem(id) {

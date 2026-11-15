@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ตรวจสอบผลการตรวจโค้ดรายเทสเคสจริง | ST8 CP-Grader Admin</title>
+  <title>ตรวจสอบผลการตรวจโค้ด | ST8 CP-Grader Admin</title>
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -30,8 +30,8 @@
       <!-- HEADER -->
       <div class="bg-gradient-to-r from-blue-950/40 via-cyan-950/30 to-purple-950/25 p-5 rounded-2xl border border-cyan-500/20 flex flex-wrap justify-between items-center gap-3">
         <div>
-          <h2 class="text-lg md:text-xl font-bold text-white"><i class="fa-solid fa-square-poll-vertical text-cyan-400 mr-2"></i> ตรวจสอบการบ้านและผลเทสเคสจริงรายบุคคล</h2>
-          <p class="text-xs text-gray-400">คลิกเลือกชื่อนักเรียน &rarr; เลือกโจทย์ &rarr; ตรวจสอบผลลัพธ์เทสเคสจริงจากระบบฐานข้อมูล</p>
+          <h2 class="text-lg md:text-xl font-bold text-white"><i class="fa-solid fa-square-poll-vertical text-cyan-400 mr-2"></i> ตรวจสอบการบ้านและโค้ดรายบุคคล</h2>
+          <p class="text-xs text-gray-400">คลิกเลือกชื่อนักเรียน &rarr; เลือกโจทย์ &rarr; ตรวจสอบผลลัพธ์และซอร์สโค้ด</p>
         </div>
         <div class="flex items-center gap-2">
           <button type="button" onclick="fetchUsersAndSubmissions()" class="tech-glass hover:bg-cyan-500/15 text-cyan-300 border border-cyan-500/35 px-3.5 py-2 rounded-xl text-xs font-semibold transition cursor-pointer">
@@ -115,7 +115,7 @@
                 <th class="px-3 py-2.5 text-center">ภาษา</th>
                 <th class="px-3 py-2.5 text-center">คะแนนรวม</th>
                 <th class="px-3 py-2.5 text-center">สถานะ</th>
-                <th class="px-3 py-2.5 text-right">ดูผลเทสเคสจริง</th>
+                <th class="px-3 py-2.5 text-right">ตรวจโค้ด & ผลตรวจ</th>
               </tr>
             </thead>
             <tbody id="ddSubmissionsTableBody" class="divide-y divide-cyan-500/10">
@@ -127,14 +127,14 @@
     </div>
   </div>
 
-  <!-- REAL TESTCASES & SOURCE CODE INSPECTOR MODAL -->
+  <!-- SOURCE CODE & SUBMISSION INSPECTOR MODAL -->
   <div id="sourceCodeModal" onclick="if(event.target === this) closeSourceCodeModal()" class="fixed inset-0 z-[100] hidden items-center justify-center px-4 bg-black/90 backdrop-blur-md">
     <div class="tech-modal rounded-3xl p-6 md:p-8 max-w-4xl w-full max-h-[90vh] overflow-y-auto relative space-y-5 border border-cyan-500/40 shadow-2xl">
       <button type="button" onclick="closeSourceCodeModal()" class="absolute top-5 right-5 text-gray-400 hover:text-white w-9 h-9 rounded-full bg-white/10 flex items-center justify-center cursor-pointer"><i class="fa-solid fa-xmark text-xs"></i></button>
       
       <div class="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 pb-3">
         <div>
-          <h3 class="text-base font-bold text-cyan-300">ผลการตรวจคำตอบจริงจากฐานข้อมูล (Real Grading & Testcases)</h3>
+          <h3 class="text-base font-bold text-cyan-300">ผลการตรวจคำตอบและซอร์สโค้ด (Submission Inspector)</h3>
           <p id="scModalSubtitle" class="text-xs text-gray-400">ผู้ส่ง: - | โจทย์: -</p>
         </div>
         <div class="flex items-center gap-2">
@@ -145,12 +145,30 @@
         </div>
       </div>
 
-      <!-- REAL TESTCASES BREAKDOWN -->
-      <div class="space-y-3">
-        <h4 class="text-xs font-bold text-cyan-300 uppercase tracking-wider"><i class="fa-solid fa-list-check mr-1.5"></i> รายละเอียดเทสเคสจริงจากระบบ</h4>
-        <div id="testcasesListContainer" class="space-y-2 max-h-52 overflow-y-auto pr-1">
-          <!-- ข้อมูลเทสเคสจริงจะถูกเรนเดอร์ตรงนี้ -->
+      <!-- SUBMISSION SUMMARY & METADATA -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-center">
+        <div class="tech-glass p-3 rounded-2xl border border-cyan-500/20">
+          <div class="text-[11px] text-gray-400">สถานะ (Status)</div>
+          <div id="metaStatus" class="text-sm font-bold text-white mt-0.5 font-mono">-</div>
         </div>
+        <div class="tech-glass p-3 rounded-2xl border border-cyan-500/20">
+          <div class="text-[11px] text-gray-400">คะแนนที่ได้</div>
+          <div id="metaScore" class="text-sm font-bold text-emerald-400 mt-0.5 font-mono">-</div>
+        </div>
+        <div class="tech-glass p-3 rounded-2xl border border-cyan-500/20">
+          <div class="text-[11px] text-gray-400">ภาษาโปรแกรม</div>
+          <div id="metaLang" class="text-sm font-bold text-amber-300 mt-0.5 font-mono">-</div>
+        </div>
+        <div class="tech-glass p-3 rounded-2xl border border-cyan-500/20">
+          <div class="text-[11px] text-gray-400">เวลาที่ส่ง</div>
+          <div id="metaTime" class="text-xs font-bold text-cyan-300 mt-1 font-mono">-</div>
+        </div>
+      </div>
+
+      <!-- RAW DATABASE RECORD INSPECTOR (สำหรับดูฟิลด์ทั้งหมดใน DB) -->
+      <div class="space-y-2">
+        <h4 class="text-xs font-bold text-cyan-300 uppercase tracking-wider"><i class="fa-solid code mr-1.5"></i> ข้อมูลผลการตรวจดิบจากฐานข้อมูล (Raw Submission Data)</h4>
+        <pre id="rawSubJsonBox" class="bg-black/60 border border-white/10 p-3 rounded-2xl text-[11px] font-mono text-gray-300 overflow-x-auto max-h-36 leading-relaxed">กำลังโหลด...</pre>
       </div>
 
       <!-- SOURCE CODE VIEWER -->
@@ -358,7 +376,7 @@
             <td class="px-3 py-3 text-center"><span class="px-2.5 py-1 rounded-lg text-xs font-bold ${badgeClass}">${s.status}</span></td>
             <td class="px-3 py-3 text-right">
               <button type="button" onclick="inspectSubmissionCode('${s.id}')" class="bg-cyan-500/15 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/30 px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer">
-                <i class="fa-solid fa-list-check mr-1"></i> ดูเทสเคสจริง
+                <i class="fa-solid fa-code mr-1"></i> ตรวจโค้ด & ผลตรวจ
               </button>
             </td>
           </tr>
@@ -373,65 +391,23 @@
       const studentName = profileMap[sub.user_id]?.name || 'Unknown Student';
       const probInfo = problemMap[sub.problem_id] || { code: 'P' + sub.problem_id, title: 'Problem' };
 
-      document.getElementById('scModalSubtitle').textContent = `ผู้ส่ง: ${studentName} | โจทย์: ${probInfo.code} - ${probInfo.title} | ภาษา: ${sub.language || 'C++'}`;
-      document.getElementById('scModalCodeContent').textContent = sub.source_code || sub.code || sub.source || '// ไม่พบซอร์สโค้ดในฐานข้อมูลสำหรับรายการนี้';
-
-      const statusBadge = document.getElementById('scModalStatusBadge');
+      document.getElementById('scModalSubtitle').textContent = `ผู้ส่ง: ${studentName} | โจทย์: ${probInfo.code} - ${probInfo.title}`;
+      
       const isAc = sub.status === 'Accepted' || sub.status === 'AC';
+      const statusBadge = document.getElementById('scModalStatusBadge');
       statusBadge.className = `px-3 py-1 rounded-lg text-xs font-bold ${isAc ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-rose-500/20 text-rose-300 border border-rose-500/40'}`;
       statusBadge.textContent = sub.status || 'Unknown';
 
-      // ดึงข้อมูลเทสเคสจริงจากฟิลด์ต่างๆ ที่อาจเก็บไว้ในตาราง submissions
-      const tcContainer = document.getElementById('testcasesListContainer');
-      let testcasesData = sub.testcase_results || sub.details || sub.testcases || sub.results || sub.grading_results;
+      document.getElementById('metaStatus').textContent = sub.status || '-';
+      document.getElementById('metaScore').textContent = `${sub.score ?? (isAc ? 100 : 0)} คะแนน`;
+      document.getElementById('metaLang').textContent = sub.language || 'C++';
+      document.getElementById('metaTime').textContent = sub.created_at ? new Date(sub.created_at).toLocaleTimeString('th-TH') : '-';
 
-      // ถ้าข้อมูลถูกเก็บเป็น String (JSON) ให้ Parse ออกมา
-      if (typeof testcasesData === 'string') {
-        try {
-          testcasesData = JSON.parse(testcasesData);
-        } catch (e) {
-          // ถ้า Parse ไม่ได้ ให้เก็บไว้แสดงเป็นข้อความดิบ
-        }
-      }
+      // แสดงข้อมูล Raw JSON ทั้งหมดของ Submission นี้เพื่อให้เห็นทุกฟิลด์ในตาราง
+      document.getElementById('rawSubJsonBox').textContent = JSON.stringify(sub, null, 2);
 
-      if (Array.isArray(testcasesData) && testcasesData.length > 0) {
-        tcContainer.innerHTML = testcasesData.map((tc, idx) => {
-          const status = tc.status || tc.verdict || (tc.passed ? 'Passed' : 'Failed');
-          const passed = status === 'Passed' || status === 'AC' || status === 'Accepted' || tc.passed === true;
-          const bgClass = passed ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300' : 'bg-rose-500/10 border-rose-500/30 text-rose-300';
-          const icon = passed ? 'fa-circle-check text-emerald-400' : 'fa-circle-xmark text-rose-400';
-
-          return `
-            <div class="p-3 rounded-xl border ${bgClass} text-xs font-mono space-y-1">
-              <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                  <i class="fa-solid ${icon} text-sm"></i>
-                  <span class="font-bold text-white">${tc.name || tc.testcase || 'Testcase #' + (idx + 1)}</span>
-                  <span class="text-[10px] opacity-75">(${tc.time || tc.execution_time || '0.01s'})</span>
-                </div>
-                <span class="font-bold uppercase px-2 py-0.5 rounded bg-black/40">${status}</span>
-              </div>
-              ${tc.message || tc.error ? `<div class="text-[11px] text-rose-300 mt-1 pl-5">Error: ${tc.message || tc.error}</div>` : ''}
-              ${tc.expected && tc.output ? `
-                <div class="grid grid-cols-2 gap-2 mt-1 pl-5 text-[11px] opacity-90">
-                  <div>Expected: <code class="bg-black/40 px-1 py-0.5 rounded text-cyan-300">${tc.expected}</code></div>
-                  <div>Actual: <code class="bg-black/40 px-1 py-0.5 rounded text-amber-300">${tc.output}</code></div>
-                </div>
-              ` : ''}
-            </div>
-          `;
-        }).join('');
-      } else if (typeof testcasesData === 'object' && testcasesData !== null) {
-        tcContainer.innerHTML = `<pre class="bg-black/60 p-3 rounded-xl text-xs text-gray-300 font-mono">${JSON.stringify(testcasesData, null, 2)}</pre>`;
-      } else {
-        tcContainer.innerHTML = `
-          <div class="p-4 rounded-xl bg-black/50 border border-white/10 text-xs font-mono space-y-1">
-            <div>สถานะรวม: <span class="${isAc ? 'text-emerald-400' : 'text-rose-400'} font-bold">${sub.status}</span></div>
-            <div>คะแนนที่ได้: <span class="text-cyan-300 font-bold">${sub.score ?? (isAc ? 100 : 0)} คะแนน</span></div>
-            ${sub.error_message || sub.stderr ? `<div class="text-rose-300 mt-2">Error Log: <pre class="bg-black/40 p-2 rounded mt-1">${sub.error_message || sub.stderr}</pre></div>` : '<div class="text-gray-400 mt-1">// ระบบไม่ได้บันทึกรายละเอียดเทสเคสย่อยแยกเป็นรายเทสเคสไว้ในฟิลด์ JSON ของตาราง submissions นี้</div>'}
-          </div>
-        `;
-      }
+      // แสดงซอร์สโค้ด
+      document.getElementById('scModalCodeContent').textContent = sub.source_code || sub.code || sub.source || '// ไม่พบซอร์สโค้ดในฐานข้อมูลสำหรับรายการนี้';
 
       const modal = document.getElementById('sourceCodeModal');
       modal.classList.remove('hidden');

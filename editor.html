@@ -510,51 +510,14 @@
       document.getElementById('leftPaneChat').classList.toggle('hidden', tab !== 'chat');
     }
 
-    async function initEditorPage() {
-      if (!problemId) {
-        window.location.href = 'problems.html';
-        return;
-      }
-      initSplitResizer();
-      await initMonacoEditor();
-
-      const { data: { session } } = await supabaseClient.auth.getSession();
-      if (!session) {
-        alert('กรุณาเข้าสู่ระบบก่อนเข้าทำโจทย์');
-        window.location.href = 'index.html';
-        return;
-      }
-      currentUser = session.user;
-
-      const { data: prof } = await supabaseClient.from('profiles').select('*').eq('id', currentUser.id).maybeSingle();
-      currentUserProfile = prof;
-      isAdminUser = prof && prof.role === 'admin';
-      const displayName = (prof && (prof.display_name || prof.username)) || currentUser.email;
-      const badge = document.getElementById('navUserBadge');
-      badge.innerHTML = `<i class="fa-solid fa-user-astronaut text-cyan-400"></i> ${displayName}`;
-      badge.classList.remove('hidden');
-
-      editorInstance.onDidChangeModelContent(() => {
-        const lang = document.getElementById('langSelect').value;
-        localStorage.setItem(`st8_draft_${problemId}_${lang}`, editorInstance.getValue());
-      });
-
-      const { data: prob, error } = await supabaseClient.from('problems').select('*').eq('id', problemId).single();
-      if (error || !prob) {
-        showToast('ไม่พบโจทย์', 'ไม่พบข้อมูลโจทย์ข้อนี้ในระบบ', true);
-        return;
-      }
-      currentProblem = prob;
-      renderProblemStatement(prob);
-
-async function loadMySubmissions() {
+    async function loadMySubmissions() {
       if (!currentUser || !problemId) return;
       
       const { data, error } = await supabaseClient
         .from('submissions')
         .select('*')
         .eq('user_id', currentUser.id)
-        .eq('problem_id', problemId) // รองรับ problem_id แบบ UUID
+        .eq('problem_id', problemId)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -789,10 +752,9 @@ async function loadMySubmissions() {
         const maxScore = currentProblem.max_score || 100;
         const score = finalStatus === 'Accepted' ? maxScore : Math.round((passedCount / totalCases) * maxScore);
 
-// บันทึก Submission ลงตาราง submissions (เอา parseInt ออก เพราะ id เป็น UUID)
         const { error: subErr } = await supabaseClient.from('submissions').insert([{
           user_id: currentUser.id,
-          problem_id: problemId, // <-- ส่งค่าตรงๆ ไม่ต้องใช้ parseInt
+          problem_id: problemId,
           source_code: userCode,
           language: lang,
           status: finalStatus,
@@ -805,7 +767,6 @@ async function loadMySubmissions() {
           console.error("Insert submission error:", subErr.message);
         }
 
-        // ระบบจัดการ XP (ให้ครั้งเดียวต่อโจทย์ข้อนี้ หากผ่าน Accepted แล้วจะไม่บวกเพิ่มซ้ำ)
         if (finalStatus === 'Accepted' && !hasUserSolvedThisProblem && currentUserProfile) {
           const xpToAdd = currentProblem.xp_reward || maxScore;
           const newXp = (currentUserProfile.xp || 0) + xpToAdd;
@@ -859,6 +820,110 @@ async function loadMySubmissions() {
 
     function escapeHtml(str) {
       return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function renderProblemStatement(p) {
+      document.title = `${p.problem_code || 'P' + p.id} : ${p.title} | ST8 CP-Grader`;
+      document.getElementById('navProbCode').textContent = p.problem_code || 'ST8-P' + p.id;
+      document.getElementById('navProbTitle').textContent = p.title;
+
+      const diffEl = document.getElementById('navProbDiff');
+      diffEl.textContent = p.difficulty || 'Medium';
+      diffEl.className = p.difficulty === 'Easy'
+        ? 'hidden sm:inline-block text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 shrink-0'
+        : p.difficulty === 'Medium'
+        ? 'hidden sm:inline-block text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 shrink-0'
+        : 'hidden sm:inline-block text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30 shrink-0';
+
+      document.getElementById('stmtFullTitle').textContent = `${p.problem_code || 'ST8-P' + p.id} : ${p.title}`;
+      document.getElementById('stmtAuthor').innerHTML = `<i class="fa-solid fa-user-pen text-cyan-400 mr-1"></i> ผู้ออกโจทย์: <b class="text-gray-200">${p.author || 'ST8 Team'}</b>`;
+      document.getElementById('stmtTime').textContent = p.time_limit || 1.0;
+      document.getElementById('stmtMem').textContent = p.memory_limit || 256;
+
+      const tagsRow = document.getElementById('stmtTagsRow');
+      if (p.tags) {
+        tagsRow.innerHTML = p.tags.split(',').map(t => t.trim()).filter(Boolean)
+          .map(t => `<span class="text-[11px] px-2.5 py-0.5 rounded-lg bg-cyan-500/10 text-cyan-300 border border-cyan-500/25">${t}</span>`).join('');
+      }
+
+      const activeLang = document.getElementById('langSelect').value;
+      monaco.editor.setModelLanguage(editorInstance.getModel(), activeLang === 'c' ? 'c' : 'cpp');
+      const draft = localStorage.getItem(`st8_draft_${problemId}_${activeLang}`);
+      editorInstance.setValue(draft || getStarterCodeForLang(activeLang));
+
+      if (p.statement_pdf_url) {
+        document.getElementById('stmtPdfSection').classList.remove('hidden');
+        document.getElementById('stmtPdfFrame').src = p.statement_pdf_url.includes('#') ? p.statement_pdf_url : `${p.statement_pdf_url}#view=FitH&navpanes=0`;
+      }
+
+      const mdOutput = document.getElementById('stmtMarkdownBody');
+      mdOutput.innerHTML = p.statement ? (typeof marked !== 'undefined' ? marked.parse(p.statement) : p.statement) : '<p class="text-gray-400 italic">ดูรายละเอียดใน PDF</p>';
+
+      const samples = (p.test_cases || []).filter(tc => tc.is_sample);
+      const sampleListEl = document.getElementById('stmtSamplesList');
+      if (samples.length === 0) {
+        sampleListEl.innerHTML = '<p class="text-xs text-gray-500 italic">ไม่มี Sample Test Case</p>';
+      } else {
+        document.getElementById('customInputBox').value = samples[0].input || '';
+        sampleListEl.innerHTML = samples.map((tc, i) => `
+          <div class="bg-black/50 border border-cyan-500/20 rounded-2xl p-3.5 space-y-2.5">
+            <div class="flex justify-between items-center">
+              <span class="text-xs font-bold text-amber-300">ตัวอย่างที่ ${i + 1}</span>
+              <button type="button" onclick="copySampleInput(${i})" class="text-[11px] text-cyan-300 hover:underline cursor-pointer"><i class="fa-solid fa-arrow-turn-down mr-1"></i> ใส่ลงช่องทดสอบ</button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+              <div>
+                <div class="text-[10px] text-gray-400 font-bold mb-1">INPUT</div>
+                <pre class="bg-black/80 border border-white/10 rounded-xl p-2.5 text-xs text-white font-code overflow-x-auto">${escapeHtml(tc.input || '')}</pre>
+              </div>
+              <div>
+                <div class="text-[10px] text-emerald-400 font-bold mb-1">OUTPUT</div>
+                <pre class="bg-black/80 border border-white/10 rounded-xl p-2.5 text-xs text-emerald-200 font-code overflow-x-auto">${escapeHtml(tc.output || '')}</pre>
+              </div>
+            </div>
+          </div>
+        `).join('');
+      }
+    }
+
+    async function initEditorPage() {
+      if (!problemId) {
+        window.location.href = 'problems.html';
+        return;
+      }
+      initSplitResizer();
+      await initMonacoEditor();
+
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      if (!session) {
+        alert('กรุณาเข้าสู่ระบบก่อนเข้าทำโจทย์');
+        window.location.href = 'index.html';
+        return;
+      }
+      currentUser = session.user;
+
+      const { data: prof } = await supabaseClient.from('profiles').select('*').eq('id', currentUser.id).maybeSingle();
+      currentUserProfile = prof;
+      isAdminUser = prof && prof.role === 'admin';
+      const displayName = (prof && (prof.display_name || prof.username)) || currentUser.email;
+      const badge = document.getElementById('navUserBadge');
+      badge.innerHTML = `<i class="fa-solid fa-user-astronaut text-cyan-400"></i> ${displayName}`;
+      badge.classList.remove('hidden');
+
+      editorInstance.onDidChangeModelContent(() => {
+        const lang = document.getElementById('langSelect').value;
+        localStorage.setItem(`st8_draft_${problemId}_${lang}`, editorInstance.getValue());
+      });
+
+      const { data: prob, error } = await supabaseClient.from('problems').select('*').eq('id', problemId).single();
+      if (error || !prob) {
+        showToast('ไม่พบโจทย์', 'ไม่พบข้อมูลโจทย์ข้อนี้ในระบบ', true);
+        return;
+      }
+      currentProblem = prob;
+      renderProblemStatement(prob);
+
+      await loadMySubmissions();
     }
 
     initEditorPage();

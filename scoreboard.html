@@ -60,7 +60,7 @@
     </div>
   </div>
 
-  <!-- CONTEST POPUP NOTIFICATION (เด้งขึ้นมาที่มุมบนขวาเมื่อมีคอนเทสต์) -->
+  <!-- CONTEST POPUP NOTIFICATION -->
   <div id="contestPopupNotice" class="fixed top-5 right-5 z-[100] transform translate-x-[130%] transition-all duration-500 ease-out tech-glass p-4 rounded-2xl border border-cyan-500/50 shadow-2xl max-w-sm flex items-start gap-3 bg-gradient-to-br from-cyan-950/90 to-blue-950/90">
     <div class="w-10 h-10 rounded-xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-300 text-base shrink-0 shadow">
       <i class="fa-solid fa-trophy fa-bounce"></i>
@@ -120,7 +120,7 @@
       </div>
     </div>
 
-    <!-- MAIN SCOREBOARD CONTENT (แสดงเฉพาะเมื่อมี ?id= ครบถ้วน) -->
+    <!-- MAIN SCOREBOARD CONTENT -->
     <div id="scoreboardContentArea" class="space-y-6">
       <!-- HEADER BANNER -->
       <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-gradient-to-r from-amber-950/40 via-cyan-950/25 to-blue-950/20 p-5 md:p-6 rounded-3xl border border-cyan-500/20">
@@ -149,7 +149,18 @@
         </div>
       </div>
 
-      <!-- PROGRESSION CHART -->
+      <!-- SCOREBOARD MATRIX TABLE (ย้ายขึ้นมาแสดงก่อนด้านบนเพื่อให้ผู้ใช้ดู Ranking ได้ทันที) -->
+      <div class="tech-glass rounded-2xl overflow-x-auto border border-cyan-500/25">
+        <table class="w-full text-left text-sm">
+          <thead id="ioiTableHead" class="bg-cyan-950/60 text-cyan-300 border-b border-cyan-500/25 text-xs uppercase"></thead>
+          <tbody id="ioiTableBody" class="divide-y divide-cyan-500/10">
+            <tr><td colspan="6" class="p-8 text-center text-gray-400">กำลังโหลดผลคะแนนแบบเรียลไทม์...</td></tr>
+          </tbody>
+          <tfoot id="ioiTableFoot" class="bg-cyan-950/40 border-t border-cyan-500/30 text-xs font-semibold text-cyan-200"></tfoot>
+        </table>
+      </div>
+
+      <!-- PROGRESSION CHART (ย้ายลงมาไว้ด้านล่างสุด) -->
       <div class="tech-glass p-5 rounded-2xl border border-cyan-500/25 space-y-4">
         <div class="flex flex-wrap justify-between items-center gap-3">
           <div>
@@ -171,17 +182,6 @@
         <div class="relative w-full h-72 md:h-80 bg-black/50 rounded-2xl p-3 border border-cyan-500/15">
           <canvas id="ioiScoreProgressionChart"></canvas>
         </div>
-      </div>
-
-      <!-- SCOREBOARD MATRIX TABLE -->
-      <div class="tech-glass rounded-2xl overflow-x-auto border border-cyan-500/25">
-        <table class="w-full text-left text-sm">
-          <thead id="ioiTableHead" class="bg-cyan-950/60 text-cyan-300 border-b border-cyan-500/25 text-xs uppercase"></thead>
-          <tbody id="ioiTableBody" class="divide-y divide-cyan-500/10">
-            <tr><td colspan="6" class="p-8 text-center text-gray-400">กำลังโหลดผลคะแนนแบบเรียลไทม์...</td></tr>
-          </tbody>
-          <tfoot id="ioiTableFoot" class="bg-cyan-950/40 border-t border-cyan-500/30 text-xs font-semibold text-cyan-200"></tfoot>
-        </table>
       </div>
     </div>
   </main>
@@ -388,6 +388,7 @@
         return { ...cp, problem_code: base.problem_code || `P${cp.problem_id}` };
       }).sort((a, b) => a.problem_code.localeCompare(b.problem_code));
 
+      // จัดเรียงรหัสโจทย์ตาม A-Z (Alphabetical order)
       activeProblemColumns = sortedLinked.map((cp, idx) => {
         const baseProb = probLookup[cp.problem_id] || {};
         return {
@@ -396,7 +397,7 @@
           title: baseProb.title || `Problem #${cp.problem_id}`,
           maxScore: Number(cp.custom_score || baseProb.max_score || 100)
         };
-      });
+      }).sort((a, b) => a.label.localeCompare(b.label));
 
       const startMs = currentContestObj ? new Date(currentContestObj.start_time).getTime() : 0;
       const endMs = currentContestObj ? new Date(currentContestObj.end_time).getTime() : Infinity;
@@ -554,7 +555,7 @@
         `;
       }).join('');
 
-      // คำนวณสรุปจำนวนผู้ทำผ่าน (Accepted) แต่ละข้อสำหรับ tfoot ด้านล่างสุด
+      // คำนวณสรุปจำนวนผู้ทำผ่านแต่ละข้อ (แสดงผลข้อความ จำนวนผู้ผ่านข้อนี้ทั้งหมด)
       const acCountsByProb = {};
       activeProblemColumns.forEach(col => {
         acCountsByProb[col.id] = computedRows.filter(r => (r.bestByProblem[col.id] || 0) >= col.maxScore).length;
@@ -574,7 +575,7 @@
       tfoot.innerHTML = `
         <tr>
           <td colspan="3" class="px-4 py-3.5 text-right font-bold text-cyan-300">
-            <i class="fa-solid fa-users mr-1"></i> จำนวนผู้ผ่านรอบนี้ทั้งหมด:
+            <i class="fa-solid fa-users mr-1"></i> จำนวนผู้ผ่านข้อนี้ทั้งหมด:
           </td>
           ${footProbCells}
           <td></td>

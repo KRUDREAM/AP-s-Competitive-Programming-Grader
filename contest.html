@@ -125,11 +125,12 @@
         </div>
       </div>
 
+      <!-- สลับตำแหน่ง คลังโจทย์ (problems.html) กับ Scoreboard (scoreboard.html) แล้ว -->
       <nav class="hidden md:flex items-center gap-6 text-xs font-medium text-gray-300">
         <a href="index.html" class="hover:text-cyan-400 transition hover:scale-105"><i class="fa-solid fa-house mr-1 text-cyan-500"></i> หน้าหลัก</a>
         <a href="contest.html" class="text-cyan-400 font-semibold transition hover:scale-105"><i class="fa-solid fa-trophy mr-1"></i> Contest</a>
-        <a href="scoreboard.html" class="hover:text-cyan-400 transition hover:scale-105"><i class="fa-solid fa-ranking-star mr-1 text-cyan-500"></i> Scoreboard</a>
         <a href="problems.html" class="hover:text-cyan-400 transition hover:scale-105"><i class="fa-solid fa-laptop-code mr-1 text-cyan-500"></i> คลังโจทย์</a>
+        <a href="scoreboard.html" class="hover:text-cyan-400 transition hover:scale-105"><i class="fa-solid fa-ranking-star mr-1 text-cyan-500"></i> Scoreboard</a>
         
         <a href="announcement.html" class="relative hover:text-cyan-400 transition hover:scale-110 flex items-center gap-1.5 text-amber-400 font-bold" title="ประกาศระบบ">
           <i class="fa-solid fa-bell text-sm"></i> ประกาศระบบ
@@ -146,8 +147,8 @@
     <div id="mobileNavDrawer" class="hidden md:hidden mt-3 pt-3 border-t border-cyan-500/20 flex flex-col gap-2 text-xs font-medium text-gray-300 transition-all">
       <a href="index.html" class="px-3 py-2 rounded-xl hover:bg-cyan-500/10"><i class="fa-solid fa-house mr-2 text-cyan-400"></i> หน้าหลัก</a>
       <a href="contest.html" class="px-3 py-2 rounded-xl hover:bg-cyan-500/10 text-cyan-300"><i class="fa-solid fa-trophy mr-2 text-cyan-400"></i> Contest Arena</a>
-      <a href="scoreboard.html" class="px-3 py-2 rounded-xl hover:bg-cyan-500/10"><i class="fa-solid fa-ranking-star mr-2 text-cyan-400"></i> Scoreboard</a>
       <a href="problems.html" class="px-3 py-2 rounded-xl hover:bg-cyan-500/10"><i class="fa-solid fa-laptop-code mr-2 text-cyan-400"></i> คลังโจทย์</a>
+      <a href="scoreboard.html" class="px-3 py-2 rounded-xl hover:bg-cyan-500/10"><i class="fa-solid fa-ranking-star mr-2 text-cyan-400"></i> Scoreboard</a>
       <a href="announcement.html" class="px-3 py-2 rounded-xl hover:bg-cyan-500/10 text-amber-400"><i class="fa-solid fa-bell mr-2"></i> ประกาศระบบ</a>
     </div>
   </header>
@@ -311,8 +312,8 @@
             <div id="userDropdown" class="absolute right-0 mt-2 w-56 tech-modal rounded-2xl shadow-2xl py-2 hidden border border-cyan-500/30 z-50 text-left">
               ${adminLink}
               <a href="index.html" class="block px-4 py-2.5 text-xs text-gray-300 hover:bg-cyan-500/10 hover:text-cyan-300 transition"><i class="fa-solid fa-house mr-2 text-cyan-400"></i> หน้าหลัก</a>
-              <a href="scoreboard.html" class="block px-4 py-2.5 text-xs text-gray-300 hover:bg-cyan-500/10 hover:text-cyan-300 transition"><i class="fa-solid fa-ranking-star mr-2 text-amber-400"></i> Live Scoreboard</a>
               <a href="problems.html" class="block px-4 py-2.5 text-xs text-gray-300 hover:bg-cyan-500/10 hover:text-cyan-300 transition"><i class="fa-solid fa-laptop-code mr-2 text-cyan-400"></i> คลังโจทย์</a>
+              <a href="scoreboard.html" class="block px-4 py-2.5 text-xs text-gray-300 hover:bg-cyan-500/10 hover:text-cyan-300 transition"><i class="fa-solid fa-ranking-star mr-2 text-amber-400"></i> Live Scoreboard</a>
               <a href="announcement.html" class="block px-4 py-2.5 text-xs text-gray-300 hover:bg-cyan-500/10 hover:text-cyan-300 transition"><i class="fa-solid fa-bell mr-2 text-amber-400"></i> ประกาศระบบ</a>
               <div class="border-t border-cyan-500/20 my-1"></div>
               <button type="button" onclick="handleLogout()" class="w-full text-left px-4 py-2.5 text-xs text-rose-400 hover:bg-rose-500/20 transition cursor-pointer"><i class="fa-solid fa-right-from-bracket mr-2"></i> ออกจากระบบ</button>
@@ -459,7 +460,6 @@
       const probLookup = {};
       allProbs.forEach(p => { probLookup[p.id] = p; });
 
-      // เรียงลำดับโจทย์ตาม contest_problems (sort_order) จากน้อยไปมาก
       const sortedContestProbs = contestProblemsLinks.map(cp => {
         const base = probLookup[cp.problem_id] || {};
         return { ...base, ...cp, problem_code: base.problem_code || `P${cp.problem_id}` };
@@ -486,7 +486,6 @@
           statusIcon = `<i class="fa-solid fa-circle-xmark text-rose-400 text-base" title="ยังไม่ผ่าน"></i>`;
         }
 
-        // จัดรหัสโจทย์เรียง A, B, C, D... จากบนลงล่างตามลำดับที่ถูกต้อง
         const alphabetCode = String.fromCharCode(65 + idx);
 
         return `

@@ -372,7 +372,7 @@
         <div id="passwordGroup" class="relative">
           <div class="flex justify-between items-center mb-1">
             <label class="block text-xs font-medium text-cyan-300">รหัสผ่าน (Password)</label>
-            <button type="button" id="forgotPassLink" onclick="switchAuthMode('forgot')" class="text-[11px] text-cyan-400 hover:underline hidden">ลืมรหัสผ่าน?</button>
+            <button type="button" id="forgotPassLink" onclick="switchAuthMode('forgot')" class="text-[11px] text-cyan-400 hover:underline hidden cursor-pointer">ลืมรหัสผ่าน?</button>
           </div>
           <div class="relative">
             <input type="password" id="authPassword" placeholder="••••••••" class="w-full bg-black/60 border border-cyan-500/20 rounded-xl px-4 py-2.5 pr-10 text-xs text-white focus:outline-none focus:border-cyan-400 font-mono">
@@ -416,7 +416,7 @@
         <!-- Submit Button -->
         <button type="submit" id="authSubmitBtn" class="w-full bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-bold py-3 rounded-xl text-xs transition shadow-lg shadow-cyan-500/20 mt-2 cursor-pointer hover:opacity-95 active:scale-[0.99]">เข้าสู่ระบบ</button>
 
-        <!-- PRIVACY POLICY NOTICE (เพิ่มใต้ปุ่มสมัครสมาชิก/เข้าสู่ระบบตามที่ขอ) -->
+        <!-- PRIVACY POLICY NOTICE (ใต้ปุ่มสมัครสมาชิก/เข้าสู่ระบบ) -->
         <div class="text-[11px] text-gray-400 text-center leading-relaxed pt-1">
           การดำเนินการต่อถือว่าท่านยอมรับ <a href="#legal-policies" onclick="closeAuthModal()" class="text-cyan-400 hover:underline">ข้อกำหนดการใช้งาน</a> และ <a href="#legal-policies" onclick="closeAuthModal()" class="text-cyan-400 hover:underline">นโยบายความเป็นส่วนตัว</a> ของ ST8
         </div>
@@ -541,8 +541,13 @@
 
     function openAuthModal(mode = 'login') {
       const modal = document.getElementById('authModal');
-      setAuthMode(mode);
+      switchAuthMode(mode);
       modal.classList.remove('opacity-0', 'pointer-events-none');
+    }
+
+    // ฟังก์ชันเชื่อมโยงป้องกัน Error กรณีเรียกชื่อเก่า
+    function setAuthMode(mode) {
+      switchAuthMode(mode);
     }
 
     function closeAuthModal() {

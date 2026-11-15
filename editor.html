@@ -845,50 +845,6 @@ async function loadMySubmissions() {
       }
     }
 
-    async function loadMySubmissions() {
-      if (!currentUser || !problemId) return;
-      const { data } = await supabaseClient.from('submissions').select('*').eq('user_id', currentUser.id).eq('problem_id', problemId).order('created_at', { ascending: false });
-      mySubmissionsCache = data || [];
-      hasUserSolvedThisProblem = mySubmissionsCache.some(s => s.status === 'Accepted' || s.status === 'AC');
-      document.getElementById('mySubsCountBadge').textContent = mySubmissionsCache.length;
-
-      const listEl = document.getElementById('mySubmissionsList');
-      if (mySubmissionsCache.length === 0) {
-        listEl.innerHTML = `<div class="text-center py-8 text-xs text-gray-400 border border-dashed border-cyan-500/20 rounded-2xl">ยังไม่มีประวัติการส่ง</div>`;
-        return;
-      }
-      listEl.innerHTML = mySubmissionsCache.map(s => {
-        const isAc = s.status === 'Accepted' || s.status === 'AC';
-        const statusCls = isAc ? 'text-emerald-300 bg-emerald-500/15 border-emerald-500/35' : 'text-rose-300 bg-rose-500/15 border-rose-500/35';
-        return `
-          <div class="tech-glass rounded-2xl p-3 border border-cyan-500/20 flex items-center justify-between gap-2">
-            <div class="space-y-0.5 min-w-0">
-              <div class="flex items-center gap-1.5 truncate">
-                <span class="text-[10px] font-bold px-2 py-0.2 rounded-full border ${statusCls}">${s.status}</span>
-                <span class="text-xs font-code text-cyan-300 font-bold">#SUB-${s.id}</span>
-              </div>
-              <div class="text-[10px] text-gray-400">คะแนน: ${s.score ?? 0} &bull; ${s.execution_time || 0}s</div>
-            </div>
-            <button type="button" onclick="openSubmissionCodeById('${s.id}')" class="bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 border border-cyan-500/35 px-2.5 py-1 rounded-xl text-xs transition shrink-0">ดูโค้ด</button>
-          </div>
-        `;
-      }).join('');
-    }
-
-    async function openSubmissionCodeById(subId) {
-      let sub = mySubmissionsCache.find(s => String(s.id) === String(subId));
-      if (!sub) {
-        const { data } = await supabaseClient.from('submissions').select('*').eq('id', subId).maybeSingle();
-        sub = data;
-      }
-      if (!sub) return;
-      modalViewedCode = sub.source_code || '';
-      modalViewedLang = sub.language || 'cpp';
-      document.getElementById('viewCodeModalTitle').textContent = `Submission #${sub.id} (${sub.status})`;
-      document.getElementById('viewCodeModalBody').textContent = modalViewedCode;
-      document.getElementById('viewCodeModal').classList.remove('opacity-0', 'pointer-events-none');
-    }
-
     function closeViewCodeModal() { document.getElementById('viewCodeModal').classList.add('opacity-0', 'pointer-events-none'); }
     function copyModalCode() { navigator.clipboard.writeText(modalViewedCode); showToast('คัดลอกแล้ว', 'เรียบร้อย'); }
     function loadModalCodeToEditor() {

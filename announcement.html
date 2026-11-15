@@ -419,13 +419,15 @@
       const unreadCount = allAnnouncementsCache.filter(ann => !readAnnouncementIds.includes(String(ann.id))).length;
       const badge = document.getElementById('navUnreadBadge');
       const bell = document.getElementById('navBellIcon');
-      if (unreadCount > 0) {
-        badge.textContent = unreadCount;
-        badge.classList.remove('hidden');
-        bell.classList.add('bell-shake', 'text-amber-400');
-      } else {
-        badge.classList.add('hidden');
-        bell.classList.remove('bell-shake', 'text-amber-400');
+      if (badge && bell) {
+        if (unreadCount > 0) {
+          badge.textContent = unreadCount;
+          badge.classList.remove('hidden');
+          bell.classList.add('bell-shake', 'text-amber-400');
+        } else {
+          badge.classList.add('hidden');
+          bell.classList.remove('bell-shake', 'text-amber-400');
+        }
       }
     }
 

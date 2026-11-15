@@ -196,7 +196,7 @@
             <th class="px-4 py-3.5 min-w-[230px]">ชื่อโจทย์ &amp; รูปแบบ</th>
             <th class="px-4 py-3.5 whitespace-nowrap">ผู้ออกโจทย์</th>
             <th class="px-4 py-3.5 text-center whitespace-nowrap">ความยาก</th>
-            <th class="px-4 py-3.5 text-center whitespace-nowrap">ผ่านแล้ว</th>
+            <th class="px-4 py-3.5 text-center whitespace-nowrap">ผ่าน / ส่ง</th>
             <th class="px-4 py-3.5 text-right whitespace-nowrap">ดำเนินการ</th>
           </tr>
         </thead>
@@ -1509,7 +1509,7 @@
             </td>
             <td class="px-4 py-3.5">
               <div class="flex items-center flex-wrap gap-1.5">
-                <span class="font-bold text-white text-sm">${p.title}</span>
+                <a href="#" onclick="handleSolveClick('${pidStr}'); return false;" class="font-bold text-white text-sm hover:text-cyan-400 transition cursor-pointer">${p.title}</a>
                 ${p.statement_pdf_url ? '<i class="fa-solid fa-file-pdf text-rose-400 text-xs" title="มีเอกสาร PDF"></i>' : ''}
                 ${modeBadge}
                 ${approvalStatusBadge}
@@ -1520,8 +1520,8 @@
               ${p.author ? `<i class="fa-solid fa-user-pen text-cyan-400/70 mr-1"></i> ${p.author}` : '<span class="text-gray-500">ST8 Team</span>'}
             </td>
             <td class="px-4 py-3.5 text-center whitespace-nowrap">${diffBadge}</td>
-            <td class="px-4 py-3.5 text-center whitespace-nowrap text-xs text-gray-300">
-              <i class="fa-solid fa-users text-emerald-400/80 mr-1"></i> ผ่าน <span class="text-emerald-400 font-bold">${acUsers}</span> / <span class="text-cyan-300 font-bold">${totalTried}</span> คน
+            <td class="px-4 py-3.5 text-center whitespace-nowrap text-xs text-gray-300 font-mono">
+              <span class="text-emerald-400 font-bold">${acUsers}</span> / <span class="text-cyan-300 font-bold">${totalTried}</span> คน
             </td>
             <td class="px-4 py-3.5 text-right whitespace-nowrap">
               ${renderActionButtons(p, isOwner, isSolved)}

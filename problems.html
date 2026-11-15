@@ -556,7 +556,7 @@
     let solvedProblemIds = new Set();
     let attemptedProblemIds = new Set();
     let acCountByProblem = {};
-    let totalTriedCountByProblem = {}; // เก็บจำนวนคนที่เคยลองทำโจทย์ข้อนั้น ๆ (unique users ที่ส่ง submission)
+    let totalTriedCountByProblem = {};
 
     let activeTags = [];
     let customTagsList = JSON.parse(localStorage.getItem('st8_custom_tags')) || ["Graph", "Dynamic Programming", "Sorting", "Math", "Greedy", "String", "Bitmask", "Tree", "Binary Search"];
@@ -1194,11 +1194,9 @@
         const pid = s.problem_id;
         const uid = s.user_id;
 
-        // นับจำนวนคนที่เคยส่ง (Tried)
         if (!uniqueTriedUsersByProb[pid]) uniqueTriedUsersByProb[pid] = new Set();
         uniqueTriedUsersByProb[pid].add(uid);
 
-        // นับจำนวนคนที่ผ่าน (Accepted)
         const isAc = s.status === 'Accepted' || s.status === 'AC';
         if (isAc) {
           if (!uniqueAcUsersByProb[pid]) uniqueAcUsersByProb[pid] = new Set();
@@ -1410,13 +1408,13 @@
             <td class="px-4 py-3.5 text-right whitespace-nowrap">
               <div class="inline-flex items-center gap-2">
                 ${isOwner
-                  ? `<button type="button" onclick="openProblemModal('edit', '${p.id}')" class="bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/35 px-3 py-2 rounded-xl transition text-xs font-semibold cursor-pointer" title="แก้ไขโจทย์ของคุณ">
+                  ? `<button type="button" onclick="openProblemModal('edit', '${String(p.id).replace(/'/g, "\\'")}')" class="bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/35 px-3 py-2 rounded-xl transition text-xs font-semibold cursor-pointer" title="แก้ไขโจทย์ของคุณ">
                       <i class="fa-solid fa-pen-to-square"></i> แก้ไข
                     </button>`
                   : ''
                 }
                 {(p.is_verified || isOwner)
-                  ? `<button type="button" onclick="handleSolveClick('${p.id}')" class="bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-95 text-white px-4 py-2 rounded-xl transition text-xs font-bold shadow-md shadow-cyan-500/15 cursor-pointer">
+                  ? `<button type="button" onclick="handleSolveClick('${String(p.id).replace(/'/g, "\\'")}')" class="bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-95 text-white px-4 py-2 rounded-xl transition text-xs font-bold shadow-md shadow-cyan-500/15 cursor-pointer">
                       <i class="fa-solid fa-code mr-1"></i> ${p.is_draft ? 'ทดสอบ (Draft)' : 'ทำโจทย์'}
                     </button>`
                   : `<span class="text-xs text-amber-300/80 italic px-2">รอตรวจสอบ</span>`

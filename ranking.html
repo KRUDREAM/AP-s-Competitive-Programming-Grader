@@ -11,11 +11,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <style>
     html, body { max-width: 100%; overflow-x: hidden; }
-    body {
-      font-family: 'Kanit', sans-serif;
-      background-color: #030712;
-      color: #f3f4f6;
-    }
+    body { font-family: 'Kanit', sans-serif; background-color: #030712; color: #f3f4f6; }
     .tech-glass {
       background: rgba(10, 15, 30, 0.78);
       backdrop-filter: blur(20px);
@@ -39,16 +35,6 @@
       50% { opacity: 0.45; transform: scale(1.05); }
     }
     .glow-orb { animation: cyberPulse 8s ease-in-out infinite; }
-    @keyframes bellRing {
-      0% { transform: rotate(0); }
-      15% { transform: rotate(15deg); }
-      30% { transform: rotate(-15deg); }
-      45% { transform: rotate(10deg); }
-      60% { transform: rotate(-10deg); }
-      75% { transform: rotate(5deg); }
-      100% { transform: rotate(0); }
-    }
-    .bell-shake { animation: bellRing 0.8s ease-in-out infinite; }
     .modal-backdrop { transition: opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1); }
     .modal-box { transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.28s ease; }
     .modal-open .modal-box { transform: scale(1) translateY(0); opacity: 1; }
@@ -87,13 +73,7 @@
         <a href="index.html" class="hover:text-cyan-400 transition"><i class="fa-solid fa-house mr-1 text-cyan-500"></i> หน้าหลัก</a>
         <a href="problems.html" class="hover:text-cyan-400 transition"><i class="fa-solid fa-laptop-code mr-1 text-cyan-500"></i> คลังโจทย์</a>
         <a href="ranking.html" class="text-cyan-400 font-semibold transition"><i class="fa-solid fa-ranking-star mr-1"></i> Scoreboard</a>
-        <a href="announcement.html" class="hover:text-cyan-400 transition flex items-center gap-1.5">
-          <span class="relative flex items-center">
-            <i id="navBellIcon" class="fa-solid fa-bell text-cyan-400"></i>
-            <span id="navUnreadBadge" class="hidden absolute -top-1.5 -right-2 w-4 h-4 rounded-full bg-rose-500 text-white text-[9px] font-bold flex items-center justify-center">0</span>
-          </span>
-          ประกาศระบบ
-        </a>
+        <a href="announcement.html" class="hover:text-cyan-400 transition flex items-center gap-1.5">ประกาศระบบ</a>
       </nav>
 
       <div id="authNavArea" class="flex items-center gap-2.5">
@@ -110,7 +90,7 @@
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-gradient-to-r from-amber-950/40 via-cyan-950/25 to-blue-950/20 p-5 md:p-6 rounded-3xl border border-cyan-500/20">
       <div>
         <h2 class="text-xl md:text-2xl font-bold text-white mb-1"><i class="fa-solid fa-ranking-star text-amber-400 mr-2"></i> บอร์ดจัดอันดับคะแนน (TOI Scoreboard)</h2>
-        <p class="text-xs text-gray-400">ตารางคะแนนรายข้อแบบ IOI/TOI พร้อมระบบเปรียบเทียบกราฟและคลิกดูประวัติโปรไฟล์ผู้แข่งขัน</p>
+        <p class="text-xs text-gray-400">กราฟเส้นแสดงจังหวะคะแนนพุ่งตามเวลา &bull; คะแนนรายข้อเรียงตามรหัสโจทย์</p>
       </div>
       <button type="button" onclick="loadScoreboardEnvironment()" class="tech-glass hover:bg-cyan-500/15 text-cyan-300 border border-cyan-500/35 px-4 py-2.5 rounded-xl text-xs font-semibold transition cursor-pointer shrink-0">
         <i class="fa-solid fa-rotate mr-1.5"></i> รีเฟรชผลคะแนน
@@ -127,20 +107,20 @@
       </div>
 
       <div class="md:col-span-5">
-        <label class="block text-[11px] text-cyan-300 font-semibold mb-1">ค้นหาผู้เข้าแข่งขัน:</label>
+        <label class="block text-[11px] text-cyan-300 font-semibold mb-1">ค้นหา Username:</label>
         <div class="relative">
           <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-cyan-400 text-xs"></i>
-          <input type="text" id="sbSearchInput" oninput="renderIoiTable()" placeholder="พิมพ์ชื่อผู้เข้าแข่งขัน..." class="w-full bg-black/70 border border-cyan-500/25 focus:border-cyan-400 focus:outline-none rounded-xl pl-9 pr-4 py-2 text-sm text-white">
+          <input type="text" id="sbSearchInput" oninput="renderIoiTable()" placeholder="พิมพ์ Username..." class="w-full bg-black/70 border border-cyan-500/25 focus:border-cyan-400 focus:outline-none rounded-xl pl-9 pr-4 py-2 text-sm text-white">
         </div>
       </div>
     </div>
 
-    <!-- PROGRESSION CHART -->
+    <!-- PROGRESSION CHART (TOI STEPPED JUMP) -->
     <div class="tech-glass p-5 rounded-2xl border border-cyan-500/25 space-y-4">
       <div class="flex flex-wrap justify-between items-center gap-3">
         <div>
-          <h3 class="text-sm md:text-base font-bold text-white"><i class="fa-solid fa-chart-line text-cyan-400 mr-1.5"></i> กราฟพัฒนาการคะแนนรวมตามเวลา</h3>
-          <p class="text-xs text-gray-400">ติ๊กเลือกช่อง "กราฟ" หน้าชื่อในตารางด้านล่างเพื่อเปรียบเทียบคะแนนหลายคนพร้อมกัน</p>
+          <h3 class="text-sm md:text-base font-bold text-white"><i class="fa-solid fa-chart-line text-cyan-400 mr-1.5"></i> กราฟพัฒนาการคะแนนตามเวลา (จังหวะการพุ่งของคะแนน)</h3>
+          <p class="text-xs text-gray-400">ติ๊กเลือกช่อง "กราฟ" หน้า Username ในตารางด้านล่างเพื่อเปรียบเทียบจังหวะการทำคะแนน</p>
         </div>
         <div class="flex items-center gap-2">
           <button type="button" onclick="selectTopUsersForChart(5)" class="bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer">
@@ -159,17 +139,6 @@
       </div>
     </div>
 
-    <!-- MEDAL LEGEND & STATS -->
-    <div class="flex flex-wrap justify-between items-center gap-3 text-xs px-1">
-      <div class="flex flex-wrap items-center gap-3">
-        <span class="text-gray-400 font-semibold">เกณฑ์เหรียญรางวัล:</span>
-        <span class="px-2.5 py-0.5 rounded-full bg-yellow-500/20 text-yellow-300 border border-yellow-500/40 font-semibold"><i class="fa-solid fa-medal mr-1"></i> Gold</span>
-        <span class="px-2.5 py-0.5 rounded-full bg-slate-300/20 text-slate-200 border border-slate-300/40 font-semibold"><i class="fa-solid fa-medal mr-1"></i> Silver</span>
-        <span class="px-2.5 py-0.5 rounded-full bg-amber-700/25 text-amber-300 border border-amber-600/40 font-semibold"><i class="fa-solid fa-medal mr-1"></i> Bronze</span>
-      </div>
-      <div class="text-gray-400">ผู้เข้าแข่งขัน: <span id="sbTotalContestants" class="text-cyan-300 font-bold">0</span> คน &bull; คะแนนเต็มรวม: <span id="sbTotalMaxPoints" class="text-emerald-400 font-bold">0</span></div>
-    </div>
-
     <!-- SCOREBOARD MATRIX TABLE -->
     <div class="tech-glass rounded-2xl overflow-x-auto border border-cyan-500/25">
       <table class="w-full text-left text-sm">
@@ -181,85 +150,69 @@
     </div>
   </main>
 
-  <!-- MODAL: STUDENT PROFILE & SUBMISSION ACTIVITY -->
+  <!-- MODAL: STUDENT PROFILE & SETTINGS -->
   <div id="studentProfileModal" onclick="if(event.target === this) closeStudentProfileModal()" class="modal-backdrop modal-closed fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/85 backdrop-blur-md opacity-0 pointer-events-none">
-    <div class="modal-box tech-modal rounded-3xl p-6 md:p-8 max-w-3xl w-full max-h-[90vh] overflow-y-auto relative space-y-6 border border-cyan-500/35">
+    <div class="modal-box tech-modal rounded-3xl p-6 md:p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto relative space-y-6 border border-cyan-500/35">
       <button type="button" onclick="closeStudentProfileModal()" class="absolute top-5 right-5 text-gray-400 hover:text-white w-9 h-9 rounded-full bg-cyan-500/10 hover:bg-cyan-500/20 flex items-center justify-center transition cursor-pointer">
         <i class="fa-solid fa-xmark text-sm"></i>
       </button>
 
       <div class="flex items-center gap-4">
-        <div id="modalStudentAvatar" class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-cyan-600 to-blue-500 text-white font-bold text-2xl flex items-center justify-center shadow-lg shadow-cyan-500/20 shrink-0">
+        <div id="modalAvatarChar" class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-cyan-600 to-blue-500 text-white font-bold text-2xl flex items-center justify-center shadow-lg shadow-cyan-500/20 shrink-0">
           U
         </div>
         <div>
-          <h3 id="modalStudentName" class="text-xl font-bold text-white">ชื่อนักเรียน</h3>
-          <p id="modalStudentEmail" class="text-xs text-gray-400">email@domain.com</p>
-          <div id="modalStudentBadge" class="mt-1.5 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 text-[11px] font-semibold">
-            ผู้เข้าแข่งขัน
-          </div>
+          <h3 id="modalProfileTitleUsername" class="text-xl font-bold text-white">username</h3>
+          <p id="modalProfileEmail" class="text-xs text-gray-400">email@domain.com</p>
+          <div class="mt-1.5 flex flex-wrap gap-1.5" id="modalUserBadgesContainer"></div>
         </div>
       </div>
 
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div class="tech-glass p-3.5 rounded-2xl border border-cyan-500/20 text-center">
-          <div class="text-[11px] text-gray-400">คะแนนรอบนี้</div>
-          <div id="modalStatScore" class="text-2xl font-bold text-cyan-300 mt-0.5 font-mono">0</div>
+      <!-- EDIT PROFILE FORM (Display Name Editable, Username Locked) -->
+      <form id="editProfileForm" onsubmit="handleUpdateProfile(event)" class="tech-glass p-4 rounded-2xl border border-cyan-500/20 space-y-3.5">
+        <h4 class="text-xs font-bold text-cyan-300 uppercase tracking-wider"><i class="fa-solid fa-id-card mr-1.5"></i> ตั้งค่าข้อมูลส่วนตัว</h4>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-[11px] text-gray-400 mb-1">Username (แก้ไขไม่ได้)</label>
+            <input type="text" id="editUsernameInput" disabled class="w-full bg-black/80 border border-white/10 rounded-xl px-3.5 py-2 text-xs text-gray-400 cursor-not-allowed font-mono">
+          </div>
+          <div>
+            <label class="block text-[11px] text-cyan-300 mb-1">Display Name (ชื่อที่แสดง)</label>
+            <input type="text" id="editDisplayNameInput" required class="w-full bg-black/60 border border-cyan-500/30 focus:border-cyan-400 focus:outline-none rounded-xl px-3.5 py-2 text-xs text-white">
+          </div>
+        </div>
+        <div class="flex justify-end">
+          <button type="submit" class="bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-95 text-white font-bold px-4 py-2 rounded-xl text-xs transition cursor-pointer">
+            บันทึก Display Name
+          </button>
+        </div>
+      </form>
+
+      <!-- STATS & XP -->
+      <div class="grid grid-cols-3 gap-3">
+        <div class="tech-glass p-3.5 rounded-2xl border border-amber-500/25 text-center">
+          <div class="text-[11px] text-gray-400">แต้มประสบการณ์ (XP)</div>
+          <div id="modalStatXp" class="text-xl font-bold text-amber-400 mt-0.5 font-mono">0 XP</div>
         </div>
         <div class="tech-glass p-3.5 rounded-2xl border border-emerald-500/25 text-center">
           <div class="text-[11px] text-gray-400">โจทย์ที่ผ่าน (AC)</div>
-          <div id="modalStatSolved" class="text-2xl font-bold text-emerald-400 mt-0.5 font-mono">0 ข้อ</div>
+          <div id="modalStatSolved" class="text-xl font-bold text-emerald-400 mt-0.5 font-mono">0 ข้อ</div>
         </div>
-        <div class="tech-glass p-3.5 rounded-2xl border border-amber-500/25 text-center">
-          <div class="text-[11px] text-gray-400">ส่งโค้ดทั้งหมด</div>
-          <div id="modalStatSubs" class="text-2xl font-bold text-amber-300 mt-0.5 font-mono">0 ครั้ง</div>
-        </div>
-        <div class="tech-glass p-3.5 rounded-2xl border border-purple-500/25 text-center">
-          <div class="text-[11px] text-gray-400">AC Rate</div>
-          <div id="modalStatAcRate" class="text-2xl font-bold text-purple-300 mt-0.5 font-mono">0%</div>
+        <div class="tech-glass p-3.5 rounded-2xl border border-cyan-500/25 text-center">
+          <div class="text-[11px] text-gray-400">อัตราผ่าน (AC Rate)</div>
+          <div id="modalStatAcRate" class="text-xl font-bold text-cyan-300 mt-0.5 font-mono">0%</div>
         </div>
       </div>
 
+      <!-- SUBMISSION HISTORY -->
       <div class="space-y-3">
-        <h4 class="text-sm font-bold text-cyan-300"><i class="fa-solid fa-clock-rotate-left mr-1.5"></i> ประวัติการส่งโค้ด (Submission History)</h4>
-        <div id="modalSubmissionHistoryList" class="max-h-60 overflow-y-auto space-y-2 pr-1">
-          <div class="text-xs text-gray-500 text-center py-6">กำลังโหลดประวัติการส่งโค้ด...</div>
+        <h4 class="text-sm font-bold text-cyan-300"><i class="fa-solid fa-clock-rotate-left mr-1.5"></i> ประวัติการส่งโค้ดล่าสุด</h4>
+        <div id="modalSubmissionHistoryList" class="max-h-48 overflow-y-auto space-y-2 pr-1">
+          <div class="text-xs text-gray-500 text-center py-4">กำลังโหลดประวัติ...</div>
         </div>
       </div>
     </div>
   </div>
-
-  <!-- CHANGE PASSWORD MODAL -->
-  <div id="changePassModal" onclick="if(event.target === this) toggleChangePassModal(false)" class="modal-backdrop modal-closed fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/80 backdrop-blur-md opacity-0 pointer-events-none">
-    <div class="modal-box tech-modal rounded-3xl p-8 max-w-md w-full relative border border-cyan-500/30">
-      <button type="button" onclick="toggleChangePassModal(false)" class="absolute top-5 right-5 text-gray-400 hover:text-white w-8 h-8 rounded-full bg-cyan-500/10 flex items-center justify-center transition cursor-pointer">
-        <i class="fa-solid fa-xmark text-xs"></i>
-      </button>
-
-      <div class="text-center mb-6">
-        <h3 class="text-lg font-bold text-white mb-1">เปลี่ยนรหัสผ่าน</h3>
-        <p class="text-xs text-gray-400">กำหนดรหัสผ่านใหม่สำหรับบัญชีของคุณ</p>
-      </div>
-
-      <form id="changePassForm" class="space-y-3.5">
-        <div>
-          <label class="block text-xs font-medium text-cyan-300 mb-1">รหัสผ่านใหม่ (Password)</label>
-          <input type="password" id="newPassInput" required minlength="6" placeholder="••••••••" class="w-full bg-black/60 border border-cyan-500/20 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-400 font-mono">
-        </div>
-        <div>
-          <label class="block text-xs font-medium text-cyan-300 mb-1">ยืนยันรหัสผ่านใหม่อีกครั้ง</label>
-          <input type="password" id="confirmNewPassInput" required minlength="6" placeholder="••••••••" class="w-full bg-black/60 border border-cyan-500/20 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-400 font-mono">
-        </div>
-        <div id="changePassMsg" class="text-xs text-center hidden"></div>
-        <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-bold py-3 rounded-xl text-xs transition shadow-lg shadow-cyan-500/20 mt-2 cursor-pointer">บันทึกรหัสผ่านใหม่</button>
-      </form>
-    </div>
-  </div>
-
-  <!-- FOOTER -->
-  <footer class="tech-glass border-t border-cyan-500/20 py-6 text-center text-xs text-gray-400 mt-auto relative z-10">
-    <p class="text-cyan-400 font-bold tracking-widest uppercase">ST8 CP-Grader &bull; TOI Scoreboard</p>
-  </footer>
 
   <script>
     const SUPABASE_URL = 'https://hqnmfkafwwnjiqpdhzoh.supabase.co';
@@ -268,9 +221,6 @@
 
     let currentUser = null;
     let currentUserProfile = null;
-    let readAnnouncementIds = JSON.parse(localStorage.getItem('st8_read_announcements')) || [];
-    let allAnnouncementsCache = [];
-
     let allContests = [];
     let allContestProblems = [];
     let allProblems = [];
@@ -327,9 +277,7 @@
             <a href="index.html" class="block px-4 py-2.5 text-xs text-gray-300 hover:bg-cyan-500/10 hover:text-cyan-300 transition"><i class="fa-solid fa-house mr-2 text-cyan-400"></i> หน้าหลัก</a>
             <a href="problems.html" class="block px-4 py-2.5 text-xs text-gray-300 hover:bg-cyan-500/10 hover:text-cyan-300 transition"><i class="fa-solid fa-laptop-code mr-2 text-cyan-400"></i> คลังโจทย์</a>
             <a href="ranking.html" class="block px-4 py-2.5 text-xs text-cyan-300 font-bold hover:bg-cyan-500/10 transition"><i class="fa-solid fa-ranking-star mr-2 text-cyan-400"></i> Scoreboard</a>
-            <a href="announcement.html" class="block px-4 py-2.5 text-xs text-gray-300 hover:bg-cyan-500/10 hover:text-cyan-300 transition"><i class="fa-solid fa-bullhorn mr-2 text-cyan-400"></i> ประกาศระบบ</a>
-            <button type="button" onclick="openStudentProfileModal('${currentUser ? currentUser.id : ''}')" class="w-full text-left px-4 py-2.5 text-xs text-gray-300 hover:bg-cyan-500/10 hover:text-cyan-300 transition cursor-pointer"><i class="fa-solid fa-user-gear mr-2 text-cyan-400"></i> โปรไฟล์ของฉัน</button>
-            <button type="button" onclick="toggleChangePassModal(true)" class="w-full text-left px-4 py-2.5 text-xs text-gray-300 hover:bg-cyan-500/10 hover:text-cyan-300 transition cursor-pointer"><i class="fa-solid fa-key mr-2 text-cyan-400"></i> เปลี่ยนรหัสผ่าน</button>
+            <button type="button" onclick="openStudentProfileModal('${currentUser ? currentUser.id : ''}')" class="w-full text-left px-4 py-2.5 text-xs text-gray-300 hover:bg-cyan-500/10 hover:text-cyan-300 transition cursor-pointer"><i class="fa-solid fa-user-gear mr-2 text-cyan-400"></i> โปรไฟล์ & ตั้งค่า</button>
             <div class="border-t border-cyan-500/20 my-1"></div>
             <button type="button" onclick="handleLogout()" class="w-full text-left px-4 py-2.5 text-xs text-rose-400 hover:bg-rose-500/20 transition cursor-pointer"><i class="fa-solid fa-right-from-bracket mr-2"></i> ออกจากระบบ</button>
           </div>
@@ -350,82 +298,21 @@
       }
     });
 
-    function toggleChangePassModal(show) {
-      const dd = document.getElementById('userDropdown');
-      if (dd) dd.classList.add('hidden');
-      if (show) {
-        document.getElementById('changePassForm').reset();
-        document.getElementById('changePassMsg').classList.add('hidden');
-        openSmoothModal('changePassModal');
-      } else {
-        closeSmoothModal('changePassModal');
-      }
-    }
-
-    document.getElementById('changePassForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const p1 = document.getElementById('newPassInput').value;
-      const p2 = document.getElementById('confirmNewPassInput').value;
-      const msg = document.getElementById('changePassMsg');
-      msg.classList.remove('hidden');
-
-      if (p1 !== p2) {
-        msg.textContent = '❌ รหัสผ่านใหม่ไม่ตรงกัน';
-        msg.className = 'text-xs text-center text-rose-400 font-semibold';
-        return;
-      }
-      const { error } = await supabaseClient.auth.updateUser({ password: p1 });
-      if (error) {
-        msg.textContent = `❌ ${error.message}`;
-        msg.className = 'text-xs text-center text-rose-400 font-semibold';
-      } else {
-        msg.textContent = '✅ เปลี่ยนรหัสผ่านสำเร็จ!';
-        msg.className = 'text-xs text-center text-emerald-400 font-semibold';
-        setTimeout(() => toggleChangePassModal(false), 1200);
-      }
-    });
-
     async function handleLogout() {
       await supabaseClient.auth.signOut();
       window.location.href = 'index.html';
     }
 
-    async function fetchAnnouncementsBadge() {
-      const { data } = await supabaseClient.from('announcements').select('id');
-      if (data) {
-        allAnnouncementsCache = data;
-        updateNotificationBadge();
-      }
-    }
-
-    function updateNotificationBadge() {
-      const unreadCount = allAnnouncementsCache.filter(ann => !readAnnouncementIds.includes(String(ann.id))).length;
-      const badge = document.getElementById('navUnreadBadge');
-      const bell = document.getElementById('navBellIcon');
-      if (badge && bell) {
-        if (unreadCount > 0) {
-          badge.textContent = unreadCount;
-          badge.classList.remove('hidden');
-          bell.classList.add('bell-shake', 'text-amber-400');
-        } else {
-          badge.classList.add('hidden');
-          bell.classList.remove('bell-shake', 'text-amber-400');
-        }
-      }
-    }
-
     async function initScoreboardPage() {
-      await fetchAnnouncementsBadge();
       const { data: { session } } = await supabaseClient.auth.getSession();
       if (session && session.user) {
         currentUser = session.user;
         const { data: prof } = await supabaseClient.from('profiles').select('*').eq('id', currentUser.id).maybeSingle();
         currentUserProfile = prof;
-        const displayName = (prof && (prof.display_name || prof.username || prof.full_name)) || currentUser.email.split('@')[0];
+        const dispName = (prof && (prof.username || prof.display_name)) || currentUser.email.split('@')[0];
         const isAdmin = prof && prof.role === 'admin';
-        updateNavbarLoggedIn(displayName, isAdmin);
+        updateNavbarLoggedIn(dispName, isAdmin);
       }
-
       await loadScoreboardEnvironment();
     }
 
@@ -433,9 +320,9 @@
       const [contestsRes, cpRes, probsRes, subsRes, profsRes] = await Promise.all([
         supabaseClient.from('contests').select('*').eq('is_published', true).order('start_time', { ascending: false }),
         supabaseClient.from('contest_problems').select('*').order('sort_order', { ascending: true }),
-        supabaseClient.from('problems').select('id, problem_code, title, max_score, is_verified'),
+        supabaseClient.from('problems').select('id, problem_code, title, max_score, is_verified').order('problem_code', { ascending: true }),
         supabaseClient.from('submissions').select('*').order('created_at', { ascending: true }),
-        supabaseClient.from('profiles').select('id, username, full_name, display_name, email, role')
+        supabaseClient.from('profiles').select('id, username, display_name, email, role, xp')
       ]);
 
       allContests = contestsRes.data || [];
@@ -466,17 +353,18 @@
       const userLookup = {};
       allProfiles.forEach(u => {
         userLookup[u.id] = {
-          name: u.display_name || u.username || u.full_name || u.email || `User-${String(u.id).slice(0, 6)}`,
+          username: u.username || u.email?.split('@')[0] || `user_${String(u.id).slice(0, 4)}`,
+          displayName: u.display_name || u.username || 'นักประลอง',
           email: u.email || '-',
-          role: u.role || 'user'
+          role: u.role || 'user',
+          xp: u.xp || 0
         };
       });
 
-      let contestObj = null;
       let relevantSubs = [];
 
       if (selectedContestId === 'ALL') {
-        const verifiedProbs = allProblems.filter(p => p.is_verified);
+        const verifiedProbs = allProblems.filter(p => p.is_verified).sort((a, b) => (a.problem_code || '').localeCompare(b.problem_code || ''));
         activeProblemColumns = verifiedProbs.map((p, idx) => ({
           id: p.id,
           label: p.problem_code || `P${idx + 1}`,
@@ -485,13 +373,20 @@
         }));
         relevantSubs = allSubmissions.filter(s => activeProblemColumns.some(col => String(col.id) === String(s.problem_id)));
       } else {
-        contestObj = allContests.find(c => String(c.id) === String(selectedContestId));
+        const contestObj = allContests.find(c => String(c.id) === String(selectedContestId));
         const linked = allContestProblems.filter(cp => String(cp.contest_id) === String(selectedContestId));
-        activeProblemColumns = linked.map((cp, idx) => {
+        
+        // เรียงลำดับโจทย์ตามรหัสโจทย์ (problem_code)
+        const sortedLinked = linked.map(cp => {
+          const base = probLookup[cp.problem_id] || {};
+          return { ...cp, problem_code: base.problem_code || `P${cp.problem_id}` };
+        }).sort((a, b) => a.problem_code.localeCompare(b.problem_code));
+
+        activeProblemColumns = sortedLinked.map((cp, idx) => {
           const baseProb = probLookup[cp.problem_id] || {};
           return {
             id: cp.problem_id,
-            label: cp.problem_label || String.fromCharCode(65 + idx),
+            label: baseProb.problem_code || String.fromCharCode(65 + idx),
             title: baseProb.title || `Problem #${cp.problem_id}`,
             maxScore: Number(cp.custom_score || baseProb.max_score || 100)
           };
@@ -516,12 +411,14 @@
       relevantSubs.forEach(s => {
         const uid = s.user_id || 'guest';
         if (!usersMap[uid]) {
-          const uInfo = userLookup[uid] || { name: `User-${String(uid).slice(0, 6)}`, email: '-', role: 'user' };
+          const uInfo = userLookup[uid] || { username: 'anonymous', displayName: 'Anonymous', email: '-', role: 'user', xp: 0 };
           usersMap[uid] = {
             userId: uid,
-            name: uInfo.name,
+            username: uInfo.username,
+            displayName: uInfo.displayName,
             email: uInfo.email,
             role: uInfo.role,
+            xp: uInfo.xp,
             bestByProblem: {},
             attemptsByProblem: {},
             timeline: [],
@@ -566,25 +463,9 @@
         computedRows.slice(0, 3).forEach(r => selectedChartUserIds.add(String(r.userId)));
       }
 
-      const totalMaxPossible = activeProblemColumns.reduce((sum, c) => sum + c.maxScore, 0);
-      document.getElementById('sbTotalContestants').textContent = computedRows.length;
-      document.getElementById('sbTotalMaxPoints').textContent = totalMaxPossible;
-
       renderIoiTable();
       renderSelectedUserChips();
       renderProgressionChart();
-    }
-
-    function getMedalBadge(rank, totalCount, score) {
-      if (score <= 0 || totalCount === 0) return `<span class="text-gray-400 font-bold">#${rank}</span>`;
-      const goldCutoff = Math.max(1, Math.ceil(totalCount / 12));
-      const silverCutoff = Math.max(goldCutoff + 1, Math.ceil((totalCount * 3) / 12));
-      const bronzeCutoff = Math.max(silverCutoff + 1, Math.ceil((totalCount * 6) / 12));
-
-      if (rank <= goldCutoff) return `<span class="px-2.5 py-1 rounded-full bg-yellow-500/20 text-yellow-300 border border-yellow-500/45 font-bold text-xs inline-flex items-center gap-1"><i class="fa-solid fa-medal"></i> ${rank}</span>`;
-      if (rank <= silverCutoff) return `<span class="px-2.5 py-1 rounded-full bg-slate-300/20 text-slate-200 border border-slate-300/45 font-bold text-xs inline-flex items-center gap-1"><i class="fa-solid fa-medal"></i> ${rank}</span>`;
-      if (rank <= bronzeCutoff) return `<span class="px-2.5 py-1 rounded-full bg-amber-700/25 text-amber-300 border border-amber-600/45 font-bold text-xs inline-flex items-center gap-1"><i class="fa-solid fa-medal"></i> ${rank}</span>`;
-      return `<span class="text-gray-300 font-bold">#${rank}</span>`;
     }
 
     function renderIoiTable() {
@@ -603,22 +484,27 @@
         <tr>
           <th class="px-3 py-3.5 text-center w-14">กราฟ</th>
           <th class="px-3 py-3.5 text-center w-20">อันดับ</th>
-          <th class="px-4 py-3.5 min-w-[180px]">ผู้เข้าแข่งขัน (คลิกเพื่อดูโปรไฟล์)</th>
+          <th class="px-4 py-3.5 min-w-[180px]">Username (คลิกดูโปรไฟล์)</th>
           <th class="px-4 py-3.5 text-center whitespace-nowrap">คะแนนรวม</th>
           ${probHeaders}
         </tr>
       `;
 
-      const filtered = computedRows.filter(r => !query || r.name.toLowerCase().includes(query));
+      const filtered = computedRows.filter(r => !query || r.username.toLowerCase().includes(query));
       if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="${4 + activeProblemColumns.length}" class="p-8 text-center text-gray-400">ยังไม่มีข้อมูลคะแนนในรอบการแข่งขันนี้</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="${4 + activeProblemColumns.length}" class="p-8 text-center text-gray-400">ยังไม่มีข้อมูลคะแนนในรอบนี้</td></tr>`;
         return;
       }
 
-      tbody.innerHTML = filtered.map(row => {
-        const trueRank = computedRows.findIndex(r => String(r.userId) === String(row.userId)) + 1;
+      tbody.innerHTML = filtered.map((row, index) => {
+        const trueRank = index + 1;
         const isChecked = selectedChartUserIds.has(String(row.userId));
         const isMe = currentUser && String(row.userId) === String(currentUser.id);
+
+        let rankBadge = `<span class="text-gray-400 font-bold font-mono">#${trueRank}</span>`;
+        if (trueRank === 1) rankBadge = `<span class="px-2 py-0.5 rounded bg-yellow-500/20 text-yellow-300 font-bold text-xs"><i class="fa-solid fa-crown mr-1"></i>1</span>`;
+        else if (trueRank === 2) rankBadge = `<span class="px-2 py-0.5 rounded bg-slate-300/20 text-slate-200 font-bold text-xs">2</span>`;
+        else if (trueRank === 3) rankBadge = `<span class="px-2 py-0.5 rounded bg-amber-700/25 text-amber-300 font-bold text-xs">3</span>`;
 
         const problemCells = activeProblemColumns.map(col => {
           const attempts = row.attemptsByProblem[col.id] || 0;
@@ -644,18 +530,17 @@
             <td class="px-3 py-3 text-center">
               <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleChartUser('${row.userId}')" class="w-4 h-4 accent-cyan-400 cursor-pointer rounded">
             </td>
-            <td class="px-3 py-3 text-center whitespace-nowrap">${getMedalBadge(trueRank, computedRows.length, row.totalScore)}</td>
+            <td class="px-3 py-3 text-center whitespace-nowrap">${rankBadge}</td>
             <td class="px-4 py-3">
               <button type="button" onclick="openStudentProfileModal('${row.userId}')" class="text-left group cursor-pointer">
-                <div class="font-semibold text-white text-sm group-hover:text-cyan-300 transition flex items-center gap-1.5">
-                  ${row.name} ${isMe ? '<span class="text-[10px] px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">คุณ</span>' : ''}
-                  <i class="fa-solid fa-arrow-up-right-from-square text-[10px] opacity-0 group-hover:opacity-100 transition"></i>
+                <div class="font-bold text-cyan-300 text-sm group-hover:underline flex items-center gap-1.5 font-mono">
+                  @${row.username} ${isMe ? '<span class="text-[10px] px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 font-sans">คุณ</span>' : ''}
                 </div>
-                <div class="text-[11px] text-gray-400">เต็ม ${row.fullSolvedCount}/${activeProblemColumns.length} ข้อ</div>
+                <div class="text-[11px] text-gray-400">${row.displayName} &bull; ${row.fullSolvedCount} ข้อ</div>
               </button>
             </td>
             <td class="px-4 py-3 text-center whitespace-nowrap">
-              <span class="text-base font-bold text-cyan-300 bg-cyan-500/15 px-3 py-1 rounded-xl border border-cyan-500/30">${row.totalScore}</span>
+              <span class="text-base font-bold text-cyan-300 bg-cyan-500/15 px-3 py-1 rounded-xl border border-cyan-500/30 font-mono">${row.totalScore}</span>
             </td>
             ${problemCells}
           </tr>
@@ -667,25 +552,36 @@
       const row = computedRows.find(r => String(r.userId) === String(userId));
       if (!row) return;
 
-      document.getElementById('modalStudentName').textContent = row.name;
-      document.getElementById('modalStudentEmail').textContent = row.email;
-      document.getElementById('modalStudentAvatar').textContent = row.name.charAt(0).toUpperCase();
-      document.getElementById('modalStudentBadge').textContent = row.role === 'admin' ? 'ผู้ดูแลระบบ (Admin)' : 'ผู้เข้าแข่งขัน (Contestant)';
+      document.getElementById('modalProfileTitleUsername').textContent = '@' + row.username;
+      document.getElementById('modalProfileEmail').textContent = row.email;
+      document.getElementById('modalAvatarChar').textContent = row.username.charAt(0).toUpperCase();
 
-      document.getElementById('modalStatScore').textContent = row.totalScore;
+      document.getElementById('editUsernameInput').value = row.username;
+      document.getElementById('editDisplayNameInput').value = row.displayName;
+
+      // จัดการเปิด/ปิดฟอร์มแก้ไข (ให้แก้ไขเฉพาะของตัวเอง)
+      const isMyProfile = currentUser && String(userId) === String(currentUser.id);
+      document.getElementById('editDisplayNameInput').disabled = !isMyProfile;
+
+      document.getElementById('modalStatXp').textContent = `${row.xp} XP`;
       document.getElementById('modalStatSolved').textContent = `${row.fullSolvedCount} ข้อ`;
 
       const userSubs = allSubmissions.filter(s => String(s.user_id) === String(userId));
-      const totalSubsCount = userSubs.length;
-      const acSubsCount = userSubs.filter(s => s.status === 'Accepted' || s.status === 'AC').length;
-      const acRate = totalSubsCount > 0 ? Math.round((acSubsCount / totalSubsCount) * 100) : 0;
-
-      document.getElementById('modalStatSubs').textContent = `${totalSubsCount} ครั้ง`;
+      const totalSubs = userSubs.length;
+      const acSubs = userSubs.filter(s => s.status === 'Accepted' || s.status === 'AC').length;
+      const acRate = totalSubs > 0 ? Math.round((acSubs / totalSubs) * 100) : 0;
       document.getElementById('modalStatAcRate').textContent = `${acRate}%`;
+
+      // Badge Calculation
+      const badgesContainer = document.getElementById('modalUserBadgesContainer');
+      let badgesHtml = `<span class="px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 text-[10px] font-semibold"><i class="fa-solid fa-code"></i> Contestant</span>`;
+      if (row.totalScore >= 300) badgesHtml += `<span class="px-2 py-0.5 rounded-full bg-yellow-500/20 text-yellow-300 border border-yellow-500/40 text-[10px] font-semibold"><i class="fa-solid fa-crown"></i> Grandmaster</span>`;
+      if (acSubs >= 5) badgesHtml += `<span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[10px] font-semibold"><i class="fa-solid fa-bolt"></i> Bug Slayer</span>`;
+      badgesContainer.innerHTML = badgesHtml;
 
       const listContainer = document.getElementById('modalSubmissionHistoryList');
       if (userSubs.length === 0) {
-        listContainer.innerHTML = `<div class="text-xs text-gray-500 text-center py-6">ยังไม่มีประวัติการส่งโค้ด</div>`;
+        listContainer.innerHTML = `<div class="text-xs text-gray-500 text-center py-4">ยังไม่มีประวัติการส่งโค้ด</div>`;
       } else {
         listContainer.innerHTML = userSubs.slice().reverse().map(s => {
           const prob = allProblems.find(p => String(p.id) === String(s.problem_id)) || {};
@@ -694,14 +590,12 @@
           const timeStr = s.created_at ? new Date(s.created_at).toLocaleString('th-TH') : '-';
 
           return `
-            <div class="flex items-center justify-between gap-3 bg-black/60 border border-white/10 px-3.5 py-2.5 rounded-xl text-xs">
+            <div class="flex items-center justify-between gap-3 bg-black/60 border border-white/10 px-3.5 py-2 rounded-xl text-xs">
               <div>
                 <div class="font-bold text-white">${prob.problem_code || 'P' + s.problem_id} : ${prob.title || 'Problem'}</div>
                 <div class="text-[10px] text-gray-400">ภาษา: ${s.language || 'C++'} &bull; ส่งเมื่อ: ${timeStr}</div>
               </div>
-              <div class="flex items-center gap-2 shrink-0">
-                <span class="px-2.5 py-1 rounded-lg font-bold border ${badgeClass}">${s.status || 'Wrong Answer'}</span>
-              </div>
+              <span class="px-2.5 py-1 rounded-lg font-bold border ${badgeClass}">${s.status || 'Wrong Answer'}</span>
             </div>
           `;
         }).join('');
@@ -712,6 +606,25 @@
 
     function closeStudentProfileModal() {
       closeSmoothModal('studentProfileModal');
+    }
+
+    async function handleUpdateProfile(e) {
+      e.preventDefault();
+      if (!currentUser) return;
+      const newDisp = document.getElementById('editDisplayNameInput').value.trim();
+
+      const { error } = await supabaseClient
+        .from('profiles')
+        .update({ display_name: newDisp })
+        .eq('id', currentUser.id);
+
+      if (error) {
+        showToast('อัปเดตไม่สำเร็จ', error.message, true);
+      } else {
+        showToast('สำเร็จ', 'อัปเดต Display Name เรียบร้อยแล้ว');
+        loadScoreboardEnvironment();
+        closeStudentProfileModal();
+      }
     }
 
     function toggleChartUser(userId) {
@@ -743,7 +656,7 @@
       const selectedRows = computedRows.filter(r => selectedChartUserIds.has(String(r.userId)));
 
       if (selectedRows.length === 0) {
-        container.innerHTML = `<span class="text-xs text-gray-500 italic">ติ๊กเลือกช่อง "กราฟ" หน้าชื่อผู้เข้าแข่งขันในตารางด้านล่างเพื่อเปรียบเทียบคะแนน...</span>`;
+        container.innerHTML = `<span class="text-xs text-gray-500 italic">ติ๊กเลือกช่อง "กราฟ" เพื่อเปรียบเทียบคะแนน...</span>`;
         return;
       }
 
@@ -752,7 +665,7 @@
         return `
           <span class="inline-flex items-center gap-2 px-3 py-1 rounded-xl text-xs font-semibold bg-black/60 border" style="border-color: ${color}; color: ${color};">
             <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${color};"></span>
-            <span>${u.name} (${u.totalScore})</span>
+            <span>@${u.username} (${u.totalScore})</span>
             <button type="button" onclick="toggleChartUser('${u.userId}')" class="hover:text-white ml-0.5 cursor-pointer">&times;</button>
           </span>
         `;
@@ -780,15 +693,15 @@
         });
 
         return {
-          label: u.name,
+          label: '@' + u.username,
           data: dataPoints,
           borderColor: color,
-          backgroundColor: color + '25',
+          backgroundColor: color + '20',
           borderWidth: 2.5,
-          stepped: true,
+          stepped: true, // กราฟขั้นบันไดแสดงจังหวะพุ่ง (Stepped Line)
           tension: 0,
-          pointRadius: 3.5,
-          pointHoverRadius: 6
+          pointRadius: 4,
+          pointHoverRadius: 7
         };
       });
 
@@ -811,13 +724,13 @@
           },
           scales: {
             x: {
-              title: { display: true, text: 'เวลาที่ส่งได้คะแนน', color: '#9ca3af', font: { family: 'Kanit', size: 12 } },
+              title: { display: true, text: 'เวลาที่ส่งได้คะแนน (Time)', color: '#9ca3af', font: { family: 'Kanit', size: 12 } },
               ticks: { color: '#9ca3af', font: { family: 'Kanit', size: 11 } },
               grid: { color: 'rgba(56, 189, 248, 0.08)' }
             },
             y: {
               beginAtZero: true,
-              title: { display: true, text: 'คะแนนรวม', color: '#9ca3af', font: { family: 'Kanit', size: 12 } },
+              title: { display: true, text: 'คะแนนรวม (Score)', color: '#9ca3af', font: { family: 'Kanit', size: 12 } },
               ticks: { color: '#9ca3af', font: { family: 'Kanit', size: 11 } },
               grid: { color: 'rgba(56, 189, 248, 0.08)' }
             }

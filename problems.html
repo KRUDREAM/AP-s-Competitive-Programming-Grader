@@ -1283,6 +1283,27 @@
       renderFilteredProblems();
     }
 
+    function renderActionButtons(p, isOwner, isSolved) {
+      let editBtn = '';
+      if (isOwner) {
+        editBtn = `<button type="button" onclick="openProblemModal('edit', '${String(p.id).replace(/'/g, "\\'")}')" class="bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/35 px-3 py-2 rounded-xl transition text-xs font-semibold cursor-pointer" title="แก้ไขโจทย์ของคุณ">
+                    <i class="fa-solid fa-pen-to-square"></i> แก้ไข
+                  </button>`;
+      }
+
+      let solveBtn = '';
+      if (p.is_verified || isOwner) {
+        const btnText = p.is_draft ? 'ทดสอบ (Draft)' : 'ทำโจทย์';
+        solveBtn = `<button type="button" onclick="handleSolveClick('${String(p.id).replace(/'/g, "\\'")}')" class="bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-95 text-white px-4 py-2 rounded-xl transition text-xs font-bold shadow-md shadow-cyan-500/15 cursor-pointer">
+                    <i class="fa-solid fa-code mr-1"></i> ${btnText}
+                  </button>`;
+      } else {
+        solveBtn = `<span class="text-xs text-amber-300/80 italic px-2">รอตรวจสอบ</span>`;
+      }
+
+      return `<div class="inline-flex items-center gap-2">${editBtn}${solveBtn}</div>`;
+    }
+
     function renderFilteredProblems() {
       const tbody = document.getElementById('problemsTableBody');
       const query = (document.getElementById('probSearchInput').value || '').trim().toLowerCase();
@@ -1406,20 +1427,7 @@
               <i class="fa-solid fa-users text-emerald-400/80 mr-1"></i> ผ่าน <span class="text-emerald-400 font-bold">${acUsers}</span> จาก <span class="text-cyan-300 font-bold">${totalTried}</span> คน
             </td>
             <td class="px-4 py-3.5 text-right whitespace-nowrap">
-              <div class="inline-flex items-center gap-2">
-                ${isOwner
-                  ? `<button type="button" onclick="openProblemModal('edit', '${String(p.id).replace(/'/g, "\\'")}')" class="bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/35 px-3 py-2 rounded-xl transition text-xs font-semibold cursor-pointer" title="แก้ไขโจทย์ของคุณ">
-                      <i class="fa-solid fa-pen-to-square"></i> แก้ไข
-                    </button>`
-                  : ''
-                }
-                {(p.is_verified || isOwner)
-                  ? `<button type="button" onclick="handleSolveClick('${String(p.id).replace(/'/g, "\\'")}')" class="bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-95 text-white px-4 py-2 rounded-xl transition text-xs font-bold shadow-md shadow-cyan-500/15 cursor-pointer">
-                      <i class="fa-solid fa-code mr-1"></i> ${p.is_draft ? 'ทดสอบ (Draft)' : 'ทำโจทย์'}
-                    </button>`
-                  : `<span class="text-xs text-amber-300/80 italic px-2">รอตรวจสอบ</span>`
-                }
-              </div>
+              ${renderActionButtons(p, isOwner, isSolved)}
             </td>
           </tr>
         `;

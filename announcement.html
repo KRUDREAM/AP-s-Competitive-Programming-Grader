@@ -8,6 +8,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <style>
     html, body { max-width: 100%; overflow-x: hidden; }
     body {
@@ -38,10 +39,32 @@
       50% { opacity: 0.45; transform: scale(1.05); }
     }
     .glow-orb { animation: cyberPulse 8s ease-in-out infinite; }
+    @keyframes bellRing {
+      0% { transform: rotate(0); }
+      15% { transform: rotate(15deg); }
+      30% { transform: rotate(-15deg); }
+      45% { transform: rotate(10deg); }
+      60% { transform: rotate(-10deg); }
+      75% { transform: rotate(5deg); }
+      100% { transform: rotate(0); }
+    }
+    .bell-shake { animation: bellRing 0.8s ease-in-out infinite; }
     .modal-backdrop { transition: opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1); }
     .modal-box { transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.28s ease; }
     .modal-open .modal-box { transform: scale(1) translateY(0); opacity: 1; }
     .modal-closed .modal-box { transform: scale(0.95) translateY(12px); opacity: 0; }
+
+    /* Markdown Styling Inside Announcement */
+    .markdown-body { font-family: 'Kanit', sans-serif; line-height: 1.75; color: #e5e7eb; font-size: 0.95rem; }
+    .markdown-body h1 { font-size: 1.45rem; font-weight: 700; color: #38bdf8; margin-top: 1rem; margin-bottom: 0.5rem; border-bottom: 1px solid rgba(56, 189, 248, 0.2); padding-bottom: 0.25rem; }
+    .markdown-body h2 { font-size: 1.25rem; font-weight: 700; color: #7dd3fc; margin-top: 0.9rem; margin-bottom: 0.4rem; }
+    .markdown-body p { margin-bottom: 0.65rem; }
+    .markdown-body ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 0.65rem; }
+    .markdown-body ol { list-style-type: decimal; padding-left: 1.5rem; margin-bottom: 0.65rem; }
+    .markdown-body code { background: rgba(56, 189, 248, 0.15); color: #67e8f9; padding: 0.15rem 0.4rem; border-radius: 0.375rem; font-family: monospace; font-size: 0.85rem; }
+    .markdown-body pre { background: #020617; border: 1px solid rgba(56, 189, 248, 0.25); padding: 0.9rem; border-radius: 0.75rem; overflow-x: auto; margin-bottom: 0.75rem; }
+    .markdown-body img { max-width: 100%; border-radius: 0.75rem; border: 1px solid rgba(56, 189, 248, 0.3); margin: 0.75rem 0; cursor: pointer; transition: transform 0.2s; }
+    .markdown-body img:hover { transform: scale(1.01); }
   </style>
 </head>
 <body class="min-h-screen flex flex-col relative overflow-x-hidden cyber-grid selection:bg-cyan-500 selection:text-black">
@@ -76,7 +99,13 @@
         <a href="index.html" class="hover:text-cyan-400 transition"><i class="fa-solid fa-house mr-1 text-cyan-500"></i> หน้าหลัก</a>
         <a href="ranking.html" class="hover:text-cyan-400 transition"><i class="fa-solid fa-ranking-star mr-1 text-cyan-500"></i> Ranking</a>
         <a href="problems.html" class="hover:text-cyan-400 transition"><i class="fa-solid fa-laptop-code mr-1 text-cyan-500"></i> คลังโจทย์</a>
-        <a href="announcement.html" class="text-cyan-400 font-semibold transition"><i class="fa-solid fa-bullhorn mr-1"></i> ประกาศระบบ</a>
+        <a href="announcement.html" class="text-cyan-400 font-semibold transition flex items-center gap-1.5">
+          <span class="relative flex items-center">
+            <i id="navBellIcon" class="fa-solid fa-bell text-cyan-400"></i>
+            <span id="navUnreadBadge" class="hidden absolute -top-1.5 -right-2 w-4 h-4 rounded-full bg-rose-500 text-white text-[9px] font-bold flex items-center justify-center">0</span>
+          </span>
+          ประกาศระบบ
+        </a>
       </nav>
 
       <!-- AUTH / USER DROPDOWN AREA -->
@@ -95,7 +124,12 @@
         <h2 class="text-xl md:text-2xl font-bold text-white mb-1"><i class="fa-solid fa-bullhorn text-cyan-400 mr-2"></i> บอร์ดประกาศและข่าวสารระบบ</h2>
         <p class="text-xs text-gray-400">ติดตามประกาศสำคัญ กิจกรรม และอัปเดตต่างๆ จากทีมงานผู้ดูแลระบบ</p>
       </div>
-      <div id="adminAnnounceActionBtn"></div>
+      <div class="flex items-center gap-3">
+        <button type="button" onclick="markAllAsRead()" class="tech-glass px-3.5 py-2 rounded-xl text-xs font-semibold text-cyan-300 hover:bg-cyan-500/10 transition cursor-pointer border border-cyan-500/30">
+          <i class="fa-solid fa-check-double mr-1.5"></i> ทำเครื่องหมายอ่านแล้วทั้งหมด
+        </button>
+        <div id="adminAnnounceActionBtn"></div>
+      </div>
     </div>
 
     <!-- ANNOUNCEMENTS LIST -->
@@ -104,30 +138,50 @@
     </div>
   </main>
 
-  <!-- MODAL: CREATE / EDIT ANNOUNCEMENT -->
+  <!-- MODAL: CREATE / EDIT ANNOUNCEMENT (WITH MARKDOWN & IMAGE UPLOAD) -->
   <div id="announcementModal" onclick="if(event.target === this) closeAnnouncementModal()" class="modal-backdrop modal-closed fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/85 backdrop-blur-md opacity-0 pointer-events-none">
-    <div class="modal-box tech-modal rounded-3xl p-6 md:p-8 max-w-lg w-full relative border border-cyan-500/30 space-y-5">
+    <div class="modal-box tech-modal rounded-3xl p-6 md:p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto relative border border-cyan-500/30 space-y-5">
       <button type="button" onclick="closeAnnouncementModal()" class="absolute top-5 right-5 text-gray-400 hover:text-white w-9 h-9 rounded-full bg-cyan-500/10 hover:bg-cyan-500/20 flex items-center justify-center transition cursor-pointer">
         <i class="fa-solid fa-xmark text-sm"></i>
       </button>
 
       <div class="text-center">
         <h3 id="annModalTitle" class="text-lg font-bold text-white mb-1"><i class="fa-solid fa-bullhorn text-cyan-400 mr-2"></i> สร้างประกาศใหม่</h3>
-        <p class="text-xs text-gray-400">ประกาศข่าวสารแจ้งเตือนให้ผู้ใช้งานระบบทุกคนทราบ</p>
+        <p class="text-xs text-gray-400">รองรับ Markdown และการแนบรูปภาพประกอบ</p>
       </div>
 
       <form id="announcementForm" class="space-y-4">
         <input type="hidden" id="annFormMode" value="create">
         <input type="hidden" id="annEditId" value="">
 
-        <div>
-          <label class="block text-xs font-medium text-cyan-300 mb-1">หัวข้อประกาศ (Title) *</label>
-          <input type="text" id="annTitleInput" required placeholder="เช่น อัปเดตระบบโจทย์ชุดใหม่..." class="w-full bg-black/60 border border-cyan-500/20 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-400">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div class="md:col-span-2">
+            <label class="block text-xs font-medium text-cyan-300 mb-1">หัวข้อประกาศ (Title) *</label>
+            <input type="text" id="annTitleInput" required placeholder="เช่น อัปเดตระบบโจทย์ชุดใหม่..." class="w-full bg-black/60 border border-cyan-500/20 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-400">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-cyan-300 mb-1">หมวดหมู่ (Category)</label>
+            <select id="annCategoryInput" class="w-full bg-black/60 border border-cyan-500/20 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-400 cursor-pointer">
+              <option value="ทั่วไป">ทั่วไป (General)</option>
+              <option value="อัปเดตระบบ">อัปเดตระบบ (Update)</option>
+              <option value="กิจกรรมแข่งขัน">กิจกรรมแข่งขัน (Contest)</option>
+              <option value="ประกาศสำคัญ">ประกาศสำคัญ (Important)</option>
+            </select>
+          </div>
         </div>
 
         <div>
-          <label class="block text-xs font-medium text-cyan-300 mb-1">เนื้อหาประกาศ (Content) *</label>
-          <textarea id="annContentInput" required rows="5" placeholder="รายละเอียดเนื้อหาประกาศ..." class="w-full bg-black/60 border border-cyan-500/20 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-cyan-400 resize-y"></textarea>
+          <div class="flex justify-between items-center mb-1">
+            <label class="text-xs font-medium text-cyan-300">เนื้อหาประกาศ (Markdown) *</label>
+            <div class="flex items-center gap-2">
+              <label class="text-[11px] bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 px-2.5 py-1 rounded-lg border border-cyan-500/35 cursor-pointer transition">
+                <i class="fa-solid fa-image mr-1"></i> แทรกรูปภาพ
+                <input type="file" id="annImageUpload" accept="image/*" onchange="handleAnnouncementImageUpload(event)" class="hidden">
+              </label>
+              <span class="text-[10px] text-gray-400">ลากวางรูปหรือคลิกแนบได้</span>
+            </div>
+          </div>
+          <textarea id="annContentInput" required rows="7" placeholder="พิมพ์รายละเอียดประกาศด้วย Markdown (เช่น **ตัวหนา**, รายการ, ลิงก์)..." class="w-full bg-black/60 border border-cyan-500/20 rounded-xl p-3 text-xs text-white font-mono leading-relaxed focus:outline-none focus:border-cyan-400 resize-y"></textarea>
         </div>
 
         <div class="flex items-center gap-2">
@@ -137,6 +191,16 @@
 
         <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-bold py-3 rounded-xl text-xs transition shadow-lg shadow-cyan-500/20 cursor-pointer">บันทึกประกาศ</button>
       </form>
+    </div>
+  </div>
+
+  <!-- LIGHTBOX IMAGE FULLSCREEN MODAL -->
+  <div id="imageLightboxModal" onclick="closeImageLightbox()" class="modal-backdrop modal-closed fixed inset-0 z-[90] flex items-center justify-center p-4 bg-black/90 backdrop-blur-lg opacity-0 pointer-events-none">
+    <div class="relative max-w-5xl max-h-[90vh] flex items-center justify-center">
+      <button type="button" onclick="closeImageLightbox()" class="absolute -top-12 right-0 text-white hover:text-cyan-400 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center transition cursor-pointer">
+        <i class="fa-solid fa-xmark text-base"></i>
+      </button>
+      <img id="lightboxImageElement" src="" alt="Full Screen Preview" class="max-w-full max-h-[85vh] rounded-2xl border border-cyan-500/40 object-contain shadow-2xl">
     </div>
   </div>
 
@@ -150,10 +214,13 @@
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhxbm1ma2Fmd3duamlxcGRoem9oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQyMTc0NzEsImV4cCI6MjEwOTc5MzQ3MX0.m6dHtNnXuQ108DvafyKWeFvAg_oySuQH3LRg0Jzaops';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+    if (typeof marked !== 'undefined') marked.setOptions({ breaks: true, gfm: true });
+
     let currentUser = null;
     let currentUserProfile = null;
     let isAdminUser = false;
     let allAnnouncementsCache = [];
+    let readAnnouncementIds = JSON.parse(localStorage.getItem('st8_read_announcements')) || [];
 
     function showToast(title, desc, isError = false) {
       const toast = document.getElementById('systemToast');
@@ -222,6 +289,33 @@
       window.location.href = 'index.html';
     }
 
+    function handleAnnouncementImageUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const base64Url = e.target.result;
+        const textarea = document.getElementById('annContentInput');
+        const imgMarkdown = `\n![${file.name}](${base64Url})\n`;
+        textarea.value += imgMarkdown;
+        showToast('แนบรูปภาพสำเร็จ', 'แทรกลงใน Markdown เรียบร้อย');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function openImageLightbox(imgSrc) {
+      const modal = document.getElementById('imageLightboxModal');
+      document.getElementById('lightboxImageElement').src = imgSrc;
+      modal.classList.remove('opacity-0', 'pointer-events-none', 'modal-closed');
+      modal.classList.add('modal-open');
+    }
+
+    function closeImageLightbox() {
+      const modal = document.getElementById('imageLightboxModal');
+      modal.classList.remove('modal-open');
+      modal.classList.add('modal-closed', 'opacity-0', 'pointer-events-none');
+    }
+
     function openAnnouncementModal(mode = 'create', ann = null) {
       const form = document.getElementById('announcementForm');
       form.reset();
@@ -232,6 +326,7 @@
         document.getElementById('annFormMode').value = 'edit';
         document.getElementById('annEditId').value = ann.id;
         document.getElementById('annTitleInput').value = ann.title || '';
+        document.getElementById('annCategoryInput').value = ann.category || 'ทั่วไป';
         document.getElementById('annContentInput').value = ann.content || '';
         document.getElementById('annPinnedInput').checked = !!ann.is_pinned;
         document.getElementById('annModalTitle').innerHTML = '<i class="fa-solid fa-pen-to-square text-cyan-400 mr-2"></i> แก้ไขประกาศ';
@@ -253,11 +348,13 @@
       const mode = document.getElementById('annFormMode').value;
       const id = document.getElementById('annEditId').value;
       const title = document.getElementById('annTitleInput').value.trim();
+      const category = document.getElementById('annCategoryInput').value;
       const content = document.getElementById('annContentInput').value.trim();
       const is_pinned = document.getElementById('annPinnedInput').checked;
 
       const payload = {
         title,
+        category,
         content,
         is_pinned,
         author: (currentUserProfile && (currentUserProfile.display_name || currentUserProfile.username)) || 'Admin',
@@ -296,6 +393,42 @@
       }
     }
 
+    function markAnnouncementAsRead(id) {
+      if (!readAnnouncementIds.includes(String(id))) {
+        readAnnouncementIds.push(String(id));
+        localStorage.setItem('st8_read_announcements', JSON.stringify(readAnnouncementIds));
+        updateNotificationBadge();
+        const card = document.getElementById(`annCard_${id}`);
+        if (card) card.classList.remove('border-cyan-400/80', 'bg-cyan-950/15');
+      }
+    }
+
+    function markAllAsRead() {
+      allAnnouncementsCache.forEach(ann => {
+        if (!readAnnouncementIds.includes(String(ann.id))) {
+          readAnnouncementIds.push(String(ann.id));
+        }
+      });
+      localStorage.setItem('st8_read_announcements', JSON.stringify(readAnnouncementIds));
+      updateNotificationBadge();
+      renderAnnouncementsList();
+      showToast('อ่านทั้งหมดแล้ว', 'ทำเครื่องหมายว่าอ่านแล้วทุกประกาศ');
+    }
+
+    function updateNotificationBadge() {
+      const unreadCount = allAnnouncementsCache.filter(ann => !readAnnouncementIds.includes(String(ann.id))).length;
+      const badge = document.getElementById('navUnreadBadge');
+      const bell = document.getElementById('navBellIcon');
+      if (unreadCount > 0) {
+        badge.textContent = unreadCount;
+        badge.classList.remove('hidden');
+        bell.classList.add('bell-shake', 'text-amber-400');
+      } else {
+        badge.classList.add('hidden');
+        bell.classList.remove('bell-shake', 'text-amber-400');
+      }
+    }
+
     async function initAnnouncementsPage() {
       const { data: { session } } = await supabaseClient.auth.getSession();
       if (session && session.user) {
@@ -317,6 +450,11 @@
         actionBtnContainer.innerHTML = '';
       }
 
+      updateNotificationBadge();
+      renderAnnouncementsList();
+    }
+
+    function renderAnnouncementsList() {
       const container = document.getElementById('announcementsListContainer');
       if (!allAnnouncementsCache || allAnnouncementsCache.length === 0) {
         container.innerHTML = `<div class="tech-glass p-8 rounded-2xl text-center text-gray-400 text-xs">ยังไม่มีประกาศจากระบบในขณะนี้</div>`;
@@ -325,29 +463,51 @@
 
       container.innerHTML = allAnnouncementsCache.map(ann => {
         const isPinned = ann.is_pinned;
+        const isUnread = !readAnnouncementIds.includes(String(ann.id));
         const dateStr = ann.created_at ? new Date(ann.created_at).toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' }) : '';
+        const parsedContent = typeof marked !== 'undefined' ? marked.parse(ann.content || '') : ann.content;
+
+        const catColor = ann.category === 'ประกาศสำคัญ' ? 'bg-rose-500/20 text-rose-300 border-rose-500/35' :
+                         ann.category === 'กิจกรรมแข่งขัน' ? 'bg-amber-500/20 text-amber-300 border-amber-500/35' :
+                         ann.category === 'อัปเดตระบบ' ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/35' : 'bg-cyan-500/20 text-cyan-300 border-cyan-500/35';
+
         const adminActions = isAdminUser ? `
-          <div class="flex items-center gap-2 mt-3 pt-3 border-t border-cyan-500/15">
+          <div class="flex items-center gap-2 mt-4 pt-3 border-t border-cyan-500/15">
             <button type="button" onclick='openAnnouncementModal("edit", ${JSON.stringify(ann).replace(/'/g, "&#39;")})' class="text-xs bg-amber-500/15 text-amber-300 px-3 py-1.5 rounded-lg border border-amber-500/30 hover:bg-amber-500/25 transition cursor-pointer"><i class="fa-solid fa-pen mr-1"></i> แก้ไข</button>
             <button type="button" onclick="deleteAnnouncement('${ann.id}')" class="text-xs bg-rose-500/15 text-rose-400 px-3 py-1.5 rounded-lg border border-rose-500/30 hover:bg-rose-500/25 transition cursor-pointer"><i class="fa-solid fa-trash mr-1"></i> ลบ</button>
           </div>
         ` : '';
 
         return `
-          <div class="tech-glass p-5 rounded-2xl border ${isPinned ? 'border-amber-500/40 bg-amber-950/10' : 'border-cyan-500/20'} space-y-2">
+          <div id="annCard_${ann.id}" onclick="markAnnouncementAsRead('${ann.id}')" class="tech-glass p-6 rounded-3xl border ${isPinned ? 'border-amber-500/45 bg-amber-950/10' : isUnread ? 'border-cyan-400/80 bg-cyan-950/15 shadow-cyan-500/10' : 'border-cyan-500/20'} space-y-3 relative transition hover:border-cyan-400">
             <div class="flex flex-wrap justify-between items-start gap-2">
               <div class="flex items-center gap-2 flex-wrap">
                 ${isPinned ? '<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/35"><i class="fa-solid fa-thumbtack mr-1"></i> ปักหมุด</span>' : ''}
-                <h4 class="font-bold text-white text-sm md:text-base">${ann.title}</h4>
+                <span class="text-[10px] font-semibold px-2 py-0.5 rounded border ${catColor}">${ann.category || 'ทั่วไป'}</span>
+                ${isUnread ? '<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/35 animate-pulse">ใหม่</span>' : ''}
+                <h3 class="font-bold text-white text-base md:text-lg">${ann.title}</h3>
               </div>
               <span class="text-[11px] text-gray-400 font-mono"><i class="fa-regular fa-clock mr-1"></i> ${dateStr}</span>
             </div>
-            <p class="text-xs md:text-sm text-gray-300 whitespace-pre-line leading-relaxed">${ann.content}</p>
-            <div class="text-[11px] text-cyan-400 font-medium">ผู้ประกาศ: ${ann.author || 'Admin'}</div>
+
+            <div class="markdown-body pt-1">${parsedContent}</div>
+
+            <div class="flex justify-between items-center pt-2 text-[11px] text-cyan-400 font-medium">
+              <span>ผู้ประกาศ: ${ann.author || 'Admin'}</span>
+              ${isUnread ? '<span class="text-gray-400 italic">คลิกที่การ์ดเพื่อทำเครื่องหมายว่าอ่านแล้ว</span>' : '<span class="text-emerald-400"><i class="fa-solid fa-check mr-1"></i> อ่านแล้ว</span>'}
+            </div>
             ${adminActions}
           </div>
         `;
       }).join('');
+
+      // ผูก Event ให้รูปภาพใน Markdown เปิด Lightbox
+      document.querySelectorAll('.markdown-body img').forEach(img => {
+        img.addEventListener('click', (e) => {
+          e.stopPropagation();
+          openImageLightbox(img.src);
+        });
+      });
     }
 
     initAnnouncementsPage();

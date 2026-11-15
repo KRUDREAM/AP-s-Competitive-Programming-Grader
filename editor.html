@@ -11,15 +11,8 @@
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js"></script>
   <style>
-    body {
-      font-family: 'Kanit', sans-serif;
-      background-color: #030712;
-      color: #f3f4f6;
-      overflow: hidden;
-    }
+    body { font-family: 'Kanit', sans-serif; background-color: #030712; color: #f3f4f6; overflow: hidden; }
     .font-code { font-family: 'JetBrains Mono', monospace; }
-    
-    /* CUSTOM ANIMATIONS */
     @keyframes fadeInScale {
       from { opacity: 0; transform: scale(0.97) translateY(6px); }
       to { opacity: 1; transform: scale(1) translateY(0); }
@@ -28,13 +21,8 @@
       0%, 100% { box-shadow: 0 0 15px rgba(56, 189, 248, 0.2); }
       50% { box-shadow: 0 0 30px rgba(56, 189, 248, 0.45); }
     }
-    .animate-fade-in {
-      animation: fadeInScale 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
-    .animate-glow {
-      animation: pulseGlow 3s infinite ease-in-out;
-    }
-
+    .animate-fade-in { animation: fadeInScale 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    .animate-glow { animation: pulseGlow 3s infinite ease-in-out; }
     .tech-glass {
       background: rgba(10, 15, 30, 0.85);
       backdrop-filter: blur(20px);
@@ -42,9 +30,7 @@
       border: 1px solid rgba(56, 189, 248, 0.16);
       transition: all 0.2s ease;
     }
-    .tech-glass:hover {
-      border-color: rgba(56, 189, 248, 0.35);
-    }
+    .tech-glass:hover { border-color: rgba(56, 189, 248, 0.35); }
     .tech-modal {
       background: rgba(6, 11, 25, 0.97);
       backdrop-filter: blur(28px);
@@ -60,40 +46,13 @@
     .markdown-preview ol { list-style: decimal; padding-left: 1.4rem; margin-bottom: 0.65rem; }
     .markdown-preview code { background: rgba(56, 189, 248, 0.15); color: #67e8f9; padding: 0.12rem 0.38rem; border-radius: 0.35rem; font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; }
     .markdown-preview pre { background: #020617; border: 1px solid rgba(56, 189, 248, 0.25); padding: 0.85rem; border-radius: 0.75rem; overflow-x: auto; margin-bottom: 0.75rem; }
-
-    .a4-pdf-frame {
-      width: 100%;
-      aspect-ratio: 1 / 1.414;
-      min-height: 540px;
-    }
-
-    .split-resizer {
-      width: 6px;
-      cursor: col-resize;
-      background: rgba(56, 189, 248, 0.12);
-      transition: background 0.15s ease;
-      position: relative;
-      z-index: 20;
-    }
-    .split-resizer:hover, .split-resizer.dragging {
-      background: rgba(56, 189, 248, 0.65);
-    }
-    .split-resizer::after {
-      content: '';
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 2px;
-      height: 28px;
-      border-radius: 999px;
-      background: rgba(186, 230, 253, 0.7);
-    }
-
+    .a4-pdf-frame { width: 100%; aspect-ratio: 1 / 1.414; min-height: 540px; }
+    .split-resizer { width: 6px; cursor: col-resize; background: rgba(56, 189, 248, 0.12); transition: background 0.15s ease; position: relative; z-index: 20; }
+    .split-resizer:hover, .split-resizer.dragging { background: rgba(56, 189, 248, 0.65); }
+    .split-resizer::after { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 2px; height: 28px; border-radius: 999px; background: rgba(186, 230, 253, 0.7); }
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: rgba(3, 7, 18, 0.6); }
     ::-webkit-scrollbar-thumb { background: rgba(56, 189, 248, 0.25); border-radius: 9999px; transition: background 0.2s; }
-    ::-webkit-scrollbar-thumb:hover { background: rgba(56, 189, 248, 0.45); }
   </style>
 </head>
 <body class="h-screen w-screen flex flex-col overflow-hidden selection:bg-cyan-500 selection:text-black">
@@ -110,8 +69,8 @@
   <!-- TOP IDE NAVBAR -->
   <header class="h-14 shrink-0 tech-glass border-b border-cyan-500/20 px-4 flex items-center justify-between gap-3 z-30 animate-glow">
     <div class="flex items-center gap-3 min-w-0">
-      <a href="problems.html" class="bg-white/5 hover:bg-cyan-500/15 text-cyan-300 border border-cyan-500/25 px-3 py-1.5 rounded-xl text-xs font-semibold transition active:scale-95 flex items-center gap-1.5 shrink-0">
-        <i class="fa-solid fa-arrow-left"></i> <span class="hidden sm:inline">คลังโจทย์</span>
+      <a id="backToContestBtn" href="contest.html" class="bg-white/5 hover:bg-cyan-500/15 text-cyan-300 border border-cyan-500/25 px-3 py-1.5 rounded-xl text-xs font-semibold transition active:scale-95 flex items-center gap-1.5 shrink-0">
+        <i class="fa-solid fa-arrow-left"></i> <span id="backBtnText">กลับสู่ห้องแข่งขัน</span>
       </a>
       <div class="h-5 w-[1px] bg-cyan-500/20 hidden sm:block"></div>
       <div class="flex items-center gap-2 min-w-0">
@@ -129,13 +88,6 @@
       <span id="engineStatusPill" class="hidden md:inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-xl bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
         <i class="fa-solid fa-bolt text-amber-400 animate-pulse"></i> Turbo Judge
       </span>
-
-      <div class="hidden lg:flex items-center bg-black/50 p-1 rounded-xl border border-cyan-500/20 text-[11px]">
-        <button type="button" onclick="setSplitRatio(28)" class="px-2 py-1 rounded-lg text-gray-300 hover:bg-cyan-500/20 hover:text-cyan-300 transition cursor-pointer">โค้ดกว้าง</button>
-        <button type="button" onclick="setSplitRatio(48)" class="px-2 py-1 rounded-lg text-gray-300 hover:bg-cyan-500/20 hover:text-cyan-300 transition cursor-pointer">สมดุล</button>
-        <button type="button" onclick="setSplitRatio(62)" class="px-2 py-1 rounded-lg text-gray-300 hover:bg-cyan-500/20 hover:text-cyan-300 transition cursor-pointer">อ่านโจทย์</button>
-      </div>
-
       <span id="navUserBadge" class="text-xs font-semibold text-cyan-300 bg-cyan-950/70 border border-cyan-500/30 px-3 py-1.5 rounded-xl hidden md:inline-flex items-center gap-1.5"></span>
     </div>
   </header>
@@ -145,7 +97,6 @@
 
     <!-- LEFT PANE -->
     <section id="leftPane" style="width: 48%;" class="w-full lg:w-[48%] h-[45vh] lg:h-full flex flex-col bg-[#070c1b] border-b lg:border-b-0 border-cyan-500/20 min-w-0 shrink-0 overflow-hidden">
-      
       <div class="h-12 shrink-0 px-3 bg-[#090f22] border-b border-cyan-500/20 flex items-center justify-between gap-1.5 overflow-x-auto">
         <div class="flex items-center gap-1.5">
           <button type="button" id="leftTabBtnStmt" onclick="switchLeftTab('stmt')" class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow transition active:scale-95 cursor-pointer flex items-center gap-1.5 shrink-0">
@@ -223,11 +174,9 @@
             <span class="text-xs font-bold text-white">ห้องสนทนาประจำโจทย์</span>
           </div>
         </div>
-
         <div id="chatMessagesContainer" class="flex-1 overflow-y-auto p-4 space-y-3 bg-[#050914]/60">
           <p class="text-xs text-gray-400 text-center py-8">กำลังโหลดข้อความ...</p>
         </div>
-
         <form id="chatSendForm" class="p-3 bg-[#080e20] border-t border-cyan-500/20 flex items-center gap-2 shrink-0">
           <input type="text" id="chatMessageInput" autocomplete="off" placeholder="พิมพ์ข้อความถามเพื่อน..." class="flex-1 bg-black/65 border border-cyan-500/25 focus:border-cyan-400 focus:outline-none rounded-xl px-3.5 py-2 text-xs text-white">
           <button type="submit" class="bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-95 text-white px-4 py-2 rounded-xl text-xs font-bold shadow transition active:scale-95 cursor-pointer shrink-0">
@@ -242,26 +191,18 @@
 
     <!-- RIGHT PANE (EDITOR & CONSOLE) -->
     <section id="rightPane" class="flex-1 h-[55vh] lg:h-full flex flex-col bg-[#050914] min-w-0 overflow-hidden">
-      
-      <!-- EDITOR TOOLBAR -->
       <div class="h-12 shrink-0 px-3 bg-[#080d1e] border-b border-cyan-500/15 flex items-center justify-between gap-2 overflow-x-auto">
         <div class="flex items-center gap-2 min-w-0">
           <select id="langSelect" onchange="handleLanguageChange()" class="bg-black/70 border border-cyan-500/30 focus:border-cyan-400 focus:outline-none rounded-xl px-2.5 py-1 text-xs font-semibold text-white cursor-pointer shrink-0">
             <option value="cpp">C++ 17</option>
             <option value="c">C</option>
           </select>
-
           <label class="bg-white/5 hover:bg-cyan-500/15 text-gray-200 hover:text-cyan-300 border border-white/15 px-2.5 py-1 rounded-xl text-xs font-medium transition active:scale-95 cursor-pointer flex items-center gap-1 shrink-0">
             <i class="fa-solid fa-upload text-cyan-400"></i> <span class="hidden sm:inline">อัปโหลด</span>
             <input type="file" id="codeFileInput" accept=".cpp,.cc,.cxx,.c,.txt" onchange="handleCodeFileUpload(event)" class="hidden">
           </label>
-
           <button type="button" onclick="resetEditorTemplate()" class="bg-white/5 hover:bg-white/10 text-gray-300 px-2 py-1 rounded-xl text-xs transition active:scale-95 cursor-pointer shrink-0" title="รีเซ็ตโค้ด">
             <i class="fa-solid fa-rotate-left"></i>
-          </button>
-
-          <button type="button" id="viewGraderMainBtn" onclick="openGraderMainModal()" class="hidden bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/35 px-2 py-1 rounded-xl text-xs font-semibold transition active:scale-95 cursor-pointer shrink-0">
-            ดู main()
           </button>
         </div>
       </div>
@@ -308,7 +249,6 @@
           </div>
         </div>
 
-        <!-- [Verdict Area With Colored Badges & Animations] -->
         <div id="consoleAreaVerdict" class="hidden flex-1 p-3 overflow-y-auto animate-fade-in">
           <div id="verdictResultContainer" class="text-xs text-gray-400 flex items-center justify-center h-full">
             ยังไม่มีผลการส่งตรวจ — กดปุ่ม "ส่งตรวจ" เพื่อรันทุก Test Cases
@@ -316,17 +256,6 @@
         </div>
       </div>
     </section>
-  </div>
-
-  <!-- MODALS -->
-  <div id="graderMainModal" onclick="if(event.target === this) document.getElementById('graderMainModal').classList.add('opacity-0','pointer-events-none')" class="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/85 backdrop-blur-md opacity-0 pointer-events-none transition-all duration-200">
-    <div class="tech-modal rounded-3xl p-6 max-w-xl w-full space-y-4 border border-emerald-500/35 animate-fade-in">
-      <div class="flex justify-between items-center border-b border-emerald-500/20 pb-2.5">
-        <h3 class="text-sm font-bold text-emerald-300"><i class="fa-solid fa-code mr-1.5"></i> โค้ดฟังก์ชัน main()</h3>
-        <button type="button" onclick="document.getElementById('graderMainModal').classList.add('opacity-0','pointer-events-none')" class="text-gray-400 hover:text-white cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
-      </div>
-      <pre id="graderMainCodePreview" class="bg-black/80 border border-white/10 rounded-2xl p-4 text-xs text-emerald-200 font-code overflow-auto max-h-80"></pre>
-    </div>
   </div>
 
   <!-- SUBMISSION DETAIL POP-UP MODAL -->
@@ -346,12 +275,10 @@
           <span>เวลาประมวลผลสูงสุด: <b id="modalSubTime" class="text-emerald-400 font-code">0s</b></span>
           <span>คะแนนรวม: <b id="modalSubScore" class="text-amber-300 font-code">0 / 100</b></span>
         </div>
-
         <div class="space-y-1.5">
           <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">ผลตรวจราย Test Case</div>
           <div id="modalSubTestCasesList" class="space-y-1.5"></div>
         </div>
-
         <div class="space-y-1.5 flex-1 flex flex-col min-h-0">
           <div class="text-[10px] font-bold text-gray-400 uppercase">ซอร์สโค้ดที่ส่ง</div>
           <pre id="modalSubCodeBox" class="bg-black/85 border border-white/10 rounded-2xl p-3.5 text-xs text-cyan-100 font-code overflow-auto max-h-56 whitespace-pre-wrap"></pre>
@@ -374,11 +301,11 @@
 
     const urlParams = new URLSearchParams(window.location.search);
     const problemId = urlParams.get('id');
+    const contestId = urlParams.get('contest_id');
 
     let editorInstance = null;
     let currentUser = null;
     let currentUserProfile = null;
-    let isAdminUser = false;
     let currentProblem = null;
     let mySubmissionsCache = [];
     let hasUserSolvedThisProblem = false;
@@ -577,7 +504,6 @@
 
     async function loadMySubmissions() {
       if (!currentUser || !problemId) return;
-      
       const { data, error } = await supabaseClient
         .from('submissions')
         .select('*')
@@ -585,10 +511,7 @@
         .eq('problem_id', problemId)
         .order('created_at', { ascending: true });
 
-      if (error) {
-        console.error("Load submissions error:", error.message);
-        return;
-      }
+      if (error) return;
 
       const rawList = data || [];
       mySubmissionsCache = rawList.slice().reverse();
@@ -657,9 +580,7 @@
         let vText = 'Passed (AC)';
         if (tc.verdict === 'WA') { badgeColor = 'bg-rose-500/20 text-rose-300 border-rose-500/40'; vText = 'Wrong Answer (WA)'; }
         else if (tc.verdict === 'TLE') { badgeColor = 'bg-amber-500/20 text-amber-300 border-amber-500/40'; vText = 'Time Limit Exceeded (TLE)'; }
-        else if (tc.verdict === 'MLE') { badgeColor = 'bg-yellow-500/20 text-yellow-300 border-yellow-500/40'; vText = 'Memory Limit Exceeded (MLE)'; }
         else if (tc.verdict === 'RE') { badgeColor = 'bg-orange-500/20 text-orange-300 border-orange-500/40'; vText = 'Runtime Error (RE)'; }
-        else if (tc.verdict === 'CE') { badgeColor = 'bg-purple-500/20 text-purple-300 border-purple-500/40'; vText = 'Compilation Error (CE)'; }
 
         return `
           <div class="bg-black/70 border border-white/10 rounded-xl p-2.5 flex items-center justify-between gap-2 text-xs transition hover:border-cyan-500/30">
@@ -699,10 +620,6 @@
 
     function closeSubmissionModal() {
       document.getElementById('submissionDetailModal').classList.add('opacity-0', 'pointer-events-none');
-    }
-
-    function openGraderMainModal() {
-      document.getElementById('graderMainModal').classList.remove('opacity-0', 'pointer-events-none');
     }
 
     function openProblemPdfNewTab() {
@@ -897,14 +814,9 @@
           test_results: caseResults
         }]);
 
-        if (subErr) {
-          console.error("Insert submission error:", subErr.message);
-        }
-
         if (finalStatus === 'Accepted' && !hasUserSolvedThisProblem && currentUserProfile) {
           const xpToAdd = currentProblem.xp_reward || maxScore;
           const newXp = (currentUserProfile.xp || 0) + xpToAdd;
-          
           await supabaseClient.from('profiles').update({ xp: newXp }).eq('id', currentUser.id);
           currentUserProfile.xp = newXp;
           hasUserSolvedThisProblem = true;
@@ -914,16 +826,13 @@
 
         const isAc = finalStatus === 'Accepted';
         const badgeColor = isAc ? 'text-emerald-300 bg-emerald-500/15 border-emerald-500/40' : 'text-rose-300 bg-rose-500/15 border-rose-500/40';
-        
-        // [Render Test Cases with Colorful Badges & Staggered Animation Effect]
+
         const testCardsHtml = caseResults.map((tc, idx) => {
           let tBadge = 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40';
           let vText = 'Passed (AC)';
           if (tc.verdict === 'WA') { tBadge = 'bg-rose-500/20 text-rose-300 border-rose-500/40'; vText = 'Wrong Answer (WA)'; }
           else if (tc.verdict === 'TLE') { tBadge = 'bg-amber-500/20 text-amber-300 border-amber-500/40'; vText = 'Time Limit Exceeded (TLE)'; }
-          else if (tc.verdict === 'MLE') { tBadge = 'bg-yellow-500/20 text-yellow-300 border-yellow-500/40'; vText = 'Memory Limit Exceeded (MLE)'; }
           else if (tc.verdict === 'RE') { tBadge = 'bg-orange-500/20 text-orange-300 border-orange-500/40'; vText = 'Runtime Error (RE)'; }
-          else if (tc.verdict === 'CE') { tBadge = 'bg-purple-500/20 text-purple-300 border-purple-500/40'; vText = 'Compilation Error (CE)'; }
 
           return `
             <div class="bg-black/70 border border-white/10 rounded-xl p-2.5 flex items-center justify-between gap-2 text-xs transition hover:border-cyan-500/40 animate-fade-in" style="animation-delay: ${idx * 40}ms;">
@@ -949,7 +858,6 @@
               </div>
               <span class="text-[10px] font-code font-semibold">Max Time: ${maxExecTime}s</span>
             </div>
-            
             <div class="space-y-1.5">
               <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">ผลตรวจราย Test Case</div>
               <div class="space-y-1.5">${testCardsHtml}</div>
@@ -976,22 +884,11 @@
 
       const diffEl = document.getElementById('navProbDiff');
       diffEl.textContent = p.difficulty || 'Medium';
-      diffEl.className = p.difficulty === 'Easy'
-        ? 'hidden sm:inline-block text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 shrink-0'
-        : p.difficulty === 'Medium'
-        ? 'hidden sm:inline-block text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 shrink-0'
-        : 'hidden sm:inline-block text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30 shrink-0';
 
       document.getElementById('stmtFullTitle').textContent = `${p.problem_code || 'ST8-P' + p.id} : ${p.title}`;
       document.getElementById('stmtAuthor').innerHTML = `<i class="fa-solid fa-user-pen text-cyan-400 mr-1"></i> ผู้ออกโจทย์: <b class="text-gray-200">${p.author || 'ST8 Team'}</b>`;
       document.getElementById('stmtTime').textContent = p.time_limit || 1.0;
       document.getElementById('stmtMem').textContent = p.memory_limit || 256;
-
-      const tagsRow = document.getElementById('stmtTagsRow');
-      if (p.tags) {
-        tagsRow.innerHTML = p.tags.split(',').map(t => t.trim()).filter(Boolean)
-          .map(t => `<span class="text-[11px] px-2.5 py-0.5 rounded-lg bg-cyan-500/10 text-cyan-300 border border-cyan-500/25">${t}</span>`).join('');
-      }
 
       const activeLang = document.getElementById('langSelect').value;
       monaco.editor.setModelLanguage(editorInstance.getModel(), activeLang === 'c' ? 'c' : 'cpp');
@@ -1035,9 +932,18 @@
 
     async function initEditorPage() {
       if (!problemId) {
-        window.location.href = 'problems.html';
+        window.location.href = 'contest.html';
         return;
       }
+
+      // ปรับลิงก์ปุ่มย้อนกลับให้กลับไปที่หน้าห้องแข่งขันเดิมพร้อม contest_id (ถ้ามี)
+      const backBtn = document.getElementById('backToContestBtn');
+      if (contestId) {
+        backBtn.href = `contest.html?id=${contestId}`;
+      } else {
+        backBtn.href = 'contest.html';
+      }
+
       initSplitResizer();
       await initMonacoEditor();
 
@@ -1051,7 +957,6 @@
 
       const { data: prof } = await supabaseClient.from('profiles').select('*').eq('id', currentUser.id).maybeSingle();
       currentUserProfile = prof;
-      isAdminUser = prof && prof.role === 'admin';
       const displayName = (prof && (prof.display_name || prof.username)) || currentUser.email;
       const badge = document.getElementById('navUserBadge');
       badge.innerHTML = `<i class="fa-solid fa-user-astronaut text-cyan-400"></i> ${displayName}`;

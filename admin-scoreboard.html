@@ -266,6 +266,7 @@
 
       const userLookup = {};
       allProfiles.forEach(u => {
+        // ใช้ Display Name เป็นลำดับแรกสุดตามที่คุณ AP ต้องการ
         const bestName = u.display_name || u.full_name || u.username || u.email?.split('@')[0] || `User-${String(u.id).slice(0, 6)}`;
         userLookup[u.id] = {
           name: bestName,
@@ -405,7 +406,6 @@
         </th>
       `).join('');
 
-      // ลำดับหัวตาราง: [กราฟ] [อันดับ] [ผู้เข้าแข่งขัน] [โจทย์ข้อ 1, 2, 3...] [คะแนนรวม (ไว้หลังสุด)]
       const totalColIdx = 3 + activeProblemColumns.length;
       thead.innerHTML = `
         <tr>
@@ -469,7 +469,6 @@
         `;
       }).join('');
 
-      // คำนวณจำนวนคนที่ผ่าน (AC) ในแต่ละข้อ สำหรับแสดงแถว Footer ด้านล่างสุด
       const acCountsByProb = activeProblemColumns.map(col => {
         return computedRows.filter(r => (r.bestByProblem[col.id] || 0) >= col.maxScore).length;
       });
@@ -505,7 +504,6 @@
       });
     }
 
-    // STUDENT PROFILE MODAL FUNCTIONS
     async function openStudentProfileModal(userId) {
       const row = computedRows.find(r => String(r.userId) === String(userId));
       if (!row) return;
@@ -526,7 +524,6 @@
       document.getElementById('modalStatSubs').textContent = `${totalSubsCount} ครั้ง`;
       document.getElementById('modalStatAcRate').textContent = `${acRate}%`;
 
-      // Render Problem Status Breakdown Grid
       const probStatusGrid = document.getElementById('modalProblemStatusGrid');
       probStatusGrid.innerHTML = activeProblemColumns.map(col => {
         const score = row.bestByProblem[col.id] || 0;

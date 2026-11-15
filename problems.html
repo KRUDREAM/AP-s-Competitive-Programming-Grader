@@ -41,6 +41,16 @@
       50% { opacity: 0.45; transform: scale(1.05); }
     }
     .glow-orb { animation: cyberPulse 8s ease-in-out infinite; }
+    @keyframes bellRing {
+      0% { transform: rotate(0); }
+      15% { transform: rotate(15deg); }
+      30% { transform: rotate(-15deg); }
+      45% { transform: rotate(10deg); }
+      60% { transform: rotate(-10deg); }
+      75% { transform: rotate(5deg); }
+      100% { transform: rotate(0); }
+    }
+    .bell-shake { animation: bellRing 0.8s ease-in-out infinite; }
     .modal-backdrop { transition: opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1); }
     .modal-box { transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.28s ease; }
     .modal-open .modal-box { transform: scale(1) translateY(0); opacity: 1; }
@@ -85,7 +95,13 @@
         <a href="index.html" class="hover:text-cyan-400 transition"><i class="fa-solid fa-house mr-1 text-cyan-500"></i> หน้าหลัก</a>
         <a href="ranking.html" class="hover:text-cyan-400 transition"><i class="fa-solid fa-ranking-star mr-1 text-cyan-500"></i> Ranking</a>
         <a href="problems.html" class="text-cyan-400 font-semibold transition"><i class="fa-solid fa-laptop-code mr-1"></i> คลังโจทย์</a>
-        <a href="announcement.html" class="hover:text-cyan-400 transition"><i class="fa-solid fa-bullhorn mr-1 text-cyan-500"></i> ประกาศระบบ</a>
+        <a href="announcement.html" class="hover:text-cyan-400 transition flex items-center gap-1.5">
+          <span class="relative flex items-center">
+            <i id="navBellIcon" class="fa-solid fa-bell text-cyan-400"></i>
+            <span id="navUnreadBadge" class="hidden absolute -top-1.5 -right-2 w-4 h-4 rounded-full bg-rose-500 text-white text-[9px] font-bold flex items-center justify-center">0</span>
+          </span>
+          ประกาศระบบ
+        </a>
       </nav>
 
       <!-- AUTH / USER DROPDOWN AREA -->
@@ -568,6 +584,8 @@
     let currentProblemMode = 'standard';
     let formTestCasesData = [];
     let currentEditingTcIndex = 0;
+    let readAnnouncementIds = JSON.parse(localStorage.getItem('st8_read_announcements')) || [];
+    let allAnnouncementsCache = [];
 
     function showToast(title, desc, isError = false) {
       const toast = document.getElementById('systemToast');
@@ -608,6 +626,7 @@
             ${adminLink}
             <a href="index.html" class="block px-4 py-2.5 text-xs text-gray-300 hover:bg-cyan-500/10 hover:text-cyan-300 transition"><i class="fa-solid fa-house mr-2 text-cyan-400"></i> หน้าหลัก</a>
             <a href="ranking.html" class="block px-4 py-2.5 text-xs text-gray-300 hover:bg-cyan-500/10 hover:text-cyan-300 transition"><i class="fa-solid fa-ranking-star mr-2 text-cyan-400"></i> บอร์ดจัดอันดับ</a>
+            <a href="problems.html" class="block px-4 py-2.5 text-xs text-cyan-300 font-bold hover:bg-cyan-500/10 transition"><i class="fa-solid fa-laptop-code mr-2 text-cyan-400"></i> คลังโจทย์</a>
             <a href="announcement.html" class="block px-4 py-2.5 text-xs text-gray-300 hover:bg-cyan-500/10 hover:text-cyan-300 transition"><i class="fa-solid fa-bullhorn mr-2 text-cyan-400"></i> ประกาศระบบ</a>
             <button type="button" onclick="toggleStatsModal(true)" class="w-full text-left px-4 py-2.5 text-xs text-gray-300 hover:bg-cyan-500/10 hover:text-cyan-300 transition cursor-pointer"><i class="fa-solid fa-chart-line mr-2 text-cyan-400"></i> สถิติพัฒนาการ &amp; Submission</button>
             <button type="button" onclick="toggleChangePassModal(true)" class="w-full text-left px-4 py-2.5 text-xs text-gray-300 hover:bg-cyan-500/10 hover:text-cyan-300 transition cursor-pointer"><i class="fa-solid fa-key mr-2 text-cyan-400"></i> เปลี่ยนรหัสผ่าน</button>
@@ -698,6 +717,30 @@
     async function handleLogout() {
       await supabaseClient.auth.signOut();
       window.location.href = 'index.html';
+    }
+
+    async function fetchAnnouncementsBadge() {
+      const { data } = await supabaseClient.from('announcements').select('id');
+      if (data) {
+        allAnnouncementsCache = data;
+        updateNotificationBadge();
+      }
+    }
+
+    function updateNotificationBadge() {
+      const unreadCount = allAnnouncementsCache.filter(ann => !readAnnouncementIds.includes(String(ann.id))).length;
+      const badge = document.getElementById('navUnreadBadge');
+      const bell = document.getElementById('navBellIcon');
+      if (badge && bell) {
+        if (unreadCount > 0) {
+          badge.textContent = unreadCount;
+          badge.classList.remove('hidden');
+          bell.classList.add('bell-shake', 'text-amber-400');
+        } else {
+          badge.classList.add('hidden');
+          bell.classList.remove('bell-shake', 'text-amber-400');
+        }
+      }
     }
 
     function getProblemSource(p) {
@@ -1167,6 +1210,7 @@
     });
 
     async function initProblemBank() {
+      await fetchAnnouncementsBadge();
       const { data: { session } } = await supabaseClient.auth.getSession();
       if (session && session.user) {
         currentUser = session.user;

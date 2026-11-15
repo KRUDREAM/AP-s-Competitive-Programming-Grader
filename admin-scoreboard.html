@@ -43,7 +43,7 @@
             <h2 class="text-lg md:text-xl font-bold text-white"><i class="fa-solid fa-ranking-star text-yellow-400 mr-1.5"></i> TOI / IOI Style Scoreboard (Admin Monitor)</h2>
             <span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40">ADMIN FULL ACCESS</span>
           </div>
-          <p class="text-xs text-gray-400 mt-0.5">ตรวจสอบคะแนนเรียลไทม์ ควบคุมโหมด Freeze และวิเคราะห์ประวัติการส่งโค้ดเชิงลึกของผู้เข้าแข่งขัน</p>
+          <p class="text-xs text-gray-400 mt-0.5">ตรวจสอบคะแนนเรียลไทม์ ตั้งเวลา Freeze อัตโนมัติ และวิเคราะห์ประวัติการส่งโค้ดเชิงลึก</p>
         </div>
 
         <div class="flex flex-wrap items-center gap-2">
@@ -58,14 +58,24 @@
 
       <!-- CONTROLS BAR -->
       <div class="tech-glass p-4 rounded-2xl border border-cyan-500/20 grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
-        <div class="md:col-span-5">
+        <div class="md:col-span-4">
           <label class="block text-[11px] text-cyan-300 font-semibold mb-1">เลือกรอบการแข่งขัน (Contest):</label>
           <select id="contestSelect" onchange="onContestChange()" class="w-full bg-black/70 border border-cyan-500/30 focus:border-cyan-400 focus:outline-none rounded-xl px-3.5 py-2 text-sm text-white cursor-pointer">
             <option value="ALL">รวมโจทย์ทั้งหมดในระบบ (Global Practice)</option>
           </select>
         </div>
 
-        <div class="md:col-span-4">
+        <div class="md:col-span-3">
+          <label class="block text-[11px] text-amber-300 font-semibold mb-1">เริ่ม Freeze หลังเริ่มแข่ง (นาที):</label>
+          <div class="flex gap-2">
+            <input type="number" id="freezeOffsetInput" min="0" placeholder="เช่น 180" class="w-full bg-black/70 border border-amber-500/30 focus:border-amber-400 focus:outline-none rounded-xl px-3 py-2 text-sm text-white font-mono text-center">
+            <button type="button" onclick="saveFreezeOffset()" class="bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 px-3.5 py-2 rounded-xl text-xs font-semibold transition cursor-pointer whitespace-nowrap">
+              บันทึกเวลา
+            </button>
+          </div>
+        </div>
+
+        <div class="md:col-span-3">
           <label class="block text-[11px] text-cyan-300 font-semibold mb-1">ค้นหาผู้เข้าแข่งขัน:</label>
           <div class="relative">
             <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-cyan-400 text-xs"></i>
@@ -73,11 +83,11 @@
           </div>
         </div>
 
-        <div class="md:col-span-3 flex flex-col justify-end">
-          <label class="block text-[11px] text-amber-300 font-semibold mb-1">โหมดลุ้นผลรางวัล (Freeze):</label>
-          <button type="button" id="freezeToggleBtn" onclick="toggleScoreboardFreeze()" class="w-full py-2 px-3 rounded-xl text-xs font-semibold border border-cyan-500/30 bg-black/60 text-gray-300 hover:border-amber-400 transition cursor-pointer flex items-center justify-center gap-2">
-            <i class="fa-solid fa-snowflake text-cyan-400"></i> <span>Freeze: ปิดอยู่</span>
-          </button>
+        <div class="md:col-span-2 flex flex-col justify-end">
+          <label class="block text-[11px] text-amber-300 font-semibold mb-1">สถานะ Freeze:</label>
+          <div id="freezeStatusBadge" class="w-full py-2 px-3 rounded-xl text-xs font-semibold border border-cyan-500/30 bg-black/60 text-gray-300 text-center font-mono">
+            ปกติ (Live)
+          </div>
         </div>
       </div>
 
@@ -209,7 +219,6 @@
     let selectedChartUserIds = new Set();
     let scoreChartInstance = null;
     let individualChartInstance = null;
-    let isFreezeActive = false;
     let realtimeChannel = null;
 
     const CHART_PALETTE = [
@@ -243,8 +252,7 @@
         selectEl.value = String(allContests[0].id);
       }
 
-      // ดึงสถานะ is_frozen ของ Contest ที่เลือกปัจจุบันมาตั้งค่าปุ่ม
-      updateFreezeButtonState();
+      syncFreezeInputFromSelectedContest();
       recomputeIoiScoreboard();
       setupRealtimeSubscription();
     }
@@ -261,64 +269,49 @@
           if (selectedContestId !== 'ALL' && String(payload.new.id) === String(selectedContestId)) {
             const idx = allContests.findIndex(c => String(c.id) === String(payload.new.id));
             if (idx !== -1) allContests[idx] = payload.new;
-            updateFreezeButtonState();
+            syncFreezeInputFromSelectedContest();
             recomputeIoiScoreboard();
           }
         })
         .subscribe();
     }
 
-    function updateFreezeButtonState() {
+    function syncFreezeInputFromSelectedContest() {
       const selectedContestId = document.getElementById('contestSelect').value;
+      const inputEl = document.getElementById('freezeOffsetInput');
       if (selectedContestId === 'ALL') {
-        isFreezeActive = false;
+        inputEl.value = '';
+        inputEl.disabled = true;
       } else {
-        const currentContest = allContests.find(c => String(c.id) === String(selectedContestId));
-        isFreezeActive = currentContest ? !!currentContest.is_frozen : false;
-      }
-
-      const btn = document.getElementById('freezeToggleBtn');
-      if (isFreezeActive) {
-        btn.className = 'w-full py-2 px-3 rounded-xl text-xs font-bold border border-cyan-400 bg-cyan-500/20 text-cyan-200 transition cursor-pointer flex items-center justify-center gap-2 shadow-md shadow-cyan-500/20';
-        btn.innerHTML = '<i class="fa-solid fa-snowflake fa-spin text-cyan-300"></i> <span>Freeze: เปิดใช้งาน (ซ่อน 30 นาทีท้าย)</span>';
-      } else {
-        btn.className = 'w-full py-2 px-3 rounded-xl text-xs font-semibold border border-cyan-500/30 bg-black/60 text-gray-300 hover:border-amber-400 transition cursor-pointer flex items-center justify-center gap-2';
-        btn.innerHTML = '<i class="fa-solid fa-snowflake text-cyan-400"></i> <span>Freeze: ปิดอยู่</span>';
+        inputEl.disabled = false;
+        const contestObj = allContests.find(c => String(c.id) === String(selectedContestId));
+        inputEl.value = contestObj && contestObj.freeze_offset_minutes != null ? contestObj.freeze_offset_minutes : 0;
       }
     }
 
-    async function toggleScoreboardFreeze() {
+    async function saveFreezeOffset() {
       const selectedContestId = document.getElementById('contestSelect').value;
       if (selectedContestId === 'ALL') {
-        showToast('แจ้งเตือน', 'โหมด Freeze ใช้ได้เฉพาะเมื่อเลือก Contest เฉพาะกิจเท่านั้น', true);
+        showToast('แจ้งเตือน', 'กรุณาเลือก Contest เฉพาะกิจก่อนตั้งเวลา Freeze', true);
         return;
       }
 
-      isFreezeActive = !isFreezeActive;
-
-      // บันทึกสถานะลง Supabase ทันทีเพื่อให้ซิงค์กับหน้าอื่น ๆ
+      const minutes = parseInt(document.getElementById('freezeOffsetInput').value) || 0;
       const { error } = await supabaseClient
         .from('contests')
-        .update({ is_frozen: isFreezeActive })
+        .update({ freeze_offset_minutes: minutes })
         .eq('id', selectedContestId);
 
       if (error) {
         showToast('เกิดข้อผิดพลาด', error.message, true);
-        isFreezeActive = !isFreezeActive; // rollback
-        return;
-      }
-
-      updateFreezeButtonState();
-      if (isFreezeActive) {
-        showToast('เปิดโหมด Freeze แล้ว', 'ซ่อนผลคะแนนช่วง 30 นาทีสุดท้ายของ Contest เรียบร้อย');
       } else {
-        showToast('ปิดโหมด Freeze แล้ว', 'แสดงผลคะแนนตามเวลาจริงปกติ');
+        showToast('บันทึกสำเร็จ', `ตั้งเวลาให้เริ่ม Freeze หลังจากเริ่มแข่งไปแล้ว ${minutes} นาที เรียบร้อย`);
+        loadScoreboardEnvironment();
       }
-      recomputeIoiScoreboard();
     }
 
     function onContestChange() {
-      updateFreezeButtonState();
+      syncFreezeInputFromSelectedContest();
       recomputeIoiScoreboard();
     }
 
@@ -340,6 +333,7 @@
 
       let contestObj = null;
       let relevantSubs = [];
+      let isCurrentlyFrozen = false;
 
       if (selectedContestId === 'ALL') {
         const verifiedProbs = allProblems.filter(p => p.is_verified);
@@ -350,6 +344,8 @@
           maxScore: Number(p.max_score) || 100
         }));
         relevantSubs = allSubmissions.filter(s => activeProblemColumns.some(col => String(col.id) === String(s.problem_id)));
+        document.getElementById('freezeStatusBadge').className = 'w-full py-2 px-3 rounded-xl text-xs font-semibold border border-cyan-500/30 bg-black/60 text-gray-300 text-center font-mono';
+        document.getElementById('freezeStatusBadge').textContent = 'ปกติ (Live)';
       } else {
         contestObj = allContests.find(c => String(c.id) === String(selectedContestId));
         const linked = allContestProblems.filter(cp => String(cp.contest_id) === String(selectedContestId));
@@ -363,10 +359,31 @@
           };
         });
 
+        const nowMs = Date.now();
         const startMs = contestObj ? new Date(contestObj.start_time).getTime() : 0;
-        let endMs = contestObj ? new Date(contestObj.end_time).getTime() : Infinity;
-        if (isFreezeActive && contestObj) {
-          endMs = endMs - (30 * 60 * 1000);
+        const endMs = contestObj ? new Date(contestObj.end_time).getTime() : Infinity;
+        const offsetMinutes = contestObj?.freeze_offset_minutes || 0;
+        const freezeStartMs = startMs + (offsetMinutes * 60 * 1000);
+
+        // เช็กช่วงเวลา: ถ้าอยู่ในช่วง Freeze จนถึงจบการแข่งขัน
+        isCurrentlyFrozen = contestObj && (nowMs >= freezeStartMs && nowMs <= endMs);
+        const isEnded = contestObj && (nowMs > endMs);
+
+        const badgeEl = document.getElementById('freezeStatusBadge');
+        if (isEnded) {
+          badgeEl.className = 'w-full py-2 px-3 rounded-xl text-xs font-bold border border-emerald-500/40 bg-emerald-500/15 text-emerald-300 text-center font-mono';
+          badgeEl.textContent = 'การแข่งขันจบแล้ว (Unfrozen)';
+        } else if (isCurrentlyFrozen) {
+          badgeEl.className = 'w-full py-2 px-3 rounded-xl text-xs font-bold border border-amber-500/40 bg-amber-500/20 text-amber-300 text-center font-mono';
+          badgeEl.textContent = `กำลัง Freeze (ตั้งแต่นาทีที่ ${offsetMinutes})`;
+        } else {
+          badgeEl.className = 'w-full py-2 px-3 rounded-xl text-xs font-semibold border border-cyan-500/30 bg-black/60 text-cyan-300 text-center font-mono';
+          badgeEl.textContent = 'ปกติ (Live)';
+        }
+
+        let cutoffMs = endMs;
+        if (isCurrentlyFrozen) {
+          cutoffMs = freezeStartMs; // หยุดอัปเดตคะแนนสดในช่วง Freeze ลุ้นผล
         }
 
         relevantSubs = allSubmissions.filter(s => {
@@ -374,7 +391,7 @@
           if (!inProbSet) return false;
           if (!s.created_at) return true;
           const t = new Date(s.created_at).getTime();
-          return t >= startMs && t <= endMs;
+          return t >= startMs && t <= cutoffMs;
         });
       }
 

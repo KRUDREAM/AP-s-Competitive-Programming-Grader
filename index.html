@@ -21,6 +21,11 @@
       -webkit-backdrop-filter: blur(20px);
       border: 1px solid rgba(56, 189, 248, 0.16);
       box-shadow: 0 10px 40px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+      transition: all 0.3s ease;
+    }
+    .tech-glass:hover {
+      border-color: rgba(56, 189, 248, 0.35);
+      box-shadow: 0 15px 50px rgba(14, 165, 233, 0.15);
     }
     .tech-modal {
       background: rgba(6, 11, 25, 0.96);
@@ -33,11 +38,24 @@
                         linear-gradient(to bottom, rgba(56, 189, 248, 0.03) 1px, transparent 1px);
       background-size: 32px 32px;
     }
+
+    /* CUSTOM ANIMATIONS */
     @keyframes cyberPulse {
       0%, 100% { opacity: 0.2; transform: scale(1); }
-      50% { opacity: 0.45; transform: scale(1.05); }
+      50% { opacity: 0.45; transform: scale(1.06); }
     }
+    @keyframes floatCard {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-8px); }
+    }
+    @keyframes fadeInScale {
+      from { opacity: 0; transform: scale(0.95) translateY(10px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
     .glow-orb { animation: cyberPulse 8s ease-in-out infinite; }
+    .floating-anim { animation: floatCard 5s ease-in-out infinite; }
+    .animate-modal-in { animation: fadeInScale 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
   </style>
 </head>
 <body class="min-h-screen flex flex-col relative overflow-x-hidden cyber-grid selection:bg-cyan-500 selection:text-black">
@@ -47,14 +65,14 @@
   <div class="absolute top-1/3 right-1/4 w-[500px] h-[500px] bg-cyan-500/10 rounded-full blur-[150px] pointer-events-none glow-orb" style="animation-delay: 3s;"></div>
 
   <!-- NAVIGATION BAR -->
-  <header class="sticky top-0 z-50 tech-glass border-b border-cyan-500/15 px-4 md:px-8 py-3.5">
+  <header class="sticky top-0 z-50 tech-glass border-b border-cyan-500/15 px-4 md:px-8 py-3.5 transition-all">
     <div class="max-w-6xl mx-auto flex items-center justify-between">
       <div class="flex items-center gap-3">
-        <button type="button" onclick="toggleMobileMenu()" class="md:hidden tech-glass border border-cyan-500/30 text-cyan-300 w-9 h-9 rounded-xl flex items-center justify-center cursor-pointer">
+        <button type="button" onclick="toggleMobileMenu()" class="md:hidden tech-glass border border-cyan-500/30 text-cyan-300 w-9 h-9 rounded-xl flex items-center justify-center cursor-pointer hover:scale-105 transition">
           <i class="fa-solid fa-bars text-sm"></i>
         </button>
-        <div class="flex items-center gap-3 cursor-pointer" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
-          <div class="bg-gradient-to-tr from-blue-600 to-cyan-400 p-2 rounded-xl shadow-lg shadow-cyan-500/20 text-white font-bold text-base flex items-center justify-center w-9 h-9">
+        <div class="flex items-center gap-3 cursor-pointer group" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
+          <div class="bg-gradient-to-tr from-blue-600 to-cyan-400 p-2 rounded-xl shadow-lg shadow-cyan-500/20 text-white font-bold text-base flex items-center justify-center w-9 h-9 group-hover:rotate-6 transition-transform">
             <i class="fa-solid fa-terminal"></i>
           </div>
           <div>
@@ -65,22 +83,22 @@
       </div>
 
       <nav class="hidden md:flex items-center gap-6 text-xs font-medium text-gray-300">
-        <a href="#" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" class="hover:text-cyan-400 transition"><i class="fa-solid fa-house mr-1 text-cyan-500"></i> หน้าหลัก</a>
-        <a href="#contests" class="hover:text-cyan-400 transition"><i class="fa-solid fa-trophy mr-1 text-cyan-500"></i> Contest</a>
-        <a href="#features" class="hover:text-cyan-400 transition"><i class="fa-solid fa-microchip mr-1 text-cyan-500"></i> จุดเด่นระบบ</a>
-        <a href="#showcase" class="hover:text-cyan-400 transition"><i class="fa-solid fa-fire mr-1 text-cyan-500"></i> โจทย์แนะนำ</a>
-        <a href="ranking.html" class="hover:text-cyan-400 transition"><i class="fa-solid fa-ranking-star mr-1 text-cyan-500"></i> Ranking</a>
-        <a href="problems.html" class="text-cyan-400 font-semibold hover:text-cyan-300 transition"><i class="fa-solid fa-laptop-code mr-1"></i> คลังโจทย์</a>
+        <a href="#" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" class="hover:text-cyan-400 transition hover:scale-105"><i class="fa-solid fa-house mr-1 text-cyan-500"></i> หน้าหลัก</a>
+        <a href="#contests" class="hover:text-cyan-400 transition hover:scale-105"><i class="fa-solid fa-trophy mr-1 text-cyan-500"></i> Contest</a>
+        <a href="#features" class="hover:text-cyan-400 transition hover:scale-105"><i class="fa-solid fa-microchip mr-1 text-cyan-500"></i> จุดเด่นระบบ</a>
+        <a href="#showcase" class="hover:text-cyan-400 transition hover:scale-105"><i class="fa-solid fa-fire mr-1 text-cyan-500"></i> โจทย์แนะนำ</a>
+        <a href="ranking.html" class="hover:text-cyan-400 transition hover:scale-105"><i class="fa-solid fa-ranking-star mr-1 text-cyan-500"></i> Ranking</a>
+        <a href="problems.html" class="text-cyan-400 font-semibold hover:text-cyan-300 transition hover:scale-105"><i class="fa-solid fa-laptop-code mr-1"></i> คลังโจทย์</a>
       </nav>
 
       <div id="authNavArea" class="flex items-center gap-2.5">
-        <button type="button" onclick="openAuthModal('login')" class="text-xs font-semibold text-gray-300 hover:text-cyan-400 px-3 py-2 transition cursor-pointer">เข้าสู่ระบบ</button>
-        <button type="button" onclick="openAuthModal('register')" class="bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-lg shadow-cyan-500/20 transition cursor-pointer">สมัครสมาชิก</button>
+        <button type="button" onclick="openAuthModal('login')" class="text-xs font-semibold text-gray-300 hover:text-cyan-400 px-3 py-2 transition hover:scale-105 cursor-pointer">เข้าสู่ระบบ</button>
+        <button type="button" onclick="openAuthModal('register')" class="bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-lg shadow-cyan-500/20 transition hover:scale-105 active:scale-95 cursor-pointer">สมัครสมาชิก</button>
       </div>
     </div>
 
     <!-- Mobile Nav Drawer -->
-    <div id="mobileNavDrawer" class="hidden md:hidden mt-3 pt-3 border-t border-cyan-500/20 flex flex-col gap-2 text-xs font-medium text-gray-300">
+    <div id="mobileNavDrawer" class="hidden md:hidden mt-3 pt-3 border-t border-cyan-500/20 flex flex-col gap-2 text-xs font-medium text-gray-300 transition-all">
       <a href="#contests" onclick="toggleMobileMenu()" class="px-3 py-2 rounded-xl hover:bg-cyan-500/10"><i class="fa-solid fa-trophy mr-2 text-cyan-400"></i> Contest</a>
       <a href="#features" onclick="toggleMobileMenu()" class="px-3 py-2 rounded-xl hover:bg-cyan-500/10"><i class="fa-solid fa-microchip mr-2 text-cyan-400"></i> จุดเด่นระบบ</a>
       <a href="#showcase" onclick="toggleMobileMenu()" class="px-3 py-2 rounded-xl hover:bg-cyan-500/10"><i class="fa-solid fa-fire mr-2 text-cyan-400"></i> โจทย์แนะนำ</a>
@@ -95,7 +113,7 @@
     <!-- 1. HERO SECTION -->
     <section id="about" class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center pt-2">
       <div class="lg:col-span-7 space-y-6 text-center lg:text-left">
-        <div class="inline-flex items-center gap-2 bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 px-4 py-1.5 rounded-full text-[11px] font-semibold shadow-sm">
+        <div class="inline-flex items-center gap-2 bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 px-4 py-1.5 rounded-full text-[11px] font-semibold shadow-sm transition hover:border-cyan-400">
           <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span> SECURE &amp; REALTIME C/C++ / PYTHON GRADER
         </div>
         <h2 class="text-3xl md:text-5xl font-extrabold text-white tracking-tight leading-tight">
@@ -105,17 +123,17 @@
           แพลตฟอร์มฝึกฝน Competitive Programming และตรวจโค้ดอัตโนมัติความเร็วสูง รองรับการแข่งขันรูปแบบ <strong>TOI / IOI</strong> พร้อมตารางคะแนนรายข้อและระบบจัดอันดับแบบเรียลไทม์
         </p>
         <div class="flex flex-wrap justify-center lg:justify-start gap-3.5 pt-1">
-          <button type="button" id="heroPrimaryCta" onclick="openAuthModal('register')" class="bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-95 text-white px-7 py-3.5 rounded-xl text-xs md:text-sm font-bold shadow-lg shadow-cyan-500/25 transition cursor-pointer">
+          <button type="button" id="heroPrimaryCta" onclick="openAuthModal('register')" class="bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-95 text-white px-7 py-3.5 rounded-xl text-xs md:text-sm font-bold shadow-lg shadow-cyan-500/25 transition hover:scale-105 active:scale-95 cursor-pointer">
             <i class="fa-solid fa-rocket mr-1.5"></i> เริ่มต้นใช้งานฟรี
           </button>
-          <a href="problems.html" class="tech-glass text-cyan-300 hover:bg-cyan-500/15 border border-cyan-500/35 px-7 py-3.5 rounded-xl text-xs md:text-sm font-semibold transition flex items-center gap-2">
+          <a href="problems.html" class="tech-glass text-cyan-300 hover:bg-cyan-500/15 border border-cyan-500/35 px-7 py-3.5 rounded-xl text-xs md:text-sm font-semibold transition hover:scale-105 flex items-center gap-2">
             <i class="fa-solid fa-laptop-code"></i> เข้าสู่คลังโจทย์
           </a>
         </div>
       </div>
 
-      <!-- Simulated Grader Terminal Card -->
-      <div class="lg:col-span-5">
+      <!-- Simulated Grader Terminal Card with Floating Animation -->
+      <div class="lg:col-span-5 floating-anim">
         <div class="tech-glass rounded-3xl border border-cyan-500/30 overflow-hidden shadow-2xl">
           <div class="bg-black/70 px-4 py-3 border-b border-cyan-500/20 flex items-center justify-between">
             <div class="flex items-center gap-1.5">
@@ -147,19 +165,19 @@
     <!-- 2. LIVE STATS BAR -->
     <section class="w-full">
       <div class="tech-glass rounded-3xl p-6 grid grid-cols-2 md:grid-cols-4 gap-6 text-center border border-cyan-500/20">
-        <div>
+        <div class="transition hover:scale-105">
           <div id="statTotal" class="text-2xl md:text-3xl font-extrabold text-cyan-400 mb-1 font-mono">-</div>
           <div class="text-[11px] text-gray-400 uppercase tracking-wider">โจทย์ทั้งหมดในระบบ</div>
         </div>
-        <div>
+        <div class="transition hover:scale-105">
           <div id="statVerified" class="text-2xl md:text-3xl font-extrabold text-emerald-400 mb-1 font-mono">-</div>
           <div class="text-[11px] text-gray-400 uppercase tracking-wider">โจทย์พร้อมฝึกฝน</div>
         </div>
-        <div>
+        <div class="transition hover:scale-105">
           <div id="statSubmissions" class="text-2xl md:text-3xl font-extrabold text-blue-400 mb-1 font-mono">-</div>
           <div class="text-[11px] text-gray-400 uppercase tracking-wider">ยอดส่งโค้ดตรวจทั้งหมด</div>
         </div>
-        <div>
+        <div class="transition hover:scale-105">
           <div id="statUsers" class="text-2xl md:text-3xl font-extrabold text-amber-400 mb-1 font-mono">-</div>
           <div class="text-[11px] text-gray-400 uppercase tracking-wider">นักพัฒนาในคอมมูนิตี้</div>
         </div>
@@ -185,7 +203,7 @@
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="tech-glass rounded-2xl p-5 border border-cyan-500/20 space-y-2.5 hover:border-cyan-400/45 transition">
+        <div class="tech-glass rounded-2xl p-5 border border-cyan-500/20 space-y-2.5 hover:scale-[1.02] transition">
           <div class="w-10 h-10 rounded-xl bg-cyan-500/15 text-cyan-400 flex items-center justify-center text-base border border-cyan-500/30">
             <i class="fa-solid fa-bolt"></i>
           </div>
@@ -193,7 +211,7 @@
           <p class="text-xs text-gray-400 leading-relaxed">รองรับ C, C++ (GCC) และ Python พร้อมรายงานผลราย Test Case ทั้ง AC, WA, TLE และ Memory Limit</p>
         </div>
 
-        <div class="tech-glass rounded-2xl p-5 border border-cyan-500/20 space-y-2.5 hover:border-amber-400/45 transition">
+        <div class="tech-glass rounded-2xl p-5 border border-cyan-500/20 space-y-2.5 hover:scale-[1.02] transition">
           <div class="w-10 h-10 rounded-xl bg-amber-500/15 text-amber-400 flex items-center justify-center text-base border border-amber-500/30">
             <i class="fa-solid fa-medal"></i>
           </div>
@@ -201,7 +219,7 @@
           <p class="text-xs text-gray-400 leading-relaxed">รองรับการคิดคะแนนบางส่วน (Partial Score) รายข้อ และกราฟเปรียบเทียบคะแนนตามเวลาจริง</p>
         </div>
 
-        <div class="tech-glass rounded-2xl p-5 border border-cyan-500/20 space-y-2.5 hover:border-emerald-400/45 transition">
+        <div class="tech-glass rounded-2xl p-5 border border-cyan-500/20 space-y-2.5 hover:scale-[1.02] transition">
           <div class="w-10 h-10 rounded-xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center text-base border border-emerald-500/30">
             <i class="fa-solid fa-code"></i>
           </div>
@@ -209,7 +227,7 @@
           <p class="text-xs text-gray-400 leading-relaxed">ฝึกเขียนได้ทั้งโปรแกรมเต็มรูปแบบ และโหมดเติมฟังก์ชันเฉพาะจุดเหมือนสนามแข่งระดับสากล</p>
         </div>
 
-        <div class="tech-glass rounded-2xl p-5 border border-cyan-500/20 space-y-2.5 hover:border-purple-400/45 transition">
+        <div class="tech-glass rounded-2xl p-5 border border-cyan-500/20 space-y-2.5 hover:scale-[1.02] transition">
           <div class="w-10 h-10 rounded-xl bg-purple-500/15 text-purple-400 flex items-center justify-center text-base border border-purple-500/30">
             <i class="fa-solid fa-users"></i>
           </div>
@@ -321,7 +339,7 @@
 
   <!-- AUTH MODAL (Login / Register / Forgot Password) -->
   <div id="authModal" onclick="if(event.target === this) closeAuthModal()" class="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/80 backdrop-blur-md opacity-0 pointer-events-none transition-all duration-300">
-    <div class="tech-modal rounded-3xl p-8 max-w-md w-full relative transform scale-95 transition-all duration-300 border border-cyan-500/30" id="modalContainer">
+    <div class="tech-modal rounded-3xl p-8 max-w-md w-full relative animate-modal-in border border-cyan-500/30" id="modalContainer">
       <button type="button" onclick="closeAuthModal()" class="absolute top-5 right-5 text-gray-400 hover:text-white w-8 h-8 rounded-full bg-cyan-500/10 flex items-center justify-center transition cursor-pointer">
         <i class="fa-solid fa-xmark text-xs"></i>
       </button>
@@ -396,10 +414,15 @@
         <div id="authMessage" class="text-xs text-center hidden"></div>
 
         <!-- Submit Button -->
-        <button type="submit" id="authSubmitBtn" class="w-full bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-bold py-3 rounded-xl text-xs transition shadow-lg shadow-cyan-500/20 mt-2 cursor-pointer">เข้าสู่ระบบ</button>
+        <button type="submit" id="authSubmitBtn" class="w-full bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-bold py-3 rounded-xl text-xs transition shadow-lg shadow-cyan-500/20 mt-2 cursor-pointer hover:opacity-95 active:scale-[0.99]">เข้าสู่ระบบ</button>
+
+        <!-- PRIVACY POLICY NOTICE (เพิ่มใต้ปุ่มสมัครสมาชิก/เข้าสู่ระบบตามที่ขอ) -->
+        <div class="text-[11px] text-gray-400 text-center leading-relaxed pt-1">
+          การดำเนินการต่อถือว่าท่านยอมรับ <a href="#legal-policies" onclick="closeAuthModal()" class="text-cyan-400 hover:underline">ข้อกำหนดการใช้งาน</a> และ <a href="#legal-policies" onclick="closeAuthModal()" class="text-cyan-400 hover:underline">นโยบายความเป็นส่วนตัว</a> ของ ST8
+        </div>
 
         <!-- Toggle Switch Links Between Login / Register / Forgot -->
-        <div class="text-center pt-3 text-xs border-t border-cyan-500/15 mt-4">
+        <div class="text-center pt-3 text-xs border-t border-cyan-500/15 mt-2">
           <span id="authToggleText" class="text-gray-400">ยังไม่มีบัญชีผู้ใช้งาน?</span>
           <button type="button" onclick="switchAuthMode()" id="authToggleBtn" class="text-cyan-400 font-semibold hover:underline ml-1 cursor-pointer">สมัครสมาชิก</button>
         </div>
@@ -516,20 +539,15 @@
       window.location.reload();
     }
 
-    // Modal Manager with 3 Modes (Login, Register, Forgot)
     function openAuthModal(mode = 'login') {
       const modal = document.getElementById('authModal');
-      const container = document.getElementById('modalContainer');
       setAuthMode(mode);
       modal.classList.remove('opacity-0', 'pointer-events-none');
-      container.classList.remove('scale-95'); container.classList.add('scale-100');
     }
 
     function closeAuthModal() {
       const modal = document.getElementById('authModal');
-      const container = document.getElementById('modalContainer');
       modal.classList.add('opacity-0', 'pointer-events-none');
-      container.classList.remove('scale-100'); container.classList.add('scale-95');
     }
 
     function switchAuthMode(targetMode) {
@@ -596,7 +614,6 @@
       }
     }
 
-    // Show / Hide Password Toggle
     function togglePasswordVisibility(inputId, iconId) {
       const input = document.getElementById(inputId);
       const icon = document.getElementById(iconId);
@@ -609,7 +626,6 @@
       }
     }
 
-    // Password Strength Checker
     document.getElementById('authPassword').addEventListener('input', (e) => {
       if (currentAuthMode !== 'register') return;
       const val = e.target.value;
@@ -652,7 +668,6 @@
       document.getElementById('strengthText').textContent = 'ความปลอดภัยของรหัสผ่าน: ยังไม่กรอกรหัสผ่าน';
     }
 
-    // Form Submit Handler
     document.getElementById('authForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const authMsg = document.getElementById('authMessage');
@@ -742,7 +757,6 @@
       }
     });
 
-    // Fetch Landing Stats & Contests
     async function fetchLandingData() {
       try {
         const [totalProbRes, verifiedProbRes, subsCountRes, usersCountRes] = await Promise.all([
@@ -778,7 +792,7 @@
             const timeRange = `${new Date(c.start_time).toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' })} - ${new Date(c.end_time).toLocaleString('th-TH', { timeStyle: 'short' })}`;
 
             return `
-              <div class="tech-glass rounded-3xl p-6 border ${isLive ? 'border-emerald-500/35' : 'border-cyan-500/20'} flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+              <div class="tech-glass rounded-3xl p-6 border ${isLive ? 'border-emerald-500/35' : 'border-cyan-500/20'} flex flex-col md:flex-row justify-between items-start md:items-center gap-4 transition hover:scale-[1.01]">
                 <div class="space-y-1.5">
                   <div class="flex items-center gap-2 flex-wrap">
                     ${statusBadge}
@@ -788,7 +802,7 @@
                   <h4 class="text-lg md:text-xl font-bold text-white">${c.title}</h4>
                   <p class="text-xs text-gray-400">${c.description || 'ร่วมประลองอัลกอริทึมและชิงอันดับบนกระดานคะแนน'}</p>
                 </div>
-                <a href="problems.html" class="bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-95 text-white font-bold px-6 py-3 rounded-xl text-xs transition shadow-lg shadow-cyan-500/20 whitespace-nowrap shrink-0">
+                <a href="problems.html" class="bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-95 text-white font-bold px-6 py-3 rounded-xl text-xs transition shadow-lg shadow-cyan-500/20 whitespace-nowrap shrink-0 hover:scale-105">
                   ${isLive ? 'เข้าสู่สนามแข่งทันที' : 'ดูรายละเอียดการแข่ง'}
                 </a>
               </div>
@@ -822,7 +836,7 @@
               : '<span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30">Hard</span>';
 
             return `
-              <a href="problems.html" class="flex items-center justify-between gap-3 bg-black/50 hover:bg-cyan-500/10 border border-white/10 hover:border-cyan-500/35 px-4 py-3 rounded-2xl transition">
+              <a href="problems.html" class="flex items-center justify-between gap-3 bg-black/50 hover:bg-cyan-500/10 border border-white/10 hover:border-cyan-500/35 px-4 py-3 rounded-2xl transition hover:translate-x-1">
                 <div class="min-w-0">
                   <div class="flex items-center gap-2">
                     <span class="text-xs font-bold text-cyan-300 font-mono">${p.problem_code || 'P' + p.id}</span>
@@ -854,7 +868,7 @@
               'bg-amber-700/25 text-amber-300 border-amber-600/40'
             ];
             return `
-              <div class="flex items-center justify-between gap-3 bg-black/50 border border-white/10 px-4 py-3 rounded-2xl">
+              <div class="flex items-center justify-between gap-3 bg-black/50 border border-white/10 px-4 py-3 rounded-2xl transition hover:scale-[1.01]">
                 <div class="flex items-center gap-3 min-w-0">
                   <span class="w-7 h-7 rounded-full border font-bold text-xs flex items-center justify-center shrink-0 ${rankColors[idx]}">#${idx + 1}</span>
                   <span class="font-semibold text-sm text-white truncate">${name}</span>

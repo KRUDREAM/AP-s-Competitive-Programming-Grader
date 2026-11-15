@@ -15,6 +15,7 @@
       font-family: 'Kanit', sans-serif;
       background-color: #030712;
       color: #f3f4f6;
+      overflow: hidden;
     }
     .font-code { font-family: 'JetBrains Mono', monospace; }
     .tech-glass {
@@ -74,7 +75,7 @@
     ::-webkit-scrollbar-thumb:hover { background: rgba(56, 189, 248, 0.45); }
   </style>
 </head>
-<body class="h-screen flex flex-col overflow-hidden selection:bg-cyan-500 selection:text-black">
+<body class="h-screen w-screen flex flex-col overflow-hidden selection:bg-cyan-500 selection:text-black">
 
   <!-- TOAST -->
   <div id="systemToast" class="fixed top-4 right-4 z-[90] transform translate-x-[130%] transition-all duration-300 tech-glass px-4 py-3 rounded-2xl border border-cyan-500/40 shadow-2xl flex items-center gap-3">
@@ -100,27 +101,16 @@
     </div>
 
     <div class="flex items-center gap-2 shrink-0">
-      <span id="engineStatusPill" class="hidden md:inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-xl bg-emerald-500/15 text-emerald-300 border border-emerald-500/30" title="ระบบตรวจความเร็วสูงพร้อมใช้งาน">
+      <span id="engineStatusPill" class="hidden md:inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-xl bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
         <i class="fa-solid fa-bolt text-amber-400"></i> Turbo Judge Ready
       </span>
 
       <div class="hidden lg:flex items-center bg-black/50 p-1 rounded-xl border border-cyan-500/20 text-[11px]">
-        <button type="button" onclick="setSplitRatio(28)" class="px-2 py-1 rounded-lg text-gray-300 hover:bg-cyan-500/20 hover:text-cyan-300 transition cursor-pointer" title="ย่อฝั่งโจทย์ (เน้นเขียนโค้ดกว้างๆ)">
-          <i class="fa-solid fa-compress mr-1"></i> โค้ดกว้าง
-        </button>
-        <button type="button" onclick="setSplitRatio(48)" class="px-2 py-1 rounded-lg text-gray-300 hover:bg-cyan-500/20 hover:text-cyan-300 transition cursor-pointer" title="สมดุลพอดีหน้า A4">
-          สมดุล A4
-        </button>
-        <button type="button" onclick="setSplitRatio(62)" class="px-2 py-1 rounded-lg text-gray-300 hover:bg-cyan-500/20 hover:text-cyan-300 transition cursor-pointer" title="ขยายฝั่งโจทย์ให้อ่านชัดๆ">
-          <i class="fa-solid fa-expand mr-1"></i> อ่านโจทย์กว้าง
-        </button>
+        <button type="button" onclick="setSplitRatio(28)" class="px-2 py-1 rounded-lg text-gray-300 hover:bg-cyan-500/20 hover:text-cyan-300 transition cursor-pointer">โค้ดกว้าง</button>
+        <button type="button" onclick="setSplitRatio(48)" class="px-2 py-1 rounded-lg text-gray-300 hover:bg-cyan-500/20 hover:text-cyan-300 transition cursor-pointer">สมดุล A4</button>
+        <button type="button" onclick="setSplitRatio(62)" class="px-2 py-1 rounded-lg text-gray-300 hover:bg-cyan-500/20 hover:text-cyan-300 transition cursor-pointer">อ่านโจทย์กว้าง</button>
       </div>
 
-      <div class="hidden xl:flex items-center gap-3 text-[11px] text-gray-400 bg-black/50 px-3 py-1.5 rounded-xl border border-white/10">
-        <span><i class="fa-regular fa-clock text-cyan-400 mr-1"></i> <b id="navTimeLimit" class="text-gray-200">1.0</b>s</span>
-        <span><i class="fa-solid fa-memory text-purple-400 mr-1"></i> <b id="navMemLimit" class="text-gray-200">256</b>MB</span>
-        <span><i class="fa-solid fa-trophy text-amber-400 mr-1"></i> <b id="navMaxScore" class="text-gray-200">100</b> pts</span>
-      </div>
       <span id="navUserBadge" class="text-xs font-semibold text-cyan-300 bg-cyan-950/70 border border-cyan-500/30 px-3 py-1.5 rounded-xl hidden md:inline-flex items-center gap-1.5"></span>
     </div>
   </header>
@@ -129,7 +119,7 @@
   <div id="workspaceContainer" class="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden">
 
     <!-- LEFT PANE -->
-    <section id="leftPane" style="width: 48%;" class="w-full lg:w-[48%] h-[45vh] lg:h-full flex flex-col bg-[#070c1b] border-b lg:border-b-0 border-cyan-500/20 min-w-0 shrink-0">
+    <section id="leftPane" style="width: 48%;" class="w-full lg:w-[48%] h-[45vh] lg:h-full flex flex-col bg-[#070c1b] border-b lg:border-b-0 border-cyan-500/20 min-w-0 shrink-0 overflow-hidden">
       
       <div class="h-12 shrink-0 px-3 bg-[#090f22] border-b border-cyan-500/20 flex items-center justify-between gap-1.5 overflow-x-auto">
         <div class="flex items-center gap-1.5">
@@ -137,16 +127,16 @@
             <i class="fa-solid fa-book-open"></i> โจทย์ (Statement)
           </button>
           <button type="button" id="leftTabBtnSubs" onclick="switchLeftTab('subs')" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-gray-300 hover:bg-white/5 transition cursor-pointer flex items-center gap-1.5 shrink-0">
-            <i class="fa-solid fa-clock-rotate-left text-cyan-400"></i> ประวัติส่งโค้ด
+            <i class="fa-solid fa-clock-rotate-left text-cyan-400"></i> ประวัติส่ง
             <span id="mySubsCountBadge" class="text-[10px] px-1.5 py-0.2 rounded-full bg-cyan-500/20 text-cyan-300">0</span>
           </button>
           <button type="button" id="leftTabBtnChat" onclick="switchLeftTab('chat')" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-gray-300 hover:bg-white/5 transition cursor-pointer flex items-center gap-1.5 shrink-0">
-            <i class="fa-solid fa-comments text-amber-400"></i> แชตถาม-ตอบ
+            <i class="fa-solid fa-comments text-amber-400"></i> ถาม-ตอบ
             <span id="chatCountBadge" class="text-[10px] px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-300">0</span>
           </button>
         </div>
 
-        <button type="button" onclick="toggleCollapseLeftPane()" id="collapseLeftBtn" class="hidden lg:flex items-center justify-center w-7 h-7 rounded-lg bg-white/5 hover:bg-cyan-500/20 text-gray-300 hover:text-cyan-300 transition cursor-pointer shrink-0" title="ย่อ/ขยายแผงฝั่งซ้าย">
+        <button type="button" onclick="toggleCollapseLeftPane()" id="collapseLeftBtn" class="hidden lg:flex items-center justify-center w-7 h-7 rounded-lg bg-white/5 hover:bg-cyan-500/20 text-gray-300 hover:text-cyan-300 transition cursor-pointer shrink-0">
           <i class="fa-solid fa-angles-left text-xs"></i>
         </button>
       </div>
@@ -170,10 +160,8 @@
 
         <div id="stmtPdfSection" class="hidden space-y-2.5">
           <div class="flex items-center justify-between bg-rose-500/10 border border-rose-500/30 px-3.5 py-2 rounded-xl">
-            <span class="text-xs font-semibold text-rose-300"><i class="fa-solid fa-file-pdf mr-1.5"></i> เอกสารโจทย์ (สัดส่วน A4)</span>
-            <button type="button" onclick="openProblemPdfNewTab()" class="text-xs bg-rose-500/20 hover:bg-rose-500/30 text-rose-200 px-3 py-1 rounded-lg transition cursor-pointer">
-              <i class="fa-solid fa-up-right-from-square mr-1"></i> เปิดเต็มจอ
-            </button>
+            <span class="text-xs font-semibold text-rose-300"><i class="fa-solid fa-file-pdf mr-1.5"></i> เอกสารโจทย์ (A4)</span>
+            <button type="button" onclick="openProblemPdfNewTab()" class="text-xs bg-rose-500/20 hover:bg-rose-500/30 text-rose-200 px-3 py-1 rounded-lg transition cursor-pointer">เปิดเต็มจอ</button>
           </div>
           <div class="w-full bg-white rounded-2xl overflow-hidden border border-cyan-500/30 shadow-xl">
             <iframe id="stmtPdfFrame" class="a4-pdf-frame block border-0"></iframe>
@@ -183,7 +171,7 @@
         <div id="stmtMarkdownBody" class="markdown-preview"></div>
 
         <div id="stmtSamplesSection" class="space-y-3 pt-2 border-t border-cyan-500/15">
-          <h3 class="text-sm font-bold text-cyan-300"><i class="fa-solid fa-flask mr-1.5"></i> ตัวอย่างข้อมูลนำเข้า / ส่งออก (Sample I/O)</h3>
+          <h3 class="text-sm font-bold text-cyan-300"><i class="fa-solid fa-flask mr-1.5"></i> ตัวอย่างข้อมูล (Sample I/O)</h3>
           <div id="stmtSamplesList" class="space-y-3"></div>
         </div>
       </div>
@@ -192,16 +180,13 @@
       <div id="leftPaneSubs" class="hidden flex-1 overflow-y-auto p-5 space-y-4">
         <div class="flex items-center justify-between">
           <div>
-            <h3 class="text-base font-bold text-white">ประวัติการส่งโค้ดของคุณ</h3>
-            <p class="text-xs text-gray-400">คลิกดูโค้ดย้อนหลัง หรือโหลดโค้ดเดิมกลับเข้าสู่ Editor ได้ทันที</p>
+            <h3 class="text-base font-bold text-white">ประวัติการส่งโค้ด</h3>
+            <p class="text-xs text-gray-400">คลิกดูโค้ดย้อนหลัง หรือโหลดกลับเข้า Editor ได้ทันที</p>
           </div>
-          <button type="button" onclick="loadMySubmissions()" class="text-xs bg-white/5 hover:bg-cyan-500/15 text-cyan-300 px-3 py-1.5 rounded-xl border border-cyan-500/25 cursor-pointer">
-            <i class="fa-solid fa-rotate mr-1"></i> รีเฟรช
-          </button>
+          <button type="button" onclick="loadMySubmissions()" class="text-xs bg-white/5 hover:bg-cyan-500/15 text-cyan-300 px-3 py-1.5 rounded-xl border border-cyan-500/25 cursor-pointer">รีเฟรช</button>
         </div>
-
         <div id="mySubmissionsList" class="space-y-2.5">
-          <p class="text-xs text-gray-400 text-center py-8">กำลังโหลดประวัติการส่งโค้ด...</p>
+          <p class="text-xs text-gray-400 text-center py-8">กำลังโหลดประวัติ...</p>
         </div>
       </div>
 
@@ -210,32 +195,29 @@
         <div class="px-4 py-2.5 bg-gradient-to-r from-amber-950/35 to-cyan-950/30 border-b border-cyan-500/15 flex items-center justify-between shrink-0">
           <div class="flex items-center gap-2">
             <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span class="text-xs font-bold text-white">ห้องสนทนา &amp; ถาม-ตอบประจำโจทย์</span>
+            <span class="text-xs font-bold text-white">ห้องสนทนาประจำโจทย์</span>
           </div>
-          <span class="text-[11px] text-gray-400">แนบโค้ดส่งตรวจในแชตได้</span>
         </div>
 
         <div id="chatMessagesContainer" class="flex-1 overflow-y-auto p-4 space-y-3 bg-[#050914]/60">
-          <p class="text-xs text-gray-400 text-center py-8">กำลังโหลดข้อความแชต...</p>
+          <p class="text-xs text-gray-400 text-center py-8">กำลังโหลดข้อความ...</p>
         </div>
 
         <div id="chatAttachmentBar" class="hidden px-3.5 py-2 bg-cyan-950/70 border-t border-cyan-500/30 flex items-center justify-between text-xs shrink-0">
           <div class="flex items-center gap-2 truncate">
             <i class="fa-solid fa-paperclip text-cyan-400"></i>
-            <span id="chatAttachedLabel" class="text-cyan-200 font-semibold truncate">แนบ #SUB-1</span>
+            <span id="chatAttachedLabel" class="text-cyan-200 font-semibold truncate">แนบ #SUB</span>
             <label class="inline-flex items-center gap-1 text-[11px] text-gray-300 cursor-pointer ml-2">
               <input type="checkbox" id="chatCodePublicCheck" checked class="accent-cyan-400">
               <span>ให้คนผ่านข้อนี้ดูโค้ดได้</span>
             </label>
           </div>
-          <button type="button" onclick="clearChatAttachment()" class="text-gray-400 hover:text-rose-400 cursor-pointer ml-2">
-            <i class="fa-solid fa-xmark"></i>
-          </button>
+          <button type="button" onclick="clearChatAttachment()" class="text-gray-400 hover:text-rose-400 cursor-pointer ml-2"><i class="fa-solid fa-xmark"></i></button>
         </div>
 
         <form id="chatSendForm" class="p-3 bg-[#080e20] border-t border-cyan-500/20 flex items-center gap-2 shrink-0">
           <div class="relative">
-            <button type="button" onclick="toggleAttachSubMenu()" class="w-9 h-9 rounded-xl bg-white/5 hover:bg-cyan-500/20 text-cyan-300 border border-cyan-500/25 flex items-center justify-center transition cursor-pointer" title="แนบ Submission ที่เคยส่ง">
+            <button type="button" onclick="toggleAttachSubMenu()" class="w-9 h-9 rounded-xl bg-white/5 hover:bg-cyan-500/20 text-cyan-300 border border-cyan-500/25 flex items-center justify-center transition cursor-pointer" title="แนบ Submission">
               <i class="fa-solid fa-paperclip text-xs"></i>
             </button>
             <div id="attachSubPopup" class="hidden absolute bottom-11 left-0 w-64 tech-modal rounded-2xl p-2.5 border border-cyan-500/35 shadow-2xl z-40 space-y-1.5">
@@ -243,9 +225,7 @@
               <div id="attachSubOptionsList" class="max-h-44 overflow-y-auto space-y-1 text-xs"></div>
             </div>
           </div>
-
-          <input type="text" id="chatMessageInput" autocomplete="off" placeholder="พิมพ์ข้อความถามเพื่อน หรือขอคำแนะนำ..." class="flex-1 bg-black/65 border border-cyan-500/25 focus:border-cyan-400 focus:outline-none rounded-xl px-3.5 py-2 text-xs text-white">
-
+          <input type="text" id="chatMessageInput" autocomplete="off" placeholder="พิมพ์ข้อความถามเพื่อน..." class="flex-1 bg-black/65 border border-cyan-500/25 focus:border-cyan-400 focus:outline-none rounded-xl px-3.5 py-2 text-xs text-white">
           <button type="submit" class="bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-95 text-white px-4 py-2 rounded-xl text-xs font-bold shadow transition cursor-pointer shrink-0">
             <i class="fa-solid fa-paper-plane"></i>
           </button>
@@ -254,22 +234,22 @@
     </section>
 
     <!-- RESIZER -->
-    <div id="splitResizer" class="hidden lg:block split-resizer shrink-0" title="ลากเพื่อปรับขนาดฝั่งโจทย์และฝั่งเขียนโค้ด"></div>
+    <div id="splitResizer" class="hidden lg:block split-resizer shrink-0"></div>
 
-    <!-- RIGHT PANE -->
-    <section id="rightPane" class="flex-1 h-[55vh] lg:h-full flex flex-col bg-[#050914] min-w-0">
+    <!-- RIGHT PANE (EDITOR & CONSOLE) -->
+    <section id="rightPane" class="flex-1 h-[55vh] lg:h-full flex flex-col bg-[#050914] min-w-0 overflow-hidden">
       
+      <!-- EDITOR TOOLBAR -->
       <div class="h-12 shrink-0 px-3.5 bg-[#080d1e] border-b border-cyan-500/15 flex items-center justify-between gap-2 overflow-x-auto">
         <div class="flex items-center gap-2">
           <select id="langSelect" onchange="handleLanguageChange()" class="bg-black/70 border border-cyan-500/30 focus:border-cyan-400 focus:outline-none rounded-xl px-3 py-1.5 text-xs font-semibold text-white cursor-pointer">
             <option value="cpp">C++ 17 (GCC Fast)</option>
             <option value="c">C (GCC Fast)</option>
-            <option value="python">Python 3.11 (WASM In-Browser)</option>
           </select>
 
-          <label class="bg-white/5 hover:bg-cyan-500/15 text-gray-200 hover:text-cyan-300 border border-white/15 px-3 py-1.5 rounded-xl text-xs font-medium transition cursor-pointer flex items-center gap-1.5 shrink-0" title="อัปโหลดไฟล์โค้ดจากเครื่อง">
-            <i class="fa-solid fa-upload text-cyan-400"></i> <span>อัปโหลดไฟล์</span>
-            <input type="file" id="codeFileInput" accept=".cpp,.cc,.cxx,.c,.py,.txt" onchange="handleCodeFileUpload(event)" class="hidden">
+          <label class="bg-white/5 hover:bg-cyan-500/15 text-gray-200 hover:text-cyan-300 border border-white/15 px-3 py-1.5 rounded-xl text-xs font-medium transition cursor-pointer flex items-center gap-1.5 shrink-0">
+            <i class="fa-solid fa-upload text-cyan-400"></i> <span>อัปโหลด</span>
+            <input type="file" id="codeFileInput" accept=".cpp,.cc,.cxx,.c,.txt" onchange="handleCodeFileUpload(event)" class="hidden">
           </label>
 
           <button type="button" onclick="resetEditorTemplate()" class="bg-white/5 hover:bg-white/10 text-gray-300 px-2.5 py-1.5 rounded-xl text-xs transition cursor-pointer shrink-0" title="รีเซ็ตโค้ดเริ่มต้น">
@@ -280,22 +260,14 @@
             <i class="fa-solid fa-eye mr-1"></i> ดูโค้ด main()
           </button>
         </div>
-
-        <div class="flex items-center gap-2 shrink-0">
-          <button type="button" id="runSampleBtn" onclick="runCustomTest()" class="bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 border border-cyan-500/40 px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5">
-            <i class="fa-solid fa-play"></i> รันทดสอบ
-          </button>
-          <button type="button" id="submitCodeBtn" onclick="submitSolution()" class="bg-gradient-to-r from-emerald-600 to-teal-500 hover:opacity-95 text-white px-4 py-1.5 rounded-xl text-xs font-bold shadow-lg shadow-emerald-500/20 transition cursor-pointer flex items-center gap-1.5">
-            <i class="fa-solid fa-bolt"></i> ส่งตรวจ (Submit)
-          </button>
-        </div>
       </div>
 
+      <!-- MONACO EDITOR -->
       <div id="monacoContainer" class="flex-1 min-h-0 w-full relative"></div>
 
-      <!-- BOTTOM CONSOLE -->
-      <div class="h-52 shrink-0 bg-[#060a17] border-t border-cyan-500/25 flex flex-col">
-        <div class="h-9 px-3 bg-black/50 border-b border-cyan-500/15 flex items-center justify-between">
+      <!-- BOTTOM CONSOLE (ย้ายปุ่มรันทดสอบและส่งตรวจมาไว้ใกล้คอนโซล/ช่อง Input) -->
+      <div class="h-56 shrink-0 bg-[#060a17] border-t border-cyan-500/25 flex flex-col">
+        <div class="h-10 px-3.5 bg-black/60 border-b border-cyan-500/15 flex items-center justify-between">
           <div class="flex items-center gap-1.5">
             <button type="button" id="consoleTabTest" onclick="switchConsoleTab('test')" class="px-3 py-1 rounded-lg text-xs font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 cursor-pointer">
               <i class="fa-solid fa-terminal mr-1"></i> ทดสอบรัน (Custom Input)
@@ -305,9 +277,18 @@
             </button>
           </div>
 
-          <button type="button" onclick="loadSampleIntoCustomInput()" class="text-[11px] text-amber-300 hover:text-amber-200 cursor-pointer">
-            <i class="fa-solid fa-flask mr-1"></i> โหลด Sample Input
-          </button>
+          <!-- ปุ่มรันทดสอบและส่งตรวจ (ย้ายมาไว้ใกล้กับส่วนจัดการทดสอบด้านล่างสุด) -->
+          <div class="flex items-center gap-2">
+            <button type="button" onclick="loadSampleIntoCustomInput()" class="text-[11px] text-amber-300 hover:text-amber-200 cursor-pointer mr-2 hidden sm:inline-block">
+              <i class="fa-solid fa-flask mr-1"></i> โหลด Sample
+            </button>
+            <button type="button" id="runSampleBtn" onclick="runCustomTest()" class="bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 px-3 py-1 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5">
+              <i class="fa-solid fa-play"></i> รันทดสอบ
+            </button>
+            <button type="button" id="submitCodeBtn" onclick="submitSolution()" class="bg-gradient-to-r from-emerald-600 to-teal-500 hover:opacity-95 text-white px-3.5 py-1 rounded-xl text-xs font-bold shadow-lg shadow-emerald-500/20 transition cursor-pointer flex items-center gap-1.5">
+              <i class="fa-solid fa-bolt"></i> ส่งตรวจ (Submit)
+            </button>
+          </div>
         </div>
 
         <div id="consoleAreaTest" class="flex-1 grid grid-cols-2 divide-x divide-cyan-500/15 min-h-0">
@@ -326,7 +307,7 @@
 
         <div id="consoleAreaVerdict" class="hidden flex-1 p-3 overflow-y-auto">
           <div id="verdictResultContainer" class="text-xs text-gray-400 flex items-center justify-center h-full">
-            ยังไม่มีผลการส่งตรวจในรอบนี้ — กดปุ่ม "ส่งตรวจ (Submit)" เพื่อตรวจกับชุดทดสอบทั้งหมด
+            ยังไม่มีผลการส่งตรวจในรอบนี้ — กดปุ่ม "ส่งตรวจ (Submit)" ด้านบนเพื่อตรวจกับชุดทดสอบทั้งหมด
           </div>
         </div>
       </div>
@@ -345,16 +326,10 @@
           <i class="fa-solid fa-xmark text-xs"></i>
         </button>
       </div>
-
       <pre id="viewCodeModalBody" class="flex-1 bg-black/80 border border-cyan-500/20 rounded-2xl p-4 text-xs text-cyan-100 font-code overflow-auto leading-relaxed"></pre>
-
       <div class="flex justify-end gap-2.5">
-        <button type="button" onclick="copyModalCode()" class="bg-white/5 hover:bg-white/10 text-gray-200 px-4 py-2 rounded-xl text-xs font-semibold cursor-pointer">
-          <i class="fa-regular fa-copy mr-1"></i> คัดลอกโค้ด
-        </button>
-        <button type="button" onclick="loadModalCodeToEditor()" class="bg-gradient-to-r from-blue-600 to-cyan-500 text-white px-4 py-2 rounded-xl text-xs font-bold cursor-pointer">
-          <i class="fa-solid fa-file-import mr-1"></i> โหลดโค้ดนี้ลง Editor
-        </button>
+        <button type="button" onclick="copyModalCode()" class="bg-white/5 hover:bg-white/10 text-gray-200 px-4 py-2 rounded-xl text-xs font-semibold cursor-pointer">คัดลอกโค้ด</button>
+        <button type="button" onclick="loadModalCodeToEditor()" class="bg-gradient-to-r from-blue-600 to-cyan-500 text-white px-4 py-2 rounded-xl text-xs font-bold cursor-pointer">โหลดลง Editor</button>
       </div>
     </div>
   </div>
@@ -362,7 +337,7 @@
   <div id="graderMainModal" onclick="if(event.target === this) document.getElementById('graderMainModal').classList.add('opacity-0','pointer-events-none')" class="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/85 backdrop-blur-md opacity-0 pointer-events-none transition-all duration-200">
     <div class="tech-modal rounded-3xl p-6 max-w-xl w-full space-y-4 border border-emerald-500/35">
       <div class="flex justify-between items-center border-b border-emerald-500/20 pb-2.5">
-        <h3 class="text-sm font-bold text-emerald-300"><i class="fa-solid fa-code mr-1.5"></i> โค้ดฟังก์ชัน main() ที่ใช้ตรวจในระบบ</h3>
+        <h3 class="text-sm font-bold text-emerald-300"><i class="fa-solid fa-code mr-1.5"></i> โค้ดฟังก์ชัน main()</h3>
         <button type="button" onclick="document.getElementById('graderMainModal').classList.add('opacity-0','pointer-events-none')" class="text-gray-400 hover:text-white cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
       </div>
       <pre id="graderMainCodePreview" class="bg-black/80 border border-white/10 rounded-2xl p-4 text-xs text-emerald-200 font-code overflow-auto max-h-80"></pre>
@@ -397,8 +372,7 @@
 
     const DEFAULT_TEMPLATES = {
       cpp: `#include <bits/stdc++.h>\nusing namespace std;\n\nint main() {\n    ios::sync_with_stdio(false);\n    cin.tie(nullptr);\n    \n    // เขียนโค้ดของคุณที่นี่\n    \n    return 0;\n}`,
-      c: `#include <stdio.h>\n\nint main() {\n    // เขียนโค้ดของคุณที่นี่\n    \n    return 0;\n}`,
-      python: `import sys\n\ndef solve():\n    # เขียนโค้ดของคุณที่นี่\n    pass\n\nif __name__ == '__main__':\n    solve()`
+      c: `#include <stdio.h>\n\nint main() {\n    // เขียนโค้ดของคุณที่นี่\n    \n    return 0;\n}`
     };
 
     function showToast(title, desc, isError = false) {
@@ -409,7 +383,7 @@
         ? 'fa-solid fa-circle-exclamation text-rose-400 text-base'
         : 'fa-solid fa-circle-check text-cyan-400 text-base';
       toast.classList.remove('translate-x-[130%]');
-      setTimeout(() => toast.classList.add('translate-x-[130%]'), 3200);
+      setTimeout(() => toast.classList.add('translate-x-[130%]', 3200));
     }
 
     function setSplitRatio(pct) {
@@ -419,7 +393,6 @@
       localStorage.setItem('st8_split_left_pct', leftPaneWidthPct);
       const leftEl = document.getElementById('leftPane');
       leftEl.style.width = leftPaneWidthPct + '%';
-      document.getElementById('collapseLeftBtn').innerHTML = '<i class="fa-solid fa-angles-left text-xs"></i>';
       if (editorInstance) editorInstance.layout();
     }
 
@@ -443,7 +416,6 @@
       const container = document.getElementById('workspaceContainer');
       const leftEl = document.getElementById('leftPane');
       if (!resizer || !container || !leftEl) return;
-
       if (window.innerWidth >= 1024) leftEl.style.width = leftPaneWidthPct + '%';
 
       let isDragging = false;
@@ -507,7 +479,7 @@
     function handleLanguageChange() {
       const lang = document.getElementById('langSelect').value;
       if (!editorInstance) return;
-      monaco.editor.setModelLanguage(editorInstance.getModel(), lang === 'python' ? 'python' : 'cpp');
+      monaco.editor.setModelLanguage(editorInstance.getModel(), lang === 'c' ? 'c' : 'cpp');
       const savedDraft = localStorage.getItem(`st8_draft_${problemId}_${lang}`);
       editorInstance.setValue(savedDraft || getStarterCodeForLang(lang));
     }
@@ -524,14 +496,13 @@
       const file = event.target.files[0];
       if (!file) return;
       const ext = file.name.split('.').pop().toLowerCase();
-      if (ext === 'py') document.getElementById('langSelect').value = 'python';
-      else if (ext === 'c') document.getElementById('langSelect').value = 'c';
+      if (ext === 'c') document.getElementById('langSelect').value = 'c';
       else if (['cpp', 'cc', 'cxx'].includes(ext)) document.getElementById('langSelect').value = 'cpp';
 
       const reader = new FileReader();
       reader.onload = (e) => {
         const lang = document.getElementById('langSelect').value;
-        monaco.editor.setModelLanguage(editorInstance.getModel(), lang === 'python' ? 'python' : 'cpp');
+        monaco.editor.setModelLanguage(editorInstance.getModel(), lang === 'c' ? 'c' : 'cpp');
         editorInstance.setValue(e.target.result);
         showToast('อัปโหลดไฟล์สำเร็จ', `นำเข้าโค้ดจาก ${file.name} แล้ว`);
       };
@@ -571,7 +542,6 @@
         window.location.href = 'problems.html';
         return;
       }
-
       initSplitResizer();
       await initMonacoEditor();
 
@@ -615,7 +585,6 @@
       document.getElementById('navProbTitle').textContent = p.title;
       document.getElementById('navTimeLimit').textContent = p.time_limit || 1.0;
       document.getElementById('navMemLimit').textContent = p.memory_limit || 256;
-      document.getElementById('navMaxScore').textContent = p.max_score || 100;
 
       const diffEl = document.getElementById('navProbDiff');
       diffEl.textContent = p.difficulty || 'Medium';
@@ -636,48 +605,30 @@
           .map(t => `<span class="text-[11px] px-2.5 py-0.5 rounded-lg bg-cyan-500/10 text-cyan-300 border border-cyan-500/25">${t}</span>`).join('');
       }
 
-      const modeChip = document.getElementById('stmtModeChip');
-      if (p.is_function_mode) {
-        modeChip.textContent = p.show_main ? 'โหมดเขียนฟังก์ชัน (เห็น main)' : 'โหมดเขียนฟังก์ชัน (ปิดซ่อน main)';
-        modeChip.className = 'text-[11px] px-2.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/35';
-        if (p.func_lang) document.getElementById('langSelect').value = p.func_lang;
-        if (p.show_main && p.grader_main_code) {
-          document.getElementById('viewGraderMainBtn').classList.remove('hidden');
-          document.getElementById('graderMainCodePreview').textContent = p.grader_main_code;
-        }
-      }
-
       const activeLang = document.getElementById('langSelect').value;
-      monaco.editor.setModelLanguage(editorInstance.getModel(), activeLang === 'python' ? 'python' : 'cpp');
+      monaco.editor.setModelLanguage(editorInstance.getModel(), activeLang === 'c' ? 'c' : 'cpp');
       const draft = localStorage.getItem(`st8_draft_${problemId}_${activeLang}`);
       editorInstance.setValue(draft || getStarterCodeForLang(activeLang));
 
       if (p.statement_pdf_url) {
         document.getElementById('stmtPdfSection').classList.remove('hidden');
-        const pdfSrc = p.statement_pdf_url.includes('#')
-          ? p.statement_pdf_url
-          : `${p.statement_pdf_url}#view=FitH&navpanes=0`;
-        document.getElementById('stmtPdfFrame').src = pdfSrc;
+        document.getElementById('stmtPdfFrame').src = p.statement_pdf_url.includes('#') ? p.statement_pdf_url : `${p.statement_pdf_url}#view=FitH&navpanes=0`;
       }
 
       const mdOutput = document.getElementById('stmtMarkdownBody');
-      mdOutput.innerHTML = p.statement
-        ? (typeof marked !== 'undefined' ? marked.parse(p.statement) : p.statement)
-        : '<p class="text-gray-400 italic">ดูรายละเอียดโจทย์ในเอกสาร PDF ด้านบน</p>';
+      mdOutput.innerHTML = p.statement ? (typeof marked !== 'undefined' ? marked.parse(p.statement) : p.statement) : '<p class="text-gray-400 italic">ดูรายละเอียดใน PDF</p>';
 
       const samples = (p.test_cases || []).filter(tc => tc.is_sample);
       const sampleListEl = document.getElementById('stmtSamplesList');
       if (samples.length === 0) {
-        sampleListEl.innerHTML = '<p class="text-xs text-gray-500 italic">ไม่มี Sample Test Case แสดงในหน้านี้</p>';
+        sampleListEl.innerHTML = '<p class="text-xs text-gray-500 italic">ไม่มี Sample Test Case</p>';
       } else {
         document.getElementById('customInputBox').value = samples[0].input || '';
         sampleListEl.innerHTML = samples.map((tc, i) => `
           <div class="bg-black/50 border border-cyan-500/20 rounded-2xl p-3.5 space-y-2.5">
             <div class="flex justify-between items-center">
               <span class="text-xs font-bold text-amber-300">ตัวอย่างที่ ${i + 1}</span>
-              <button type="button" onclick="copySampleInput(${i})" class="text-[11px] text-cyan-300 hover:underline cursor-pointer">
-                <i class="fa-solid fa-arrow-turn-down mr-1"></i> ใส่ลงช่อง Custom Input
-              </button>
+              <button type="button" onclick="copySampleInput(${i})" class="text-[11px] text-cyan-300 hover:underline cursor-pointer"><i class="fa-solid fa-arrow-turn-down mr-1"></i> ใส่ลงช่องทดสอบ</button>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
               <div>
@@ -715,107 +666,6 @@
 
     function loadSampleIntoCustomInput() { copySampleInput(0); }
 
-    // PYTHON WASM WORKER
-    let pyodideWorker = null;
-    let pyodidePendingResolvers = {};
-    let pyodideReqCounter = 1;
-
-    function getPyodideWorker() {
-      if (pyodideWorker) return pyodideWorker;
-
-      const workerScript = `
-        importScripts('https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js');
-        let pyodideReadyPromise = loadPyodide({
-          indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.26.4/full/'
-        });
-
-        self.onmessage = async (e) => {
-          const { id, code, testCases } = e.data;
-          try {
-            const pyodide = await pyodideReadyPromise;
-            const results = [];
-            for (let i = 0; i < testCases.length; i++) {
-              const stdinText = testCases[i].input || '';
-              pyodide.setStdin({ stdin: () => null, isatty: false });
-              pyodide.globals.set('__st8_stdin_data', stdinText);
-              pyodide.globals.set('__st8_user_code', code);
-
-              const t0 = performance.now();
-              try {
-                const out = await pyodide.runPythonAsync(\`
-import sys, io, traceback
-sys.stdin = io.StringIO(__st8_stdin_data)
-_out_buf = io.StringIO()
-_err_buf = io.StringIO()
-_old_out, _old_err = sys.stdout, sys.stderr
-sys.stdout, sys.stderr = _out_buf, _err_buf
-_err_msg = ""
-try:
-    exec(compile(__st8_user_code, "solution.py", "exec"), {"__name__": "__main__"})
-except BaseException:
-    _err_msg = traceback.format_exc()
-finally:
-    sys.stdout, sys.stderr = _old_out, _old_err
-(_out_buf.getvalue(), _err_msg)
-\`);
-                const pyResult = out.toJs();
-                const elapsed = parseFloat(((performance.now() - t0) / 1000).toFixed(3));
-                const stdoutStr = pyResult[0] || '';
-                const errStr = pyResult[1] || '';
-                if (errStr) {
-                  results.push({ status: 'RE', stdout: stdoutStr, stderr: errStr, compilerError: '', elapsed });
-                } else {
-                  results.push({ status: 'OK', stdout: stdoutStr, stderr: '', compilerError: '', elapsed });
-                }
-              } catch (pyErr) {
-                const elapsed = parseFloat(((performance.now() - t0) / 1000).toFixed(3));
-                results.push({ status: 'RE', stdout: '', stderr: String(pyErr), compilerError: '', elapsed });
-              }
-            }
-            self.postMessage({ id, results });
-          } catch (fatalErr) {
-            self.postMessage({ id, error: String(fatalErr) });
-          }
-        };
-      `;
-
-      const blob = new Blob([workerScript], { type: 'application/javascript' });
-      pyodideWorker = new Worker(URL.createObjectURL(blob));
-      pyodideWorker.onmessage = (e) => {
-        const { id, results, error } = e.data;
-        if (pyodidePendingResolvers[id]) {
-          if (error) pyodidePendingResolvers[id].reject(new Error(error));
-          else pyodidePendingResolvers[id].resolve(results);
-          delete pyodidePendingResolvers[id];
-        }
-      };
-      return pyodideWorker;
-    }
-
-    function runPythonInBrowserWasm(code, testCases, timeLimitSec) {
-      return new Promise((resolve, reject) => {
-        const worker = getPyodideWorker();
-        const reqId = pyodideReqCounter++;
-        const maxTimeoutMs = Math.max(4000, (timeLimitSec * testCases.length * 1000) + 8000);
-
-        const timer = setTimeout(() => {
-          delete pyodidePendingResolvers[reqId];
-          worker.terminate();
-          pyodideWorker = null;
-          resolve(testCases.map(() => ({
-            status: 'TLE', stdout: '', stderr: 'Time Limit Exceeded', compilerError: '', elapsed: timeLimitSec
-          })));
-        }, maxTimeoutMs);
-
-        pyodidePendingResolvers[reqId] = {
-          resolve: (res) => { clearTimeout(timer); resolve(res); },
-          reject: (err) => { clearTimeout(timer); reject(err); }
-        };
-
-        worker.postMessage({ id: reqId, code, testCases });
-      });
-    }
-
     function buildFullRunnableCode(userCode) {
       if (!currentProblem || !currentProblem.is_function_mode || !currentProblem.grader_main_code) {
         return userCode;
@@ -841,7 +691,6 @@ finally:
 #include <vector>
 #include <unistd.h>
 #include <sys/wait.h>
-#include <sys/time.h>
 
 namespace __st8_user_ns {
 ${userCode}
@@ -990,36 +839,23 @@ int main() {
       switchConsoleTab('test');
       btn.disabled = true;
       btn.innerHTML = '<i class="fa-solid fa-bolt fa-spin"></i> กำลังรัน...';
-      outBox.className = 'flex-1 w-full bg-black/70 border border-cyan-500/30 rounded-xl p-2 text-xs text-cyan-300 font-code overflow-auto whitespace-pre-wrap';
-      outBox.textContent = lang === 'python' ? 'กำลังรัน Python WASM...' : 'กำลังคอมไพล์และรันโปรแกรม...';
+      outBox.textContent = 'กำลังคอมไพล์และรัน...';
       statsEl.textContent = '';
 
       try {
-        let result;
-        if (lang === 'python') {
-          const pyRes = await runPythonInBrowserWasm(fullCode, [{ input: stdin }], parseFloat(currentProblem?.time_limit) || 2.0);
-          result = pyRes[0];
-        } else {
-          result = await executeCppSingleCall(fullCode, lang, stdin);
-        }
-
+        const result = await executeCppSingleCall(fullCode, lang, stdin);
         statsEl.textContent = `Time: ${result.elapsed}s`;
 
         if (result.status === 'CE') {
-          outBox.className = 'flex-1 w-full bg-black/70 border border-rose-500/40 rounded-xl p-2 text-xs text-rose-300 font-code overflow-auto whitespace-pre-wrap';
           outBox.textContent = `[Compilation Error]\n${result.compilerError}`;
         } else if (result.status === 'TLE') {
-          outBox.className = 'flex-1 w-full bg-black/70 border border-amber-500/40 rounded-xl p-2 text-xs text-amber-300 font-code overflow-auto whitespace-pre-wrap';
           outBox.textContent = `[Time Limit Exceeded]`;
         } else if (result.status === 'RE') {
-          outBox.className = 'flex-1 w-full bg-black/70 border border-amber-500/40 rounded-xl p-2 text-xs text-amber-300 font-code overflow-auto whitespace-pre-wrap';
           outBox.textContent = `[Runtime Error]\n${result.stderr}\n${result.stdout}`;
         } else {
-          outBox.className = 'flex-1 w-full bg-black/70 border border-emerald-500/35 rounded-xl p-2 text-xs text-emerald-200 font-code overflow-auto whitespace-pre-wrap';
           outBox.textContent = result.stdout || '(ไม่มี Output แสดงผล)';
         }
       } catch (err) {
-        outBox.className = 'flex-1 w-full bg-black/70 border border-rose-500/40 rounded-xl p-2 text-xs text-rose-300 font-code overflow-auto whitespace-pre-wrap';
         outBox.textContent = `Error: ${err.message}`;
       } finally {
         btn.disabled = false;
@@ -1058,13 +894,7 @@ int main() {
         let caseResults = [];
 
         const effectiveCases = testCases.length > 0 ? testCases : [{ input: '', output: '' }];
-        let rawResponses = [];
-
-        if (lang === 'python') {
-          rawResponses = await runPythonInBrowserWasm(fullCode, effectiveCases, timeLimitSec);
-        } else {
-          rawResponses = await runCppSingleCompileBatch(fullCode, lang, effectiveCases);
-        }
+        const rawResponses = await runCppSingleCompileBatch(fullCode, lang, effectiveCases);
 
         if (rawResponses[0] && rawResponses[0].status === 'CE') {
           finalStatus = 'Compilation Error';
@@ -1099,7 +929,7 @@ int main() {
         const maxScore = currentProblem.max_score || 100;
         const score = finalStatus === 'Accepted' ? maxScore : Math.round((passedCount / totalCases) * maxScore);
 
-        const { error: insertErr } = await supabaseClient.from('submissions').insert([{
+        await supabaseClient.from('submissions').insert([{
           user_id: currentUser.id,
           problem_id: parseInt(problemId),
           source_code: userCode,
@@ -1110,25 +940,17 @@ int main() {
           test_results: caseResults
         }]);
 
-        if (insertErr) {
-          showToast('บันทึกผลตรวจไม่สำเร็จ', insertErr.message, true);
-        } else {
-          if (finalStatus === 'Accepted' && !hasUserSolvedThisProblem && currentUserProfile) {
-            const newXp = (currentUserProfile.xp || 0) + maxScore;
-            await supabaseClient.from('profiles').update({ xp: newXp }).eq('id', currentUser.id);
-            currentUserProfile.xp = newXp;
-          }
-          await loadMySubmissions();
+        if (finalStatus === 'Accepted' && !hasUserSolvedThisProblem && currentUserProfile) {
+          const newXp = (currentUserProfile.xp || 0) + maxScore;
+          await supabaseClient.from('profiles').update({ xp: newXp }).eq('id', currentUser.id);
+          currentUserProfile.xp = newXp;
         }
+        await loadMySubmissions();
 
         const isAc = finalStatus === 'Accepted';
         const badgeColor = isAc ? 'text-emerald-400 bg-emerald-500/15 border-emerald-500/40' : 'text-rose-400 bg-rose-500/15 border-rose-500/40';
         const chipsHtml = caseResults.map(c => {
-          const cls = c.verdict === 'AC'
-            ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
-            : c.verdict === 'WA'
-            ? 'bg-rose-500/20 text-rose-300 border-rose-500/40'
-            : 'bg-amber-500/20 text-amber-300 border-amber-500/40';
+          const cls = c.verdict === 'AC' ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' : 'bg-rose-500/20 text-rose-300 border-rose-500/40';
           return `<span class="px-2.5 py-1 rounded-lg border text-[11px] font-code font-bold ${cls}">#${c.index}: ${c.verdict} ${c.time ? `(${c.time}s)` : ''}</span>`;
         }).join('');
 
@@ -1147,10 +969,9 @@ int main() {
             <div class="flex flex-wrap gap-1.5">${chipsHtml}</div>
           </div>
         `;
-
         showToast(isAc ? 'ยินดีด้วย! Accepted' : `ผลตรวจ: ${finalStatus}`, `ได้คะแนน ${score}/${maxScore} คะแนน`, !isAc);
       } catch (err) {
-        verdictBox.innerHTML = `<p class="text-xs text-rose-400">เกิดข้อผิดพลาดระหว่างตรวจ: ${err.message}</p>`;
+        verdictBox.innerHTML = `<p class="text-xs text-rose-400">เกิดข้อผิดพลาด: ${err.message}</p>`;
       } finally {
         btn.disabled = false;
         btn.innerHTML = '<i class="fa-solid fa-bolt"></i> ส่งตรวจ (Submit)';
@@ -1159,28 +980,19 @@ int main() {
 
     async function loadMySubmissions() {
       if (!currentUser || !problemId) return;
-      const { data } = await supabaseClient
-        .from('submissions')
-        .select('*')
-        .eq('user_id', currentUser.id)
-        .eq('problem_id', problemId)
-        .order('created_at', { ascending: false });
-
+      const { data } = await supabaseClient.from('submissions').select('*').eq('user_id', currentUser.id).eq('problem_id', problemId).order('created_at', { ascending: false });
       mySubmissionsCache = data || [];
       hasUserSolvedThisProblem = mySubmissionsCache.some(s => s.status === 'Accepted' || s.status === 'AC');
       document.getElementById('mySubsCountBadge').textContent = mySubmissionsCache.length;
 
       const listEl = document.getElementById('mySubmissionsList');
       if (mySubmissionsCache.length === 0) {
-        listEl.innerHTML = `<div class="text-center py-10 text-xs text-gray-400 border border-dashed border-cyan-500/20 rounded-2xl">คุณยังไม่เคยส่งโค้ดสำหรับโจทย์ข้อนี้</div>`;
+        listEl.innerHTML = `<div class="text-center py-10 text-xs text-gray-400 border border-dashed border-cyan-500/20 rounded-2xl">ยังไม่เคยส่งโค้ดข้อนี้</div>`;
         return;
       }
-
       listEl.innerHTML = mySubmissionsCache.map(s => {
         const isAc = s.status === 'Accepted' || s.status === 'AC';
         const statusCls = isAc ? 'text-emerald-300 bg-emerald-500/15 border-emerald-500/35' : 'text-rose-300 bg-rose-500/15 border-rose-500/35';
-        const timeStr = s.created_at ? new Date(s.created_at).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' }) : '-';
-
         return `
           <div class="tech-glass rounded-2xl p-3.5 border border-cyan-500/20 flex flex-wrap items-center justify-between gap-3">
             <div class="space-y-1">
@@ -1189,18 +1001,10 @@ int main() {
                 <span class="text-xs font-code text-cyan-300 font-bold">#SUB-${s.id}</span>
                 <span class="text-[11px] px-2 py-0.5 rounded bg-white/5 text-gray-300 uppercase font-code">${s.language || 'cpp'}</span>
               </div>
-              <div class="text-[11px] text-gray-400">
-                คะแนน: <b class="text-white">${s.score ?? (isAc ? 100 : 0)}</b> &bull; เวลา: <b class="text-gray-200">${s.execution_time || 0}s</b> &bull; ส่งเมื่อ: ${timeStr}
-              </div>
+              <div class="text-[11px] text-gray-400">คะแนน: <b class="text-white">${s.score ?? 0}</b> &bull; เวลา: ${s.execution_time || 0}s</div>
             </div>
-
             <div class="flex items-center gap-1.5">
-              <button type="button" onclick="attachSubmissionToChat('${s.id}')" class="bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/35 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer" title="ถามในแชตพร้อมแนบโค้ดนี้">
-                <i class="fa-solid fa-comment-medical"></i>
-              </button>
-              <button type="button" onclick="openSubmissionCodeById('${s.id}')" class="bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 border border-cyan-500/35 px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer">
-                <i class="fa-solid fa-code mr-1"></i> ดูโค้ด
-              </button>
+              <button type="button" onclick="openSubmissionCodeById('${s.id}')" class="bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 border border-cyan-500/35 px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer"><i class="fa-solid fa-code mr-1"></i> ดูโค้ด</button>
             </div>
           </div>
         `;
@@ -1213,172 +1017,65 @@ int main() {
         const { data } = await supabaseClient.from('submissions').select('*').eq('id', subId).maybeSingle();
         sub = data;
       }
-      if (!sub) {
-        showToast('ไม่พบโค้ด', 'ไม่พบข้อมูล Submission นี้', true);
-        return;
-      }
-
-      modalViewedCode = sub.source_code || '// ไม่มีข้อมูลโค้ดที่บันทึกไว้';
+      if (!sub) return;
+      modalViewedCode = sub.source_code || '';
       modalViewedLang = sub.language || 'cpp';
       document.getElementById('viewCodeModalTitle').textContent = `Submission #${sub.id} (${sub.status})`;
-      document.getElementById('viewCodeModalMeta').textContent = `ภาษา: ${(sub.language || 'cpp').toUpperCase()} • คะแนน: ${sub.score || 0}`;
       document.getElementById('viewCodeModalBody').textContent = modalViewedCode;
       document.getElementById('viewCodeModal').classList.remove('opacity-0', 'pointer-events-none');
     }
 
-    function closeViewCodeModal() {
-      document.getElementById('viewCodeModal').classList.add('opacity-0', 'pointer-events-none');
-    }
-
-    function copyModalCode() {
-      navigator.clipboard.writeText(modalViewedCode);
-      showToast('คัดลอกแล้ว', 'คัดลอกโค้ดไปยังคลิปบอร์ดเรียบร้อย');
-    }
-
+    function closeViewCodeModal() { document.getElementById('viewCodeModal').classList.add('opacity-0', 'pointer-events-none'); }
+    function copyModalCode() { navigator.clipboard.writeText(modalViewedCode); showToast('คัดลอกแล้ว', 'เรียบร้อย'); }
     function loadModalCodeToEditor() {
       if (editorInstance && modalViewedCode) {
         document.getElementById('langSelect').value = modalViewedLang;
-        monaco.editor.setModelLanguage(editorInstance.getModel(), modalViewedLang === 'python' ? 'python' : 'cpp');
+        monaco.editor.setModelLanguage(editorInstance.getModel(), modalViewedLang === 'c' ? 'c' : 'cpp');
         editorInstance.setValue(modalViewedCode);
         closeViewCodeModal();
-        showToast('โหลดโค้ดสำเร็จ', 'นำโค้ดจาก Submission ใส่ใน Editor เรียบร้อย');
+        showToast('โหลดสำเร็จ', 'นำโค้ดใส่ Editor แล้ว');
       }
-    }
-
-    function toggleAttachSubMenu() {
-      const popup = document.getElementById('attachSubPopup');
-      const list = document.getElementById('attachSubOptionsList');
-      if (popup.classList.contains('hidden')) {
-        if (mySubmissionsCache.length === 0) {
-          list.innerHTML = `<div class="text-gray-400 p-2 text-center">คุณยังไม่มีประวัติส่งโค้ดในข้อนี้</div>`;
-        } else {
-          list.innerHTML = mySubmissionsCache.map(s => `
-            <button type="button" onclick="selectChatAttachment('${s.id}')" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-cyan-500/20 text-gray-200 flex items-center justify-between cursor-pointer">
-              <span class="font-code font-bold text-cyan-300">#SUB-${s.id}</span>
-              <span class="text-[11px] ${s.status === 'Accepted' ? 'text-emerald-400' : 'text-rose-400'}">${s.status}</span>
-            </button>
-          `).join('');
-        }
-        popup.classList.remove('hidden');
-      } else {
-        popup.classList.add('hidden');
-      }
-    }
-
-    function selectChatAttachment(subId) {
-      const sub = mySubmissionsCache.find(s => String(s.id) === String(subId));
-      if (!sub) return;
-      selectedChatAttachmentId = sub.id;
-      document.getElementById('attachSubPopup').classList.add('hidden');
-      document.getElementById('chatAttachedLabel').textContent = `แนบ #SUB-${sub.id} (${sub.status})`;
-      document.getElementById('chatAttachmentBar').classList.remove('hidden');
-      document.getElementById('chatMessageInput').focus();
-    }
-
-    function attachSubmissionToChat(subId) {
-      switchLeftTab('chat');
-      selectChatAttachment(subId);
-    }
-
-    function clearChatAttachment() {
-      selectedChatAttachmentId = null;
-      document.getElementById('chatAttachmentBar').classList.add('hidden');
     }
 
     async function loadChatMessages() {
       if (!problemId) return;
-      const { data } = await supabaseClient
-        .from('problem_chat_messages')
-        .select('*')
-        .eq('problem_id', problemId)
-        .order('created_at', { ascending: true });
-
+      const { data } = await supabaseClient.from('problem_chat_messages').select('*').eq('problem_id', problemId).order('created_at', { ascending: true });
       chatMessagesCache = data || [];
       renderChatMessages();
     }
 
     function subscribeRealtimeChat() {
-      supabaseClient
-        .channel(`problem-chat-${problemId}`)
-        .on('postgres_changes', {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'problem_chat_messages',
-          filter: `problem_id=eq.${problemId}`
-        }, (payload) => {
-          if (!chatMessagesCache.some(m => m.id === payload.new.id)) {
-            chatMessagesCache.push(payload.new);
-            renderChatMessages();
-          }
-        })
-        .subscribe();
+      supabaseClient.channel(`problem-chat-${problemId}`).on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'problem_chat_messages', filter: `problem_id=eq.${problemId}` }, (payload) => {
+        if (!chatMessagesCache.some(m => m.id === payload.new.id)) {
+          chatMessagesCache.push(payload.new);
+          renderChatMessages();
+        }
+      }).subscribe();
     }
 
     function renderChatMessages() {
       const container = document.getElementById('chatMessagesContainer');
       document.getElementById('chatCountBadge').textContent = chatMessagesCache.length;
-
       if (chatMessagesCache.length === 0) {
-        container.innerHTML = `<div class="text-center py-10 text-xs text-gray-400">ยังไม่มีข้อความสนทนาในโจทย์ข้อนี้</div>`;
+        container.innerHTML = `<div class="text-center py-10 text-xs text-gray-400">ยังไม่มีข้อความสนทนา</div>`;
         return;
       }
-
       container.innerHTML = chatMessagesCache.map(m => {
         const isMine = currentUser && String(m.user_id) === String(currentUser.id);
         const timeStr = m.created_at ? new Date(m.created_at).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }) : '';
-        const canViewCode = m.attached_submission_id && (isMine || isAdminUser || (m.is_code_public && hasUserSolvedThisProblem));
-
-        let attachmentCard = '';
-        if (m.attached_submission_id) {
-          if (canViewCode) {
-            attachmentCard = `
-              <button type="button" onclick="openSubmissionCodeById('${m.attached_submission_id}')" class="mt-1.5 w-full text-left bg-black/45 hover:bg-black/65 border border-cyan-400/35 px-2.5 py-1.5 rounded-xl text-[11px] text-cyan-200 flex items-center justify-between gap-2 transition cursor-pointer">
-                <span><i class="fa-solid fa-code text-cyan-400 mr-1"></i> โค้ดที่แนบ <b>#SUB-${m.attached_submission_id}</b></span>
-                <span class="text-[10px] underline">เปิดดู</span>
-              </button>
-            `;
-          } else {
-            attachmentCard = `
-              <div class="mt-1.5 bg-black/35 border border-white/10 px-2.5 py-1.5 rounded-xl text-[10px] text-gray-400 flex items-center gap-1.5">
-                <i class="fa-solid fa-lock text-amber-400"></i> แนบ #SUB-${m.attached_submission_id} (ผ่านข้อนี้ก่อนจึงจะดูได้)
-              </div>
-            `;
-          }
-        }
-
-        if (isMine) {
-          return `
-            <div class="flex flex-col items-end">
-              <div class="max-w-[85%] bg-gradient-to-br from-blue-600/85 to-cyan-600/85 text-white px-3.5 py-2.5 rounded-2xl rounded-br-sm shadow">
-                <p class="text-xs whitespace-pre-wrap leading-relaxed">${escapeHtml(m.message)}</p>
-                ${attachmentCard}
-              </div>
-              <span class="text-[10px] text-gray-500 mt-0.5 mr-1">${timeStr}</span>
-            </div>
-          `;
-        } else {
-          return `
-            <div class="flex flex-col items-start">
-              <div class="flex items-center gap-1.5 mb-0.5 ml-1">
-                <span class="text-[11px] font-bold ${m.is_admin ? 'text-rose-300' : 'text-cyan-300'}">${escapeHtml(m.sender_name)}</span>
-                ${m.is_admin ? '<span class="text-[9px] px-1.5 py-0.2 rounded bg-rose-500/20 text-rose-300 border border-rose-500/35">ADMIN</span>' : ''}
-                <span class="text-[10px] text-gray-500">${timeStr}</span>
-              </div>
-              <div class="max-w-[85%] tech-glass border border-cyan-500/20 text-gray-100 px-3.5 py-2.5 rounded-2xl rounded-bl-sm">
-                <p class="text-xs whitespace-pre-wrap leading-relaxed">${escapeHtml(m.message)}</p>
-                ${attachmentCard}
-              </div>
-            </div>
-          `;
-        }
+        return `
+          <div class="flex flex-col ${isMine ? 'items-end' : 'items-start'}">
+            <div class="text-[10px] text-gray-400 mb-0.5">${escapeHtml(m.sender_name)} • ${timeStr}</div>
+            <div class="max-w-[85%] ${isMine ? 'bg-blue-600 text-white' : 'tech-glass text-gray-100'} px-3.5 py-2 rounded-2xl text-xs">${escapeHtml(m.message)}</div>
+          </div>
+        `;
       }).join('');
-
       scrollChatToBottom();
     }
 
     function scrollChatToBottom() {
-      const container = document.getElementById('chatMessagesContainer');
-      if (container) container.scrollTop = container.scrollHeight;
+      const c = document.getElementById('chatMessagesContainer');
+      if (c) c.scrollTop = c.scrollHeight;
     }
 
     document.getElementById('chatSendForm').addEventListener('submit', async (e) => {
@@ -1386,44 +1083,17 @@ int main() {
       if (!currentUser || !problemId) return;
       const input = document.getElementById('chatMessageInput');
       const msgText = input.value.trim();
-      if (!msgText && !selectedChatAttachmentId) return;
-
+      if (!msgText) return;
       const senderName = (currentUserProfile && (currentUserProfile.display_name || currentUserProfile.username)) || currentUser.email.split('@')[0];
-      const isCodePublic = document.getElementById('chatCodePublicCheck').checked;
-      const attachId = selectedChatAttachmentId;
-
       input.value = '';
-      clearChatAttachment();
-
-      const { data, error } = await supabaseClient.from('problem_chat_messages').insert([{
-        problem_id: parseInt(problemId),
-        user_id: currentUser.id,
-        sender_name: senderName,
-        is_admin: isAdminUser,
-        message: msgText || 'แนบโค้ดเพื่อขอคำแนะนำครับ',
-        attached_submission_id: attachId ? parseInt(attachId) : null,
-        is_code_public: isCodePublic
-      }]).select().single();
-
-      if (error) {
-        showToast('ส่งข้อความไม่สำเร็จ', error.message, true);
-      } else if (data && !chatMessagesCache.some(m => m.id === data.id)) {
-        chatMessagesCache.push(data);
-        renderChatMessages();
-      }
+      await supabaseClient.from('problem_chat_messages').insert([{ problem_id: parseInt(problemId), user_id: currentUser.id, sender_name: senderName, message: msgText }]);
     });
 
     function escapeHtml(str) {
-      return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;');
+      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 
     initEditorPage();
   </script>
 </body>
 </html>
-
-

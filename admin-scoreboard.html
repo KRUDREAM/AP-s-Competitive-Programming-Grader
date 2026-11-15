@@ -15,6 +15,11 @@
     .tech-glass { background: rgba(10, 15, 30, 0.78); backdrop-filter: blur(20px); border: 1px solid rgba(56, 189, 248, 0.16); }
     .tech-modal { background: rgba(6, 11, 25, 0.96); backdrop-filter: blur(28px); border: 1px solid rgba(56, 189, 248, 0.28); }
     .cyber-grid { background-image: linear-gradient(to right, rgba(56, 189, 248, 0.03) 1px, transparent 1px), linear-gradient(to bottom, rgba(56, 189, 248, 0.03) 1px, transparent 1px); background-size: 32px 32px; }
+
+    /* HOVER HIGHLIGHT TABLE COL & ROW */
+    td.matrix-cell { transition: background-color 0.15s ease; }
+    tr.matrix-row:hover td.matrix-cell { background-color: rgba(56, 189, 248, 0.06); }
+    td.matrix-cell.col-hover { background-color: rgba(56, 189, 248, 0.08) !important; }
   </style>
 </head>
 <body class="min-h-screen flex flex-col relative overflow-x-hidden cyber-grid">
@@ -35,10 +40,10 @@
       <div class="flex flex-wrap gap-3 justify-between items-center bg-gradient-to-r from-cyan-950/45 via-blue-950/30 to-amber-950/25 p-5 rounded-2xl border border-cyan-500/25">
         <div>
           <div class="flex items-center gap-2 flex-wrap">
-            <h2 class="text-lg md:text-xl font-bold text-white"><i class="fa-solid fa-ranking-star text-yellow-400 mr-1.5"></i> TOI / IOI Style Scoreboard</h2>
-            <span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40">PARTIAL SCORING MATRIX</span>
+            <h2 class="text-lg md:text-xl font-bold text-white"><i class="fa-solid fa-ranking-star text-yellow-400 mr-1.5"></i> TOI / IOI Style Scoreboard (Admin Monitor)</h2>
+            <span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40">ADMIN FULL ACCESS</span>
           </div>
-          <p class="text-xs text-gray-400 mt-0.5">คลิกที่ชื่อผู้เข้าแข่งขันเพื่อดูโปรไฟล์เชิงลึก ประวัติการส่งโค้ด และสถิติรายบุคคล</p>
+          <p class="text-xs text-gray-400 mt-0.5">ตรวจสอบคะแนนเรียลไทม์ ควบคุมโหมด Freeze และวิเคราะห์ประวัติการส่งโค้ดเชิงลึกของผู้เข้าแข่งขัน</p>
         </div>
 
         <div class="flex flex-wrap items-center gap-2">
@@ -80,7 +85,7 @@
       <div class="tech-glass p-5 rounded-2xl border border-cyan-500/25 space-y-4">
         <div class="flex flex-wrap justify-between items-center gap-3">
           <div>
-            <h3 class="text-sm md:text-base font-bold text-white"><i class="fa-solid fa-chart-line text-cyan-400 mr-1.5"></i> กราฟพัฒนาการคะแนนรวมตามเวลา</h3>
+            <h3 class="text-sm md:text-base font-bold text-white"><i class="fa-solid fa-chart-line text-cyan-400 mr-1.5"></i> กราฟพัฒนาการคะแนนรวมตามเวลา (จังหวะการพุ่งของคะแนน)</h3>
             <p class="text-xs text-gray-400">ติ๊กเลือกช่อง "กราฟ" ในตารางด้านล่างเพื่อเปรียบเทียบคะแนนหลายคนพร้อมกัน</p>
           </div>
           <div class="flex items-center gap-2">
@@ -103,7 +108,7 @@
       <!-- MEDAL LEGEND -->
       <div class="flex flex-wrap justify-between items-center gap-3 text-xs px-1">
         <div class="flex flex-wrap items-center gap-3">
-          <span class="text-gray-400 font-semibold">เกณฑ์เหรียญ (IOI Ratio):</span>
+          <span class="text-gray-400 font-semibold">เกณฑ์เหรียญรางวัล (IOI Ratio):</span>
           <span class="px-2.5 py-0.5 rounded-full bg-yellow-500/20 text-yellow-300 border border-yellow-500/40 font-semibold"><i class="fa-solid fa-medal mr-1"></i> Gold (Top 1/12)</span>
           <span class="px-2.5 py-0.5 rounded-full bg-slate-300/20 text-slate-200 border border-slate-300/40 font-semibold"><i class="fa-solid fa-medal mr-1"></i> Silver (ถัดไป 2/12)</span>
           <span class="px-2.5 py-0.5 rounded-full bg-amber-700/25 text-amber-300 border border-amber-600/40 font-semibold"><i class="fa-solid fa-medal mr-1"></i> Bronze (ถัดไป 3/12)</span>
@@ -164,6 +169,20 @@
         </div>
       </div>
 
+      <!-- PROBLEM SOLVED BREAKDOWN -->
+      <div class="tech-glass p-4 rounded-2xl border border-cyan-500/20 space-y-3">
+        <h4 class="text-xs font-bold text-cyan-300 uppercase tracking-wider"><i class="fa-solid fa-list-check mr-1.5"></i> สถานะโจทย์แต่ละข้อ</h4>
+        <div id="modalProblemStatusGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 max-h-40 overflow-y-auto pr-1"></div>
+      </div>
+
+      <!-- INDIVIDUAL PROGRESSION CHART -->
+      <div class="tech-glass p-4 rounded-2xl border border-cyan-500/20 space-y-2">
+        <h4 class="text-xs font-bold text-cyan-300"><i class="fa-solid fa-chart-line mr-1.5"></i> กราฟพัฒนาการคะแนน (รายบุคคล)</h4>
+        <div class="relative w-full h-48 bg-black/60 rounded-xl p-2 border border-cyan-500/15">
+          <canvas id="individualProgressionChart"></canvas>
+        </div>
+      </div>
+
       <!-- SUBMISSION HISTORY LIST -->
       <div class="space-y-3">
         <h4 class="text-sm font-bold text-cyan-300"><i class="fa-solid fa-clock-rotate-left mr-1.5"></i> ประวัติการส่งโค้ด (Submission History)</h4>
@@ -188,6 +207,7 @@
     let computedRows = [];
     let selectedChartUserIds = new Set();
     let scoreChartInstance = null;
+    let individualChartInstance = null;
     let isFreezeActive = false;
 
     const CHART_PALETTE = [
@@ -359,7 +379,7 @@
     }
 
     function getMedalBadge(rank, totalCount, score) {
-      if (score <= 0 || totalCount === 0) return `<span class="text-gray-400 font-bold">#${rank}</span>`;
+      if (score <= 0 || totalCount === 0) return `<span class="text-gray-400 font-bold font-mono">#${rank}</span>`;
       const goldCutoff = Math.max(1, Math.ceil(totalCount / 12));
       const silverCutoff = Math.max(goldCutoff + 1, Math.ceil((totalCount * 3) / 12));
       const bronzeCutoff = Math.max(silverCutoff + 1, Math.ceil((totalCount * 6) / 12));
@@ -367,7 +387,7 @@
       if (rank <= goldCutoff) return `<span class="px-2.5 py-1 rounded-full bg-yellow-500/20 text-yellow-300 border border-yellow-500/45 font-bold text-xs inline-flex items-center gap-1"><i class="fa-solid fa-medal"></i> ${rank}</span>`;
       if (rank <= silverCutoff) return `<span class="px-2.5 py-1 rounded-full bg-slate-300/20 text-slate-200 border border-slate-300/45 font-bold text-xs inline-flex items-center gap-1"><i class="fa-solid fa-medal"></i> ${rank}</span>`;
       if (rank <= bronzeCutoff) return `<span class="px-2.5 py-1 rounded-full bg-amber-700/25 text-amber-300 border border-amber-600/45 font-bold text-xs inline-flex items-center gap-1"><i class="fa-solid fa-medal"></i> ${rank}</span>`;
-      return `<span class="text-gray-300 font-bold">#${rank}</span>`;
+      return `<span class="text-gray-300 font-bold font-mono">#${rank}</span>`;
     }
 
     function renderIoiTable() {
@@ -375,8 +395,8 @@
       const tbody = document.getElementById('ioiTableBody');
       const query = (document.getElementById('sbSearchInput').value || '').trim().toLowerCase();
 
-      const probHeaders = activeProblemColumns.map(col => `
-        <th class="px-3 py-3.5 text-center min-w-[78px]" title="${col.title}">
+      const probHeaders = activeProblemColumns.map((col, cIdx) => `
+        <th class="px-3 py-3.5 text-center min-w-[78px]" data-col-index="${cIdx + 3}" title="${col.title}">
           <div class="font-bold text-cyan-300">${col.label}</div>
           <div class="text-[10px] text-gray-400 font-normal">(${col.maxScore})</div>
         </th>
@@ -384,10 +404,10 @@
 
       thead.innerHTML = `
         <tr>
-          <th class="px-3 py-3.5 text-center w-14">กราฟ</th>
-          <th class="px-3 py-3.5 text-center w-20">อันดับ</th>
-          <th class="px-4 py-3.5 min-w-[180px]">ผู้เข้าแข่งขัน (คลิกเพื่อดูโปรไฟล์)</th>
-          <th class="px-4 py-3.5 text-center whitespace-nowrap">คะแนนรวม</th>
+          <th class="px-3 py-3.5 text-center w-14" data-col-index="0">กราฟ</th>
+          <th class="px-3 py-3.5 text-center w-20" data-col-index="1">อันดับ</th>
+          <th class="px-4 py-3.5 min-w-[180px]" data-col-index="2">ผู้เข้าแข่งขัน (คลิกเพื่อดูโปรไฟล์)</th>
+          <th class="px-4 py-3.5 text-center whitespace-nowrap" data-col-index="${3 + activeProblemColumns.length}">คะแนนรวม</th>
           ${probHeaders}
         </tr>
       `;
@@ -402,17 +422,17 @@
         const trueRank = computedRows.findIndex(r => String(r.userId) === String(row.userId)) + 1;
         const isChecked = selectedChartUserIds.has(String(row.userId));
 
-        const problemCells = activeProblemColumns.map(col => {
+        const problemCells = activeProblemColumns.map((col, cIdx) => {
           const attempts = row.attemptsByProblem[col.id] || 0;
           const score = row.bestByProblem[col.id] || 0;
-          if (attempts === 0) return `<td class="px-2 py-3 text-center text-gray-600 font-mono text-xs">-</td>`;
+          if (attempts === 0) return `<td class="px-2 py-3 text-center text-gray-600 font-mono text-xs matrix-cell" data-col-index="${cIdx + 3}">-</td>`;
 
           let cellStyle = 'bg-rose-500/15 text-rose-300 border-rose-500/30';
           if (score >= col.maxScore) cellStyle = 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 font-bold';
           else if (score > 0) cellStyle = 'bg-amber-500/20 text-amber-300 border-amber-500/40 font-semibold';
 
           return `
-            <td class="px-2 py-2.5 text-center">
+            <td class="px-2 py-2.5 text-center matrix-cell" data-col-index="${cIdx + 3}">
               <div class="inline-flex flex-col items-center justify-center min-w-[54px] py-1 px-2 rounded-xl border ${cellStyle}">
                 <span class="text-xs leading-tight">${score}</span>
                 <span class="text-[9px] opacity-75 leading-none mt-0.5">${attempts} ส่ง</span>
@@ -422,12 +442,12 @@
         }).join('');
 
         return `
-          <tr class="hover:bg-cyan-500/5 transition ${isChecked ? 'bg-cyan-500/10' : ''}">
-            <td class="px-3 py-3 text-center">
+          <tr class="matrix-row hover:bg-cyan-500/5 transition ${isChecked ? 'bg-cyan-500/10' : ''}">
+            <td class="px-3 py-3 text-center matrix-cell" data-col-index="0">
               <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleChartUser('${row.userId}')" class="w-4 h-4 accent-cyan-400 cursor-pointer rounded">
             </td>
-            <td class="px-3 py-3 text-center whitespace-nowrap">${getMedalBadge(trueRank, computedRows.length, row.totalScore)}</td>
-            <td class="px-4 py-3">
+            <td class="px-3 py-3 text-center whitespace-nowrap matrix-cell" data-col-index="1">${getMedalBadge(trueRank, computedRows.length, row.totalScore)}</td>
+            <td class="px-4 py-3 matrix-cell" data-col-index="2">
               <button type="button" onclick="openStudentProfileModal('${row.userId}')" class="text-left group cursor-pointer">
                 <div class="font-semibold text-white text-sm group-hover:text-cyan-300 transition flex items-center gap-1.5">
                   ${row.name} <i class="fa-solid fa-arrow-up-right-from-square text-[10px] opacity-0 group-hover:opacity-100 transition"></i>
@@ -435,13 +455,29 @@
                 <div class="text-[11px] text-gray-400">เต็ม ${row.fullSolvedCount}/${activeProblemColumns.length} ข้อ</div>
               </button>
             </td>
-            <td class="px-4 py-3 text-center whitespace-nowrap">
-              <span class="text-base font-bold text-cyan-300 bg-cyan-500/15 px-3 py-1 rounded-xl border border-cyan-500/30">${row.totalScore}</span>
+            <td class="px-4 py-3 text-center whitespace-nowrap matrix-cell" data-col-index="${3 + activeProblemColumns.length}">
+              <span class="text-base font-bold text-cyan-300 bg-cyan-500/15 px-3 py-1 rounded-xl border border-cyan-500/30 font-mono">${row.totalScore}</span>
             </td>
             ${problemCells}
           </tr>
         `;
       }).join('');
+
+      bindTableHoverHighlight();
+    }
+
+    function bindTableHoverHighlight() {
+      const cells = document.querySelectorAll('td.matrix-cell');
+      cells.forEach(cell => {
+        cell.addEventListener('mouseenter', () => {
+          const colIdx = cell.getAttribute('data-col-index');
+          document.querySelectorAll(`td.matrix-cell[data-col-index="${colIdx}"]`).forEach(c => c.classList.add('col-hover'));
+        });
+        cell.addEventListener('mouseleave', () => {
+          const colIdx = cell.getAttribute('data-col-index');
+          document.querySelectorAll(`td.matrix-cell[data-col-index="${colIdx}"]`).forEach(c => c.classList.remove('col-hover'));
+        });
+      });
     }
 
     // STUDENT PROFILE MODAL FUNCTIONS
@@ -465,6 +501,38 @@
       document.getElementById('modalStatSubs').textContent = `${totalSubsCount} ครั้ง`;
       document.getElementById('modalStatAcRate').textContent = `${acRate}%`;
 
+      // Render Problem Status Breakdown Grid
+      const probStatusGrid = document.getElementById('modalProblemStatusGrid');
+      probStatusGrid.innerHTML = activeProblemColumns.map(col => {
+        const score = row.bestByProblem[col.id] || 0;
+        const isPassed = score >= col.maxScore;
+        const isAttempted = (row.attemptsByProblem[col.id] || 0) > 0;
+
+        let badgeClass = 'bg-white/5 text-gray-400 border-white/10';
+        let statusText = 'ยังไม่ส่ง';
+        let iconClass = 'fa-circle-minus text-gray-500';
+
+        if (isPassed) {
+          badgeClass = 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40';
+          statusText = `ผ่านแล้ว (${score} คะแนน)`;
+          iconClass = 'fa-circle-check text-emerald-400';
+        } else if (isAttempted) {
+          badgeClass = 'bg-rose-500/20 text-rose-300 border-rose-500/40';
+          statusText = `ยังไม่ผ่าน (${score} คะแนน)`;
+          iconClass = 'fa-circle-xmark text-rose-400';
+        }
+
+        return `
+          <div class="flex items-center justify-between p-2.5 rounded-xl border ${badgeClass} text-xs">
+            <div>
+              <div class="font-bold text-white">${col.label}</div>
+              <div class="text-[10px] opacity-80">${statusText}</div>
+            </div>
+            <i class="fa-solid ${iconClass} text-sm"></i>
+          </div>
+        `;
+      }).join('');
+
       const listContainer = document.getElementById('modalSubmissionHistoryList');
       if (userSubs.length === 0) {
         listContainer.innerHTML = `<div class="text-xs text-gray-500 text-center py-6">ยังไม่มีประวัติการส่งโค้ด</div>`;
@@ -481,9 +549,7 @@
                 <div class="font-bold text-white">${prob.problem_code || 'P' + s.problem_id} : ${prob.title || 'Problem'}</div>
                 <div class="text-[10px] text-gray-400">ภาษา: ${s.language || 'C++'} &bull; ส่งเมื่อ: ${timeStr}</div>
               </div>
-              <div class="flex items-center gap-2 shrink-0">
-                <span class="px-2.5 py-1 rounded-lg font-bold border ${badgeClass}">${s.status || 'Wrong Answer'}</span>
-              </div>
+              <span class="px-2.5 py-1 rounded-lg font-bold border ${badgeClass}">${s.status || 'Wrong Answer'}</span>
             </div>
           `;
         }).join('');
@@ -492,12 +558,48 @@
       const modal = document.getElementById('studentProfileModal');
       modal.classList.remove('hidden');
       modal.classList.add('flex');
+      renderIndividualChart(row);
     }
 
     function closeStudentProfileModal() {
       const modal = document.getElementById('studentProfileModal');
       modal.classList.add('hidden');
       modal.classList.remove('flex');
+    }
+
+    function renderIndividualChart(row) {
+      const ctx = document.getElementById('individualProgressionChart').getContext('2d');
+      if (individualChartInstance) individualChartInstance.destroy();
+
+      const timeline = row.timeline || [];
+      const labels = timeline.map(pt => pt.timeLabel);
+      const data = timeline.map(pt => pt.totalScore);
+
+      individualChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels.length > 0 ? labels : ['เริ่มต้น'],
+          datasets: [{
+            label: 'คะแนนสะสมตามเวลา',
+            data: data.length > 0 ? data : [0],
+            borderColor: '#38bdf8',
+            backgroundColor: 'rgba(56, 189, 248, 0.15)',
+            borderWidth: 2,
+            stepped: true,
+            tension: 0,
+            pointRadius: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { color: '#9ca3af', font: { size: 10 } }, grid: { color: 'rgba(56,189,248,0.05)' } },
+            y: { beginAtZero: true, ticks: { color: '#9ca3af', font: { size: 10 } }, grid: { color: 'rgba(56,189,248,0.05)' } }
+          }
+        }
+      });
     }
 
     function toggleChartUser(userId) {
@@ -599,13 +701,13 @@
             x: {
               title: { display: true, text: 'เวลาที่ส่งได้คะแนน', color: '#9ca3af', font: { family: 'Kanit', size: 12 } },
               ticks: { color: '#9ca3af', font: { family: 'Kanit', size: 11 } },
-              grid: { color: 'rgba(56, 189, 248, 0.08)' }
+              grid: { color: 'rgba(56,189,248,0.08)' }
             },
             y: {
               beginAtZero: true,
               title: { display: true, text: 'คะแนนรวม', color: '#9ca3af', font: { family: 'Kanit', size: 12 } },
               ticks: { color: '#9ca3af', font: { family: 'Kanit', size: 11 } },
-              grid: { color: 'rgba(56, 189, 248, 0.08)' }
+              grid: { color: 'rgba(56,189,248,0.08)' }
             }
           }
         }

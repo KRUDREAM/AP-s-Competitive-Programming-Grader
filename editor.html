@@ -18,11 +18,32 @@
       overflow: hidden;
     }
     .font-code { font-family: 'JetBrains Mono', monospace; }
+    
+    /* CUSTOM ANIMATIONS */
+    @keyframes fadeInScale {
+      from { opacity: 0; transform: scale(0.97) translateY(6px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    @keyframes pulseGlow {
+      0%, 100% { box-shadow: 0 0 15px rgba(56, 189, 248, 0.2); }
+      50% { box-shadow: 0 0 30px rgba(56, 189, 248, 0.45); }
+    }
+    .animate-fade-in {
+      animation: fadeInScale 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .animate-glow {
+      animation: pulseGlow 3s infinite ease-in-out;
+    }
+
     .tech-glass {
       background: rgba(10, 15, 30, 0.85);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
       border: 1px solid rgba(56, 189, 248, 0.16);
+      transition: all 0.2s ease;
+    }
+    .tech-glass:hover {
+      border-color: rgba(56, 189, 248, 0.35);
     }
     .tech-modal {
       background: rgba(6, 11, 25, 0.97);
@@ -71,7 +92,7 @@
 
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: rgba(3, 7, 18, 0.6); }
-    ::-webkit-scrollbar-thumb { background: rgba(56, 189, 248, 0.25); border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb { background: rgba(56, 189, 248, 0.25); border-radius: 9999px; transition: background 0.2s; }
     ::-webkit-scrollbar-thumb:hover { background: rgba(56, 189, 248, 0.45); }
   </style>
 </head>
@@ -87,9 +108,9 @@
   </div>
 
   <!-- TOP IDE NAVBAR -->
-  <header class="h-14 shrink-0 tech-glass border-b border-cyan-500/20 px-4 flex items-center justify-between gap-3 z-30">
+  <header class="h-14 shrink-0 tech-glass border-b border-cyan-500/20 px-4 flex items-center justify-between gap-3 z-30 animate-glow">
     <div class="flex items-center gap-3 min-w-0">
-      <a href="problems.html" class="bg-white/5 hover:bg-cyan-500/15 text-cyan-300 border border-cyan-500/25 px-3 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 shrink-0">
+      <a href="problems.html" class="bg-white/5 hover:bg-cyan-500/15 text-cyan-300 border border-cyan-500/25 px-3 py-1.5 rounded-xl text-xs font-semibold transition active:scale-95 flex items-center gap-1.5 shrink-0">
         <i class="fa-solid fa-arrow-left"></i> <span class="hidden sm:inline">คลังโจทย์</span>
       </a>
       <div class="h-5 w-[1px] bg-cyan-500/20 hidden sm:block"></div>
@@ -98,15 +119,15 @@
         <h1 id="navProbTitle" class="text-sm md:text-base font-bold text-white truncate">กำลังโหลดโจทย์...</h1>
         <span id="navProbDiff" class="hidden sm:inline-block text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 shrink-0">Easy</span>
         
-        <span id="navProbScoreBadge" class="hidden sm:inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-cyan-500/10 text-cyan-200 border border-cyan-500/30 shrink-0">
-          <i class="fa-solid fa-trophy text-amber-400"></i> <span id="navScoreText">0 / 100</span>
+        <span id="navProbScoreBadge" class="hidden sm:inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-cyan-500/10 text-cyan-200 border border-cyan-500/30 shrink-0 transition-all duration-300">
+          <i class="fa-solid fa-trophy text-amber-400 animate-bounce"></i> <span id="navScoreText">0 / 100</span>
         </span>
       </div>
     </div>
 
     <div class="flex items-center gap-2 shrink-0">
       <span id="engineStatusPill" class="hidden md:inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-xl bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
-        <i class="fa-solid fa-bolt text-amber-400"></i> Turbo Judge
+        <i class="fa-solid fa-bolt text-amber-400 animate-pulse"></i> Turbo Judge
       </span>
 
       <div class="hidden lg:flex items-center bg-black/50 p-1 rounded-xl border border-cyan-500/20 text-[11px]">
@@ -127,14 +148,14 @@
       
       <div class="h-12 shrink-0 px-3 bg-[#090f22] border-b border-cyan-500/20 flex items-center justify-between gap-1.5 overflow-x-auto">
         <div class="flex items-center gap-1.5">
-          <button type="button" id="leftTabBtnStmt" onclick="switchLeftTab('stmt')" class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow transition cursor-pointer flex items-center gap-1.5 shrink-0">
+          <button type="button" id="leftTabBtnStmt" onclick="switchLeftTab('stmt')" class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow transition active:scale-95 cursor-pointer flex items-center gap-1.5 shrink-0">
             <i class="fa-solid fa-book-open"></i> โจทย์
           </button>
-          <button type="button" id="leftTabBtnSubs" onclick="switchLeftTab('subs')" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-gray-300 hover:bg-white/5 transition cursor-pointer flex items-center gap-1.5 shrink-0">
+          <button type="button" id="leftTabBtnSubs" onclick="switchLeftTab('subs')" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-gray-300 hover:bg-white/5 transition active:scale-95 cursor-pointer flex items-center gap-1.5 shrink-0">
             <i class="fa-solid fa-clock-rotate-left text-cyan-400"></i> ประวัติ
             <span id="mySubsCountBadge" class="text-[10px] px-1.5 py-0.2 rounded-full bg-cyan-500/20 text-cyan-300">0</span>
           </button>
-          <button type="button" id="leftTabBtnChat" onclick="switchLeftTab('chat')" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-gray-300 hover:bg-white/5 transition cursor-pointer flex items-center gap-1.5 shrink-0">
+          <button type="button" id="leftTabBtnChat" onclick="switchLeftTab('chat')" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-gray-300 hover:bg-white/5 transition active:scale-95 cursor-pointer flex items-center gap-1.5 shrink-0">
             <i class="fa-solid fa-comments text-amber-400"></i> แชต
             <span id="chatCountBadge" class="text-[10px] px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-300">0</span>
           </button>
@@ -146,7 +167,7 @@
       </div>
 
       <!-- STATEMENT -->
-      <div id="leftPaneStmt" class="flex-1 overflow-y-auto p-5 space-y-5">
+      <div id="leftPaneStmt" class="flex-1 overflow-y-auto p-5 space-y-5 animate-fade-in">
         <div class="border-b border-cyan-500/15 pb-3.5 space-y-2">
           <div class="flex flex-wrap items-center justify-between gap-2">
             <h2 id="stmtFullTitle" class="text-xl font-bold text-white">กำลังโหลด...</h2>
@@ -165,7 +186,7 @@
         <div id="stmtPdfSection" class="hidden space-y-2.5">
           <div class="flex items-center justify-between bg-rose-500/10 border border-rose-500/30 px-3.5 py-2 rounded-xl">
             <span class="text-xs font-semibold text-rose-300"><i class="fa-solid fa-file-pdf mr-1.5"></i> เอกสารโจทย์ (A4)</span>
-            <button type="button" onclick="openProblemPdfNewTab()" class="text-xs bg-rose-500/20 hover:bg-rose-500/30 text-rose-200 px-3 py-1 rounded-lg transition cursor-pointer">เปิดเต็มจอ</button>
+            <button type="button" onclick="openProblemPdfNewTab()" class="text-xs bg-rose-500/20 hover:bg-rose-500/30 text-rose-200 px-3 py-1 rounded-lg transition active:scale-95 cursor-pointer">เปิดเต็มจอ</button>
           </div>
           <div class="w-full bg-white rounded-2xl overflow-hidden border border-cyan-500/30 shadow-xl">
             <iframe id="stmtPdfFrame" class="a4-pdf-frame block border-0"></iframe>
@@ -181,13 +202,13 @@
       </div>
 
       <!-- SUBMISSIONS -->
-      <div id="leftPaneSubs" class="hidden flex-1 overflow-y-auto p-5 space-y-4">
+      <div id="leftPaneSubs" class="hidden flex-1 overflow-y-auto p-5 space-y-4 animate-fade-in">
         <div class="flex items-center justify-between">
           <div>
             <h3 class="text-base font-bold text-white">ประวัติการส่งโค้ด</h3>
             <p class="text-xs text-gray-400">คลิกที่รายการเพื่อเปิด Pop-up ดูรายละเอียดโค้ดและผลตรวจ</p>
           </div>
-          <button type="button" onclick="loadMySubmissions()" class="text-xs bg-white/5 hover:bg-cyan-500/15 text-cyan-300 px-3 py-1.5 rounded-xl border border-cyan-500/25 cursor-pointer">รีเฟรช</button>
+          <button type="button" onclick="loadMySubmissions()" class="text-xs bg-white/5 hover:bg-cyan-500/15 text-cyan-300 px-3 py-1.5 rounded-xl border border-cyan-500/25 transition active:scale-95 cursor-pointer">รีเฟรช</button>
         </div>
         <div id="mySubmissionsList" class="space-y-3">
           <p class="text-xs text-gray-400 text-center py-8">กำลังโหลดประวัติ...</p>
@@ -195,10 +216,10 @@
       </div>
 
       <!-- CHAT -->
-      <div id="leftPaneChat" class="hidden flex-1 flex flex-col min-h-0">
+      <div id="leftPaneChat" class="hidden flex-1 flex flex-col min-h-0 animate-fade-in">
         <div class="px-4 py-2.5 bg-gradient-to-r from-amber-950/35 to-cyan-950/30 border-b border-cyan-500/15 flex items-center justify-between shrink-0">
           <div class="flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
             <span class="text-xs font-bold text-white">ห้องสนทนาประจำโจทย์</span>
           </div>
         </div>
@@ -209,7 +230,7 @@
 
         <form id="chatSendForm" class="p-3 bg-[#080e20] border-t border-cyan-500/20 flex items-center gap-2 shrink-0">
           <input type="text" id="chatMessageInput" autocomplete="off" placeholder="พิมพ์ข้อความถามเพื่อน..." class="flex-1 bg-black/65 border border-cyan-500/25 focus:border-cyan-400 focus:outline-none rounded-xl px-3.5 py-2 text-xs text-white">
-          <button type="submit" class="bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-95 text-white px-4 py-2 rounded-xl text-xs font-bold shadow transition cursor-pointer shrink-0">
+          <button type="submit" class="bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-95 text-white px-4 py-2 rounded-xl text-xs font-bold shadow transition active:scale-95 cursor-pointer shrink-0">
             <i class="fa-solid fa-paper-plane"></i>
           </button>
         </form>
@@ -230,16 +251,16 @@
             <option value="c">C</option>
           </select>
 
-          <label class="bg-white/5 hover:bg-cyan-500/15 text-gray-200 hover:text-cyan-300 border border-white/15 px-2.5 py-1 rounded-xl text-xs font-medium transition cursor-pointer flex items-center gap-1 shrink-0">
+          <label class="bg-white/5 hover:bg-cyan-500/15 text-gray-200 hover:text-cyan-300 border border-white/15 px-2.5 py-1 rounded-xl text-xs font-medium transition active:scale-95 cursor-pointer flex items-center gap-1 shrink-0">
             <i class="fa-solid fa-upload text-cyan-400"></i> <span class="hidden sm:inline">อัปโหลด</span>
             <input type="file" id="codeFileInput" accept=".cpp,.cc,.cxx,.c,.txt" onchange="handleCodeFileUpload(event)" class="hidden">
           </label>
 
-          <button type="button" onclick="resetEditorTemplate()" class="bg-white/5 hover:bg-white/10 text-gray-300 px-2 py-1 rounded-xl text-xs transition cursor-pointer shrink-0" title="รีเซ็ตโค้ด">
+          <button type="button" onclick="resetEditorTemplate()" class="bg-white/5 hover:bg-white/10 text-gray-300 px-2 py-1 rounded-xl text-xs transition active:scale-95 cursor-pointer shrink-0" title="รีเซ็ตโค้ด">
             <i class="fa-solid fa-rotate-left"></i>
           </button>
 
-          <button type="button" id="viewGraderMainBtn" onclick="openGraderMainModal()" class="hidden bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/35 px-2 py-1 rounded-xl text-xs font-semibold transition cursor-pointer shrink-0">
+          <button type="button" id="viewGraderMainBtn" onclick="openGraderMainModal()" class="hidden bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/35 px-2 py-1 rounded-xl text-xs font-semibold transition active:scale-95 cursor-pointer shrink-0">
             ดู main()
           </button>
         </div>
@@ -252,28 +273,28 @@
       <div class="h-52 shrink-0 bg-[#060a17] border-t border-cyan-500/25 flex flex-col">
         <div class="h-9 px-3 bg-black/60 border-b border-cyan-500/15 flex items-center justify-between gap-2 overflow-x-auto">
           <div class="flex items-center gap-1.5 shrink-0">
-            <button type="button" id="consoleTabTest" onclick="switchConsoleTab('test')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 cursor-pointer">
+            <button type="button" id="consoleTabTest" onclick="switchConsoleTab('test')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 cursor-pointer transition">
               <i class="fa-solid fa-terminal mr-1"></i> ทดสอบรัน
             </button>
-            <button type="button" id="consoleTabVerdict" onclick="switchConsoleTab('verdict')" class="px-2.5 py-1 rounded-lg text-xs font-semibold text-gray-400 hover:text-white cursor-pointer">
+            <button type="button" id="consoleTabVerdict" onclick="switchConsoleTab('verdict')" class="px-2.5 py-1 rounded-lg text-xs font-semibold text-gray-400 hover:text-white cursor-pointer transition">
               <i class="fa-solid fa-gavel mr-1"></i> ผลตรวจ (Verdict)
             </button>
           </div>
 
           <div class="flex items-center gap-1.5 shrink-0">
-            <button type="button" onclick="loadSampleIntoCustomInput()" class="text-[11px] text-amber-300 hover:text-amber-200 cursor-pointer mr-1 hidden sm:inline-block">
+            <button type="button" onclick="loadSampleIntoCustomInput()" class="text-[11px] text-amber-300 hover:text-amber-200 cursor-pointer mr-1 hidden sm:inline-block transition">
               <i class="fa-solid fa-flask"></i> Sample
             </button>
-            <button type="button" id="runSampleBtn" onclick="runCustomTest()" class="bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1">
+            <button type="button" id="runSampleBtn" onclick="runCustomTest()" class="bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 px-2.5 py-1 rounded-lg text-xs font-bold transition active:scale-95 cursor-pointer flex items-center gap-1">
               <i class="fa-solid fa-play"></i> รัน
             </button>
-            <button type="button" id="submitCodeBtn" onclick="submitSolution()" class="bg-gradient-to-r from-emerald-600 to-teal-500 hover:opacity-95 text-white px-3 py-1 rounded-lg text-xs font-bold shadow-lg shadow-emerald-500/20 transition cursor-pointer flex items-center gap-1">
+            <button type="button" id="submitCodeBtn" onclick="submitSolution()" class="bg-gradient-to-r from-emerald-600 to-teal-500 hover:opacity-95 text-white px-3 py-1 rounded-lg text-xs font-bold shadow-lg shadow-emerald-500/20 transition active:scale-95 cursor-pointer flex items-center gap-1">
               <i class="fa-solid fa-bolt"></i> ส่งตรวจ
             </button>
           </div>
         </div>
 
-        <div id="consoleAreaTest" class="flex-1 grid grid-cols-2 divide-x divide-cyan-500/15 min-h-0">
+        <div id="consoleAreaTest" class="flex-1 grid grid-cols-2 divide-x divide-cyan-500/15 min-h-0 animate-fade-in">
           <div class="flex flex-col p-2 min-h-0">
             <span class="text-[10px] font-bold text-gray-400 uppercase mb-1">Standard Input (stdin)</span>
             <textarea id="customInputBox" placeholder="ใส่ Input..." class="flex-1 w-full bg-black/60 border border-white/10 focus:border-cyan-400 focus:outline-none rounded-xl p-2 text-xs text-white font-code resize-none"></textarea>
@@ -287,8 +308,8 @@
           </div>
         </div>
 
-        <!-- [Verdict Area Expanded Without Scroll] -->
-        <div id="consoleAreaVerdict" class="hidden flex-1 p-3 overflow-y-auto">
+        <!-- [Verdict Area With Colored Badges & Animations] -->
+        <div id="consoleAreaVerdict" class="hidden flex-1 p-3 overflow-y-auto animate-fade-in">
           <div id="verdictResultContainer" class="text-xs text-gray-400 flex items-center justify-center h-full">
             ยังไม่มีผลการส่งตรวจ — กดปุ่ม "ส่งตรวจ" เพื่อรันทุก Test Cases
           </div>
@@ -299,7 +320,7 @@
 
   <!-- MODALS -->
   <div id="graderMainModal" onclick="if(event.target === this) document.getElementById('graderMainModal').classList.add('opacity-0','pointer-events-none')" class="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/85 backdrop-blur-md opacity-0 pointer-events-none transition-all duration-200">
-    <div class="tech-modal rounded-3xl p-6 max-w-xl w-full space-y-4 border border-emerald-500/35">
+    <div class="tech-modal rounded-3xl p-6 max-w-xl w-full space-y-4 border border-emerald-500/35 animate-fade-in">
       <div class="flex justify-between items-center border-b border-emerald-500/20 pb-2.5">
         <h3 class="text-sm font-bold text-emerald-300"><i class="fa-solid fa-code mr-1.5"></i> โค้ดฟังก์ชัน main()</h3>
         <button type="button" onclick="document.getElementById('graderMainModal').classList.add('opacity-0','pointer-events-none')" class="text-gray-400 hover:text-white cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
@@ -310,11 +331,11 @@
 
   <!-- SUBMISSION DETAIL POP-UP MODAL -->
   <div id="submissionDetailModal" onclick="if(event.target === this) closeSubmissionModal()" class="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/85 backdrop-blur-md opacity-0 pointer-events-none transition-all duration-200">
-    <div class="tech-modal rounded-3xl p-6 max-w-2xl w-full space-y-4 border border-cyan-500/35 max-h-[90vh] flex flex-col">
+    <div class="tech-modal rounded-3xl p-6 max-w-2xl w-full space-y-4 border border-cyan-500/35 max-h-[90vh] flex flex-col animate-fade-in">
       <div class="flex justify-between items-center border-b border-cyan-500/20 pb-3 shrink-0">
         <div class="flex items-center gap-2">
           <span id="modalSubTitle" class="text-sm font-bold text-cyan-300 font-code">Submission Detail</span>
-          <span id="modalSubStatus" class="text-[10px] px-2 py-0.5 rounded-full font-bold"></span>
+          <span id="modalSubStatus" class="text-[10px] px-2.5 py-0.5 rounded-full font-bold"></span>
         </div>
         <button type="button" onclick="closeSubmissionModal()" class="text-gray-400 hover:text-white cursor-pointer"><i class="fa-solid fa-xmark text-base"></i></button>
       </div>
@@ -338,8 +359,8 @@
       </div>
 
       <div class="flex justify-end gap-2 pt-2 border-t border-cyan-500/20 shrink-0">
-        <button type="button" id="modalCopyCodeBtn" class="bg-white/5 hover:bg-white/10 text-gray-200 px-4 py-2 rounded-xl text-xs font-semibold cursor-pointer transition">คัดลอกโค้ด</button>
-        <button type="button" id="modalLoadEditorBtn" class="bg-gradient-to-r from-blue-600 to-cyan-500 text-white px-4 py-2 rounded-xl text-xs font-bold cursor-pointer transition shadow">โหลดลง Editor</button>
+        <button type="button" id="modalCopyCodeBtn" class="bg-white/5 hover:bg-white/10 text-gray-200 px-4 py-2 rounded-xl text-xs font-semibold cursor-pointer transition active:scale-95">คัดลอกโค้ด</button>
+        <button type="button" id="modalLoadEditorBtn" class="bg-gradient-to-r from-blue-600 to-cyan-500 text-white px-4 py-2 rounded-xl text-xs font-bold cursor-pointer transition active:scale-95 shadow">โหลดลง Editor</button>
       </div>
     </div>
   </div>
@@ -376,7 +397,7 @@
       document.getElementById('toastTitle').textContent = title;
       document.getElementById('toastDesc').textContent = desc;
       document.getElementById('toastIcon').className = isError
-        ? 'fa-solid fa-circle-exclamation text-rose-400 text-base'
+        ? 'fa-solid fa-circle-exclamation text-rose-400 text-base animate-bounce'
         : 'fa-solid fa-circle-check text-cyan-400 text-base';
       toast.classList.remove('translate-x-[130%]');
       setTimeout(() => toast.classList.add('translate-x-[130%]'), 3200);
@@ -511,16 +532,16 @@
       document.getElementById('consoleAreaTest').classList.toggle('hidden', !isTest);
       document.getElementById('consoleAreaVerdict').classList.toggle('hidden', isTest);
       document.getElementById('consoleTabTest').className = isTest
-        ? 'px-2.5 py-1 rounded-lg text-xs font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 cursor-pointer'
-        : 'px-2.5 py-1 rounded-lg text-xs font-semibold text-gray-400 hover:text-white cursor-pointer';
+        ? 'px-2.5 py-1 rounded-lg text-xs font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 cursor-pointer transition'
+        : 'px-2.5 py-1 rounded-lg text-xs font-semibold text-gray-400 hover:text-white cursor-pointer transition';
       document.getElementById('consoleTabVerdict').className = !isTest
-        ? 'px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 cursor-pointer'
-        : 'px-2.5 py-1 rounded-lg text-xs font-semibold text-gray-400 hover:text-white cursor-pointer';
+        ? 'px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 cursor-pointer transition'
+        : 'px-2.5 py-1 rounded-lg text-xs font-semibold text-gray-400 hover:text-white cursor-pointer transition';
     }
 
     function switchLeftTab(tab) {
-      const activeCls = 'px-3.5 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow transition cursor-pointer flex items-center gap-1.5 shrink-0';
-      const inactiveCls = 'px-3.5 py-1.5 rounded-xl text-xs font-semibold text-gray-300 hover:bg-white/5 transition cursor-pointer flex items-center gap-1.5 shrink-0';
+      const activeCls = 'px-3.5 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow transition active:scale-95 cursor-pointer flex items-center gap-1.5 shrink-0';
+      const inactiveCls = 'px-3.5 py-1.5 rounded-xl text-xs font-semibold text-gray-300 hover:bg-white/5 transition active:scale-95 cursor-pointer flex items-center gap-1.5 shrink-0';
 
       document.getElementById('leftTabBtnStmt').className = tab === 'stmt' ? activeCls : inactiveCls;
       document.getElementById('leftTabBtnSubs').className = tab === 'subs' ? activeCls : inactiveCls;
@@ -546,11 +567,11 @@
       scoreTextEl.textContent = `${highestScore} / ${maxPossibleScore}`;
 
       if (highestScore >= maxPossibleScore) {
-        maxScoreBadge.className = 'hidden sm:inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shrink-0';
+        maxScoreBadge.className = 'hidden sm:inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shrink-0 transition-all duration-300';
       } else if (highestScore > 0) {
-        maxScoreBadge.className = 'hidden sm:inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 shrink-0';
+        maxScoreBadge.className = 'hidden sm:inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 shrink-0 transition-all duration-300';
       } else {
-        maxScoreBadge.className = 'hidden sm:inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-cyan-500/10 text-cyan-200 border border-cyan-500/30 shrink-0';
+        maxScoreBadge.className = 'hidden sm:inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-cyan-500/10 text-cyan-200 border border-cyan-500/30 shrink-0 transition-all duration-300';
       }
     }
 
@@ -591,7 +612,7 @@
         const timeStr = s.created_at ? new Date(s.created_at).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'medium' }) : '-';
 
         return `
-          <div onclick="openSubmissionModal('${s.id}')" class="tech-glass p-3.5 rounded-2xl border border-cyan-500/20 hover:border-cyan-400/50 cursor-pointer transition flex items-center justify-between gap-3 group">
+          <div onclick="openSubmissionModal('${s.id}')" class="tech-glass p-3.5 rounded-2xl border border-cyan-500/20 hover:border-cyan-400/50 cursor-pointer transition hover:scale-[1.01] active:scale-[0.99] flex items-center justify-between gap-3 group">
             <div class="flex items-center gap-3 min-w-0">
               <span class="text-[10px] font-bold px-2.5 py-1 rounded-full border ${statusCls} shrink-0">${s.status}</span>
               <div class="min-w-0">
@@ -621,8 +642,8 @@
       const isAc = sub.status === 'Accepted' || sub.status === 'AC';
       statusBadge.textContent = sub.status;
       statusBadge.className = isAc 
-        ? 'text-[10px] px-2 py-0.5 rounded-full font-bold text-emerald-300 bg-emerald-500/20 border border-emerald-500/40' 
-        : 'text-[10px] px-2 py-0.5 rounded-full font-bold text-rose-300 bg-rose-500/20 border border-rose-500/40';
+        ? 'text-[10px] px-2.5 py-0.5 rounded-full font-bold text-emerald-300 bg-emerald-500/20 border border-emerald-500/40' 
+        : 'text-[10px] px-2.5 py-0.5 rounded-full font-bold text-rose-300 bg-rose-500/20 border border-rose-500/40';
 
       document.getElementById('modalSubLang').textContent = (sub.language || 'cpp').toUpperCase();
       document.getElementById('modalSubTime').textContent = `${sub.execution_time || 0}s`;
@@ -641,7 +662,7 @@
         else if (tc.verdict === 'CE') { badgeColor = 'bg-purple-500/20 text-purple-300 border-purple-500/40'; vText = 'Compilation Error (CE)'; }
 
         return `
-          <div class="bg-black/70 border border-white/10 rounded-xl p-2.5 flex items-center justify-between gap-2 text-xs">
+          <div class="bg-black/70 border border-white/10 rounded-xl p-2.5 flex items-center justify-between gap-2 text-xs transition hover:border-cyan-500/30">
             <div class="flex items-center gap-2 min-w-0">
               <span class="font-bold text-cyan-300 shrink-0">Test Case #${tc.index}</span>
               <span class="px-2.5 py-0.5 rounded border text-[10px] font-bold ${badgeColor} truncate">${vText}</span>
@@ -816,9 +837,9 @@
       btn.disabled = true;
       btn.innerHTML = '<i class="fa-solid fa-bolt fa-spin"></i> ตรวจ...';
       verdictBox.innerHTML = `
-        <div class="text-center space-y-2 py-4">
-          <i class="fa-solid fa-bolt text-2xl text-cyan-400 animate-pulse"></i>
-          <p class="text-xs font-bold text-cyan-300">กำลังตรวจ ${testCases.length} Test Cases...</p>
+        <div class="text-center space-y-2 py-6 animate-fade-in">
+          <i class="fa-solid fa-bolt text-3xl text-cyan-400 animate-bounce"></i>
+          <p class="text-xs font-bold text-cyan-300">กำลังประมวลผล ${testCases.length} Test Cases...</p>
         </div>
       `;
 
@@ -892,10 +913,10 @@
         await loadMySubmissions();
 
         const isAc = finalStatus === 'Accepted';
-        const badgeColor = isAc ? 'text-emerald-400 bg-emerald-500/15 border-emerald-500/40' : 'text-rose-400 bg-rose-500/15 border-rose-500/40';
+        const badgeColor = isAc ? 'text-emerald-300 bg-emerald-500/15 border-emerald-500/40' : 'text-rose-300 bg-rose-500/15 border-rose-500/40';
         
-        // [Render All Test Cases Stacked Without Scroll Container]
-        const testCardsHtml = caseResults.map(tc => {
+        // [Render Test Cases with Colorful Badges & Staggered Animation Effect]
+        const testCardsHtml = caseResults.map((tc, idx) => {
           let tBadge = 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40';
           let vText = 'Passed (AC)';
           if (tc.verdict === 'WA') { tBadge = 'bg-rose-500/20 text-rose-300 border-rose-500/40'; vText = 'Wrong Answer (WA)'; }
@@ -905,7 +926,7 @@
           else if (tc.verdict === 'CE') { tBadge = 'bg-purple-500/20 text-purple-300 border-purple-500/40'; vText = 'Compilation Error (CE)'; }
 
           return `
-            <div class="bg-black/70 border border-white/10 rounded-xl p-2.5 flex items-center justify-between gap-2 text-xs">
+            <div class="bg-black/70 border border-white/10 rounded-xl p-2.5 flex items-center justify-between gap-2 text-xs transition hover:border-cyan-500/40 animate-fade-in" style="animation-delay: ${idx * 40}ms;">
               <div class="flex items-center gap-2 min-w-0">
                 <span class="font-bold text-cyan-300 shrink-0">Test Case #${tc.index}</span>
                 <span class="px-2.5 py-0.5 rounded border text-[10px] font-bold ${tBadge} truncate">${vText}</span>
@@ -920,8 +941,8 @@
         }).join('');
 
         verdictBox.innerHTML = `
-          <div class="w-full space-y-2.5">
-            <div class="flex items-center justify-between p-3 rounded-xl border ${badgeColor}">
+          <div class="w-full space-y-2.5 animate-fade-in">
+            <div class="flex items-center justify-between p-3 rounded-xl border ${badgeColor} shadow-lg">
               <div>
                 <div class="font-bold text-xs">${finalStatus}</div>
                 <div class="text-[10px] opacity-85">ผ่าน ${passedCount}/${totalCases} เคส &bull; ได้ ${score}/${maxScore} คะแนน</div>
@@ -992,10 +1013,10 @@
       } else {
         document.getElementById('customInputBox').value = samples[0].input || '';
         sampleListEl.innerHTML = samples.map((tc, i) => `
-          <div class="bg-black/50 border border-cyan-500/20 rounded-2xl p-3.5 space-y-2.5">
+          <div class="bg-black/50 border border-cyan-500/20 rounded-2xl p-3.5 space-y-2.5 transition hover:border-cyan-500/40">
             <div class="flex justify-between items-center">
               <span class="text-xs font-bold text-amber-300">ตัวอย่างที่ ${i + 1}</span>
-              <button type="button" onclick="copySampleInput(${i})" class="text-[11px] text-cyan-300 hover:underline cursor-pointer"><i class="fa-solid fa-arrow-turn-down mr-1"></i> ใส่ลงช่องทดสอบ</button>
+              <button type="button" onclick="copySampleInput(${i})" class="text-[11px] text-cyan-300 hover:underline cursor-pointer transition"><i class="fa-solid fa-arrow-turn-down mr-1"></i> ใส่ลงช่องทดสอบ</button>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
               <div>

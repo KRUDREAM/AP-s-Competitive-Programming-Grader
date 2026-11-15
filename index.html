@@ -92,7 +92,7 @@
   <!-- MAIN LANDING -->
   <main class="flex-1 max-w-6xl mx-auto px-4 md:px-8 py-10 md:py-14 space-y-16 relative z-10 w-full">
 
-    <!-- 1. HERO SECTION + LIVE CODE PREVIEW -->
+    <!-- 1. HERO SECTION -->
     <section id="about" class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center pt-2">
       <div class="lg:col-span-7 space-y-6 text-center lg:text-left">
         <div class="inline-flex items-center gap-2 bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 px-4 py-1.5 rounded-full text-[11px] font-semibold shadow-sm">
@@ -144,7 +144,7 @@
       </div>
     </section>
 
-    <!-- 2. LIVE STATS BAR (DYNAMIC FROM SUPABASE) -->
+    <!-- 2. LIVE STATS BAR -->
     <section class="w-full">
       <div class="tech-glass rounded-3xl p-6 grid grid-cols-2 md:grid-cols-4 gap-6 text-center border border-cyan-500/20">
         <div>
@@ -166,7 +166,7 @@
       </div>
     </section>
 
-    <!-- 3. CONTEST BANNER (SYNCED WITH NEW CONTESTS TABLE) -->
+    <!-- 3. CONTEST BANNER -->
     <section id="contests" class="w-full space-y-3">
       <div class="flex items-center justify-between">
         <h3 class="text-base md:text-lg font-bold text-white"><i class="fa-solid fa-trophy text-amber-400 mr-2"></i> รอบการแข่งขัน (Active &amp; Upcoming Contests)</h3>
@@ -177,7 +177,7 @@
       </div>
     </section>
 
-    <!-- 4. PLATFORM FEATURES GRID -->
+    <!-- 4. FEATURES GRID -->
     <section id="features" class="w-full space-y-6">
       <div class="text-center max-w-2xl mx-auto">
         <h3 class="text-xl md:text-2xl font-bold text-white mb-1.5">ออกแบบมาเพื่อสายอัลกอริทึมโดยเฉพาะ</h3>
@@ -244,7 +244,7 @@
       </div>
     </section>
 
-    <!-- 6. TERMS & PRIVACY POLICY SECTION -->
+    <!-- 6. LEGAL POLICIES -->
     <section id="legal-policies" class="w-full space-y-6 pt-6 border-t border-cyan-500/20">
       <div class="text-center">
         <h3 class="text-lg md:text-xl font-bold text-white mb-1"><i class="fa-solid fa-shield-halved text-cyan-400 mr-2"></i> ข้อกำหนดการใช้งานและนโยบายความเป็นส่วนตัว</h3>
@@ -280,7 +280,7 @@
 
   </main>
 
-  <!-- STATS & SUBMISSION MODAL (REAL USER STATS) -->
+  <!-- STATS & SUBMISSION MODAL -->
   <div id="statsModal" onclick="if(event.target === this) toggleStatsModal(false)" class="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/80 backdrop-blur-md opacity-0 pointer-events-none transition-all duration-300">
     <div class="tech-modal rounded-3xl p-8 max-w-lg w-full relative border border-cyan-500/30">
       <button type="button" onclick="toggleStatsModal(false)" class="absolute top-5 right-5 text-gray-400 hover:text-white w-8 h-8 rounded-full bg-cyan-500/10 flex items-center justify-center transition cursor-pointer">
@@ -338,6 +338,10 @@
           <label class="block text-xs font-medium text-cyan-300 mb-1">ชื่อผู้ใช้งาน (Username)</label>
           <input type="text" id="authUsername" placeholder="angpao_dev" class="w-full bg-black/60 border border-cyan-500/20 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-400 font-mono">
         </div>
+        <div id="displayNameGroup" class="hidden">
+          <label class="block text-xs font-medium text-cyan-300 mb-1">ชื่อที่ใช้แสดง (Display Name)</label>
+          <input type="text" id="authDisplayName" placeholder="อั่งเปา ซุปตาร์โค้ด" class="w-full bg-black/60 border border-cyan-500/20 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-400">
+        </div>
         <div id="identifierGroup">
           <label class="block text-xs font-medium text-cyan-300 mb-1" id="identifierLabel">อีเมล หรือ ชื่อผู้ใช้งาน</label>
           <input type="text" id="authIdentifier" placeholder="name@example.com หรือ username" class="w-full bg-black/60 border border-cyan-500/20 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-400 font-mono">
@@ -380,13 +384,12 @@
       const { data: { session } } = await supabaseClient.auth.getSession();
       if (session && session.user) {
         currentSessionUser = session.user;
-        const { data: profile } = await supabaseClient.from('profiles').select('*').eq('id', session.user.id).single();
+        const { data: profile } = await supabaseClient.from('profiles').select('*').eq('id', session.user.id).maybeSingle();
         loggedInProfile = profile;
-        const username = (profile && (profile.display_name || profile.username)) || session.user.email;
+        const displayName = (profile && (profile.display_name || profile.username)) || session.user.email;
         const isAdmin = profile && profile.role === 'admin';
-        updateNavbarLoggedIn(username, isAdmin);
+        updateNavbarLoggedIn(displayName, isAdmin);
 
-        // เปลี่ยนปุ่ม Hero CTA เมื่อล็อกอินแล้ว
         const heroBtn = document.getElementById('heroPrimaryCta');
         if (heroBtn) {
           heroBtn.innerHTML = '<i class="fa-solid fa-play mr-1.5"></i> เริ่มทำโจทย์ต่อเลย';
@@ -396,7 +399,7 @@
     }
     checkUserSession();
 
-    function updateNavbarLoggedIn(username, isAdmin = false) {
+    function updateNavbarLoggedIn(name, isAdmin = false) {
       const adminLink = isAdmin
         ? `<a href="admin.html" class="block px-4 py-2.5 text-xs text-rose-300 font-bold hover:bg-rose-500/15 transition"><i class="fa-solid fa-user-shield mr-2 text-rose-400"></i> ระบบจัดการ Admin</a>`
         : '';
@@ -404,7 +407,7 @@
       document.getElementById('authNavArea').innerHTML = `
         <div class="relative" id="userDropdownWrapper">
           <button type="button" onclick="toggleDropdown()" class="flex items-center gap-2 bg-cyan-950/60 border border-cyan-500/30 hover:border-cyan-400 px-3.5 py-2 rounded-xl text-xs text-cyan-300 font-bold transition cursor-pointer">
-            <span><i class="fa-solid fa-terminal mr-1"></i> ${username}</span>
+            <span><i class="fa-solid fa-terminal mr-1"></i> ${name}</span>
             <i class="fa-solid fa-chevron-down text-[9px]"></i>
           </button>
           <div id="userDropdown" class="absolute right-0 mt-2 w-56 tech-modal rounded-2xl shadow-2xl py-2 hidden border border-cyan-500/30 z-50 text-left">
@@ -468,7 +471,6 @@
 
     async function fetchLandingData() {
       try {
-        // 1. Live System Counts
         const [totalProbRes, verifiedProbRes, subsCountRes, usersCountRes] = await Promise.all([
           supabaseClient.from('problems').select('*', { count: 'exact', head: true }),
           supabaseClient.from('problems').select('*', { count: 'exact', head: true }).eq('is_verified', true),
@@ -481,7 +483,6 @@
         if (subsCountRes.count !== null) document.getElementById('statSubmissions').textContent = subsCountRes.count;
         if (usersCountRes.count !== null) document.getElementById('statUsers').textContent = usersCountRes.count;
 
-        // 2. Active / Upcoming Contests (Synced with contests schema)
         const { data: contestList } = await supabaseClient
           .from('contests')
           .select('*')
@@ -497,11 +498,9 @@
             const startMs = new Date(c.start_time).getTime();
             const endMs = new Date(c.end_time).getTime();
             const isLive = now >= startMs && now <= endMs;
-
             const statusBadge = isLive
               ? `<span class="bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[11px] font-bold px-3 py-1 rounded-full inline-flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span> กำลังแข่งขัน (LIVE)</span>`
               : `<span class="bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[11px] font-semibold px-3 py-1 rounded-full"><i class="fa-regular fa-clock mr-1"></i> กำลังจะเริ่ม</span>`;
-
             const timeRange = `${new Date(c.start_time).toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' })} - ${new Date(c.end_time).toLocaleString('th-TH', { timeStyle: 'short' })}`;
 
             return `
@@ -532,7 +531,6 @@
           `;
         }
 
-        // 3. Latest Verified Problems
         const { data: latestProbs } = await supabaseClient
           .from('problems')
           .select('id, problem_code, title, difficulty, tags')
@@ -566,7 +564,6 @@
           latestListEl.innerHTML = '<div class="text-xs text-gray-500 text-center py-6">ยังไม่มีโจทย์ในคลัง</div>';
         }
 
-        // 4. Top 3 Coders
         const { data: topProfiles } = await supabaseClient
           .from('profiles')
           .select('id, display_name, username, xp')
@@ -614,13 +611,13 @@
         document.getElementById('authMessage').classList.add('hidden');
         if (mode === 'login') {
           modalTitle.textContent = 'เข้าสู่ระบบ'; modalSubtitle.textContent = 'ใช้ Email หรือ Username'; authSubmitBtn.textContent = 'เข้าสู่ระบบ';
-          usernameGroup.classList.add('hidden'); identifierGroup.classList.remove('hidden'); passwordGroup.classList.remove('hidden'); confirmPasswordGroup.classList.add('hidden');
+          usernameGroup.classList.add('hidden'); displayNameGroup.classList.add('hidden'); identifierGroup.classList.remove('hidden'); passwordGroup.classList.remove('hidden'); confirmPasswordGroup.classList.add('hidden');
         } else if (mode === 'register') {
           modalTitle.textContent = 'สมัครสมาชิกใหม่'; modalSubtitle.textContent = 'สมัครปุ๊บ ใช้งานได้ทันที'; authSubmitBtn.textContent = 'ลงทะเบียนใช้งาน';
-          usernameGroup.classList.remove('hidden'); identifierGroup.classList.remove('hidden'); passwordGroup.classList.remove('hidden'); confirmPasswordGroup.classList.remove('hidden');
+          usernameGroup.classList.remove('hidden'); displayNameGroup.classList.remove('hidden'); identifierGroup.classList.remove('hidden'); passwordGroup.classList.remove('hidden'); confirmPasswordGroup.classList.remove('hidden');
         } else if (mode === 'changepass') {
           modalTitle.textContent = 'เปลี่ยนรหัสผ่าน'; modalSubtitle.textContent = 'กำหนดรหัสผ่านใหม่'; authSubmitBtn.textContent = 'บันทึกรหัสผ่านใหม่';
-          usernameGroup.classList.add('hidden'); identifierGroup.classList.add('hidden'); passwordGroup.classList.remove('hidden'); confirmPasswordGroup.classList.remove('hidden');
+          usernameGroup.classList.add('hidden'); displayNameGroup.classList.add('hidden'); identifierGroup.classList.add('hidden'); passwordGroup.classList.remove('hidden'); confirmPasswordGroup.classList.remove('hidden');
         }
         modal.classList.remove('opacity-0', 'pointer-events-none');
         container.classList.remove('scale-95'); container.classList.add('scale-100');
@@ -634,24 +631,29 @@
 
       if (currentAuthMode === 'register') {
         const username = document.getElementById('authUsername').value.trim();
+        const displayName = document.getElementById('authDisplayName').value.trim() || username;
         const email = document.getElementById('authIdentifier').value.trim();
         const password = document.getElementById('authPassword').value;
         const confirmPassword = document.getElementById('authConfirmPassword').value;
 
+        if (!username) { authMsg.textContent = '❌ กรุณากรอกชื่อผู้ใช้งาน (Username)'; authMsg.className = 'text-xs text-center text-rose-400 font-semibold'; return; }
         if (password !== confirmPassword) { authMsg.textContent = '❌ รหัสผ่านไม่ตรงกัน'; authMsg.className = 'text-xs text-center text-rose-400 font-semibold'; return; }
+        
         authMsg.textContent = 'กำลังสมัครสมาชิก...'; authMsg.className = 'text-xs text-center text-cyan-300 font-semibold';
 
         const { data, error } = await supabaseClient.auth.signUp({ email, password });
-        if (error) { authMsg.textContent = `❌ ${error.message}`; authMsg.className = 'text-xs text-center text-rose-400 font-semibold'; }
-        else {
+        if (error) {
+          authMsg.textContent = `❌ ${error.message}`; authMsg.className = 'text-xs text-center text-rose-400 font-semibold';
+        } else {
           if (data.user) {
-            await supabaseClient.from('profiles').insert([{
+            const { error: profileErr } = await supabaseClient.from('profiles').upsert([{
               id: data.user.id,
-              display_name: username,
+              display_name: displayName,
               username: username,
               email: email,
               xp: 0
             }]);
+            if (profileErr) console.error('Profile upsert error:', profileErr);
           }
           authMsg.textContent = '✅ สมัครสมาชิกสำเร็จ!'; authMsg.className = 'text-xs text-center text-emerald-400 font-semibold';
           setTimeout(() => { toggleModal(null); window.location.reload(); }, 1200);

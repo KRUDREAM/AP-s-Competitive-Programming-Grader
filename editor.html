@@ -737,7 +737,7 @@
       return (str || '').replace(/\r\n/g, '\n').split('\n').map(line => line.trimEnd()).join('\n').trim();
     }
 
-    async function submitSolution() {
+async function submitSolution() {
       if (!currentProblem || !currentUser) return;
       const btn = document.getElementById('submitCodeBtn');
       const verdictBox = document.getElementById('verdictResultContainer');
@@ -753,7 +753,7 @@
       verdictBox.innerHTML = `
         <div class="text-center space-y-2 py-4">
           <i class="fa-solid fa-bolt text-2xl text-cyan-400 animate-pulse"></i>
-          <p class="text-xs font-bold text-cyan-300">กำลังตรวจ ${testCases.length} Test Cases (Turbo Mode)...</p>
+          <p class="text-xs font-bold text-cyan-300">กำลังตรวจ ${testCases.length} Test Cases...</p>
         </div>
       `;
 
@@ -764,8 +764,6 @@
         let caseResults = [];
 
         const effectiveCases = testCases.length > 0 ? testCases : [{ input: '', output: '' }];
-        
-        // เรียกใช้ฟังก์ชันประมวลผลแบบขนานพร้อมกันทั้งหมดเพื่อความเร็วสูงสุด
         const rawResponses = await runBatchTestCases(fullCode, lang, effectiveCases);
 
         if (rawResponses[0] && rawResponses[0].status === 'CE') {
@@ -801,7 +799,8 @@
         const maxScore = currentProblem.max_score || 100;
         const score = finalStatus === 'Accepted' ? maxScore : Math.round((passedCount / totalCases) * maxScore);
 
-        await supabaseClient.from('submissions').insert([{
+        // 1. บันทึก Submission ลงฐานข้อมูลทุกครั้งที่กดส่ง
+        const { error: subErr } = await supabaseClient.from('submissions').insert([{
           user_id: currentUser.id,
           problem_id: parseInt(problemId),
           source_code: userCode,
@@ -812,11 +811,20 @@
           test_results: caseResults
         }]);
 
+        if (subErr) {
+          console.error("Insert submission error:", subErr.message);
+        }
+
+        // 2. ระบบจัดการ XP (ให้ครั้งเดียวต่อโจทย์ข้อนี้ หากผ่าน Accepted แล้วจะไม่บวกเพิ่มซ้ำ)
         if (finalStatus === 'Accepted' && !hasUserSolvedThisProblem && currentUserProfile) {
-          const newXp = (currentUserProfile.xp || 0) + maxScore;
+          const xpToAdd = currentProblem.xp_reward || maxScore; // ใช้ค่าที่แอดมินตั้ง หรือใช้ max_score เป็นค่าเริ่มต้น
+          const newXp = (currentUserProfile.xp || 0) + xpToAdd;
+          
           await supabaseClient.from('profiles').update({ xp: newXp }).eq('id', currentUser.id);
           currentUserProfile.xp = newXp;
+          hasUserSolvedThisProblem = true;
         }
+
         await loadMySubmissions();
 
         const isAc = finalStatus === 'Accepted';

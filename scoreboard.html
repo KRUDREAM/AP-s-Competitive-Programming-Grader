@@ -34,7 +34,12 @@
       0%, 100% { opacity: 0.2; transform: scale(1); }
       50% { opacity: 0.45; transform: scale(1.05); }
     }
+    @keyframes fadeInScale {
+      from { opacity: 0; transform: scale(0.93) translateY(12px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
     .glow-orb { animation: cyberPulse 8s ease-in-out infinite; }
+    .animate-modal-in { animation: fadeInScale 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
     .modal-backdrop { transition: opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1); }
     .modal-box { transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.28s ease; }
     .modal-open .modal-box { transform: scale(1) translateY(0); opacity: 1; }
@@ -57,6 +62,38 @@
     <div>
       <h4 id="toastTitle" class="text-xs font-bold text-white">แจ้งเตือนระบบ</h4>
       <p id="toastDesc" class="text-xs text-gray-300">ดำเนินการสำเร็จ</p>
+    </div>
+  </div>
+
+  <!-- ANNOUNCEMENT POP-UP MODAL (เด้งขึ้นมาเมื่อมีประกาศใหม่แบบ Realtime) -->
+  <div id="announcementModal" onclick="if(event.target === this) closeAnnouncementModal()" class="fixed inset-0 z-[110] flex items-center justify-center px-4 bg-black/85 backdrop-blur-md opacity-0 pointer-events-none transition-all duration-300">
+    <div class="tech-modal rounded-3xl p-6 md:p-8 max-w-lg w-full relative space-y-4 border border-cyan-500/35 animate-modal-in">
+      <button type="button" onclick="closeAnnouncementModal()" class="absolute top-5 right-5 text-gray-400 hover:text-white w-9 h-9 rounded-full bg-cyan-500/10 flex items-center justify-center cursor-pointer hover:bg-cyan-500/25 transition">
+        <i class="fa-solid fa-xmark text-sm"></i>
+      </button>
+      <div class="flex items-center gap-3 border-b border-cyan-500/20 pb-3">
+        <div class="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 text-lg shadow-lg">
+          <i class="fa-solid fa-bell fa-bounce"></i>
+        </div>
+        <div>
+          <h3 class="text-base font-bold text-white">ประกาศใหม่จากระบบ</h3>
+          <p id="popupAnnouncementTime" class="text-[10px] text-gray-400 font-mono">เมื่อสักครู่</p>
+        </div>
+      </div>
+      <div class="space-y-2">
+        <h4 id="popupAnnouncementTitle" class="text-lg font-bold text-cyan-300">หัวข้อประกาศ</h4>
+        <div id="popupAnnouncementContent" class="text-xs text-gray-300 leading-relaxed max-h-60 overflow-y-auto pr-1 bg-black/40 p-3.5 rounded-2xl border border-white/10">
+          เนื้อหาประกาศ...
+        </div>
+      </div>
+      <div class="flex justify-end gap-2 pt-2 border-t border-cyan-500/20">
+        <a href="announcement.html" class="tech-glass hover:bg-cyan-500/15 text-cyan-300 border border-cyan-500/35 px-4 py-2.5 rounded-xl text-xs font-semibold transition">
+          ดูประกาศทั้งหมด
+        </a>
+        <button type="button" onclick="closeAnnouncementModal()" class="bg-gradient-to-r from-blue-600 to-cyan-500 text-white px-5 py-2.5 rounded-xl text-xs font-bold shadow-lg hover:opacity-95 transition">
+          รับทราบ
+        </button>
+      </div>
     </div>
   </div>
 
@@ -93,6 +130,12 @@
         <a href="contest.html" class="hover:text-cyan-400 transition"><i class="fa-solid fa-trophy mr-1 text-cyan-500"></i> Contest</a>
         <a href="problems.html" class="hover:text-cyan-400 transition"><i class="fa-solid fa-laptop-code mr-1 text-cyan-500"></i> คลังโจทย์</a>
         <a href="scoreboard.html" class="text-cyan-400 font-semibold transition"><i class="fa-solid fa-ranking-star mr-1"></i> Scoreboard</a>
+        
+        <!-- เมนูประกาศระบบพร้อมไอคอนรูประฆัง -->
+        <a href="announcement.html" class="relative hover:text-cyan-400 transition hover:scale-110 flex items-center gap-1.5 text-amber-400 font-bold" title="ประกาศระบบ">
+          <i class="fa-solid fa-bell text-sm"></i> ประกาศระบบ
+          <span id="announcementBadgeDot" class="hidden absolute -top-1 -right-2 w-2 h-2 bg-rose-500 rounded-full animate-ping"></span>
+        </a>
       </nav>
 
       <div id="authNavArea" class="flex items-center gap-2.5">
@@ -149,7 +192,7 @@
         </div>
       </div>
 
-      <!-- SCOREBOARD MATRIX TABLE (ย้ายขึ้นมาแสดงก่อนด้านบนเพื่อให้ผู้ใช้ดู Ranking ได้ทันที) -->
+      <!-- SCOREBOARD MATRIX TABLE -->
       <div class="tech-glass rounded-2xl overflow-x-auto border border-cyan-500/25">
         <table class="w-full text-left text-sm">
           <thead id="ioiTableHead" class="bg-cyan-950/60 text-cyan-300 border-b border-cyan-500/25 text-xs uppercase"></thead>
@@ -160,7 +203,7 @@
         </table>
       </div>
 
-      <!-- PROGRESSION CHART (ย้ายลงมาไว้ด้านล่างสุด) -->
+      <!-- PROGRESSION CHART -->
       <div class="tech-glass p-5 rounded-2xl border border-cyan-500/25 space-y-4">
         <div class="flex flex-wrap justify-between items-center gap-3">
           <div>
@@ -259,6 +302,7 @@
     let scoreChartInstance = null;
     let individualChartInstance = null;
     let realtimeChannel = null;
+    let announcementChannel = null;
 
     const CHART_PALETTE = [
       '#38bdf8', '#fbbf24', '#34d399', '#f472b6', '#a78bfa',
@@ -332,6 +376,7 @@
 
       await loadScoreboardEnvironment();
       setupRealtimeSubscription();
+      setupAnnouncementRealtime();
     }
 
     async function loadScoreboardEnvironment() {
@@ -368,6 +413,34 @@
         .subscribe();
     }
 
+    function setupAnnouncementRealtime() {
+      if (announcementChannel) supabaseClient.removeChannel(announcementChannel);
+
+      announcementChannel = supabaseClient.channel('public:announcements')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'announcements' }, payload => {
+          const newAnn = payload.new;
+          if (newAnn) {
+            document.getElementById('announcementBadgeDot').classList.remove('hidden');
+            showAnnouncementPopup(newAnn.title, newAnn.content, newAnn.created_at);
+          }
+        })
+        .subscribe();
+    }
+
+    function showAnnouncementPopup(title, content, timeStr) {
+      document.getElementById('popupAnnouncementTitle').textContent = title || 'ประกาศใหม่';
+      document.getElementById('popupAnnouncementContent').textContent = content || '';
+      document.getElementById('popupAnnouncementTime').textContent = timeStr ? new Date(timeStr).toLocaleString('th-TH') : 'เมื่อสักครู่';
+      
+      const modal = document.getElementById('announcementModal');
+      modal.classList.remove('opacity-0', 'pointer-events-none');
+    }
+
+    function closeAnnouncementModal() {
+      const modal = document.getElementById('announcementModal');
+      modal.classList.add('opacity-0', 'pointer-events-none');
+    }
+
     function recomputeIoiScoreboard() {
       const probLookup = {};
       allProblems.forEach(p => { probLookup[p.id] = p; });
@@ -383,21 +456,19 @@
         };
       });
 
-      const sortedLinked = allContestProblems.map(cp => {
-        const base = probLookup[cp.problem_id] || {};
-        return { ...cp, problem_code: base.problem_code || `P${cp.problem_id}` };
-      }).sort((a, b) => a.problem_code.localeCompare(b.problem_code));
+      // จัดเรียงรหัสโจทย์ตามลำดับ sort_order จากน้อยไปมาก
+      const sortedContestProbs = allContestProblems.slice().sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
 
-      // จัดเรียงรหัสโจทย์ตาม A-Z (Alphabetical order)
-      activeProblemColumns = sortedLinked.map((cp, idx) => {
+      // กำหนดรหัสข้อเป็น A, B, C, D... จากข้อแรกไปข้อสุดท้ายตามลำดับที่จัดไว้
+      activeProblemColumns = sortedContestProbs.map((cp, idx) => {
         const baseProb = probLookup[cp.problem_id] || {};
         return {
           id: cp.problem_id,
-          label: baseProb.problem_code || String.fromCharCode(65 + idx),
+          label: String.fromCharCode(65 + idx), // A, B, C, D...
           title: baseProb.title || `Problem #${cp.problem_id}`,
           maxScore: Number(cp.custom_score || baseProb.max_score || 100)
         };
-      }).sort((a, b) => a.label.localeCompare(b.label));
+      });
 
       const startMs = currentContestObj ? new Date(currentContestObj.start_time).getTime() : 0;
       const endMs = currentContestObj ? new Date(currentContestObj.end_time).getTime() : Infinity;
@@ -555,7 +626,6 @@
         `;
       }).join('');
 
-      // คำนวณสรุปจำนวนผู้ทำผ่านแต่ละข้อ (แสดงผลข้อความ จำนวนผู้ผ่านข้อนี้ทั้งหมด)
       const acCountsByProb = {};
       activeProblemColumns.forEach(col => {
         acCountsByProb[col.id] = computedRows.filter(r => (r.bestByProblem[col.id] || 0) >= col.maxScore).length;

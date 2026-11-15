@@ -10,11 +10,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     html, body { max-width: 100%; overflow-x: hidden; }
-    body {
-      font-family: 'Kanit', sans-serif;
-      background-color: #030712;
-      color: #f3f4f6;
-    }
+    body { font-family: 'Kanit', sans-serif; background-color: #030712; color: #f3f4f6; }
     .tech-glass {
       background: rgba(10, 15, 30, 0.78);
       backdrop-filter: blur(20px);
@@ -39,7 +35,6 @@
                         linear-gradient(to bottom, rgba(56, 189, 248, 0.04) 1px, transparent 1px);
       background-size: 36px 36px;
     }
-
     @keyframes cyberPulse {
       0%, 100% { opacity: 0.25; transform: scale(1) rotate(0deg); }
       50% { opacity: 0.55; transform: scale(1.08) rotate(3deg); }
@@ -52,14 +47,9 @@
       0% { transform: translateX(-100%); }
       100% { transform: translateX(200%); }
     }
-
     .glow-orb { animation: cyberPulse 7s ease-in-out infinite; }
     .animate-modal-in { animation: fadeInScale 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-    
-    .shimmer-btn {
-      position: relative;
-      overflow: hidden;
-    }
+    .shimmer-btn { position: relative; overflow: hidden; }
     .shimmer-btn::after {
       content: '';
       position: absolute;
@@ -85,7 +75,7 @@
     </div>
   </div>
 
-  <!-- NAVIGATION BAR -->
+  <!-- NAVIGATION BAR (นำลิงก์ Ranking ออกแล้ว) -->
   <header class="sticky top-0 z-50 tech-glass border-b border-cyan-500/20 px-4 md:px-8 py-3.5 transition-all">
     <div class="max-w-6xl mx-auto flex items-center justify-between">
       <div class="flex items-center gap-3">
@@ -108,7 +98,6 @@
         <a href="contest.html" class="text-cyan-400 font-semibold transition hover:scale-105"><i class="fa-solid fa-trophy mr-1"></i> Contest</a>
         <a href="scoreboard.html" class="hover:text-cyan-400 transition hover:scale-105"><i class="fa-solid fa-ranking-star mr-1 text-cyan-500"></i> Scoreboard</a>
         <a href="problems.html" class="hover:text-cyan-400 transition hover:scale-105"><i class="fa-solid fa-laptop-code mr-1 text-cyan-500"></i> คลังโจทย์</a>
-        <a href="ranking.html" class="hover:text-cyan-400 transition hover:scale-105"><i class="fa-solid fa-ranking-star mr-1 text-cyan-500"></i> Ranking</a>
         <a href="announcement.html" class="hover:text-cyan-400 transition hover:scale-105">ประกาศระบบ</a>
       </nav>
 
@@ -123,7 +112,6 @@
       <a href="contest.html" class="px-3 py-2 rounded-xl hover:bg-cyan-500/10 text-cyan-300"><i class="fa-solid fa-trophy mr-2 text-cyan-400"></i> Contest Arena</a>
       <a href="scoreboard.html" class="px-3 py-2 rounded-xl hover:bg-cyan-500/10"><i class="fa-solid fa-ranking-star mr-2 text-cyan-400"></i> Scoreboard</a>
       <a href="problems.html" class="px-3 py-2 rounded-xl hover:bg-cyan-500/10"><i class="fa-solid fa-laptop-code mr-2 text-cyan-400"></i> คลังโจทย์</a>
-      <a href="ranking.html" class="px-3 py-2 rounded-xl hover:bg-cyan-500/10"><i class="fa-solid fa-ranking-star mr-2 text-cyan-400"></i> Ranking</a>
       <a href="announcement.html" class="px-3 py-2 rounded-xl hover:bg-cyan-500/10"><i class="fa-solid fa-bullhorn mr-2 text-cyan-400"></i> ประกาศระบบ</a>
     </div>
   </header>
@@ -151,7 +139,6 @@
 
     <!-- VIEW 2: CONTEST ARENA ROOM -->
     <div id="contestArenaView" class="hidden space-y-6">
-      <!-- Top Arena Header -->
       <div class="flex flex-wrap justify-between items-center gap-4 tech-glass p-5 md:p-6 rounded-3xl border border-cyan-500/30">
         <div>
           <button type="button" onclick="backToContestList()" class="text-xs text-cyan-400 hover:text-cyan-300 mb-2 inline-flex items-center gap-1 cursor-pointer transition hover:-translate-x-1">
@@ -166,17 +153,15 @@
         </div>
       </div>
 
-      <!-- Arena Action Bar (Problems & Link to Scoreboard Page) -->
       <div class="flex flex-wrap items-center justify-between gap-3 bg-black/65 p-3 rounded-2xl border border-cyan-500/25">
         <div class="flex items-center gap-2 text-xs text-cyan-300 font-bold px-2">
-          <i class="fa-solid fa-laptop-code text-cyan-400"></i> รายการโจทย์ในห้องแข่งขัน
+          <i class="fa-solid fa-laptop-code text-cyan-400"></i> รายการโจทย์ในห้องแข่งขัน (อัปเดตสถานะ Realtime)
         </div>
         <a id="goToScoreboardPageBtn" href="scoreboard.html" class="bg-gradient-to-r from-amber-500 to-orange-500 hover:opacity-95 text-black px-5 py-2.5 rounded-xl text-xs font-bold transition shadow-lg flex items-center gap-2 shimmer-btn">
           <i class="fa-solid fa-ranking-star"></i> เปิดดูตาราง Scoreboard เต็มจอ &rarr;
         </a>
       </div>
 
-      <!-- PROBLEMS TAB CONTENT -->
       <div id="arenaProblemsSection" class="tech-glass rounded-3xl overflow-hidden border border-cyan-500/20 shadow-xl">
         <table class="w-full text-left text-sm">
           <thead class="bg-cyan-950/60 text-cyan-300 border-b border-cyan-500/20 text-xs uppercase font-mono">
@@ -184,7 +169,7 @@
               <th class="px-5 py-4 text-center w-16">สถานะ</th>
               <th class="px-5 py-4 whitespace-nowrap">รหัสข้อ</th>
               <th class="px-5 py-4 min-w-[250px]">ชื่อโจทย์</th>
-              <th class="px-5 py-4 text-center whitespace-nowrap">คะแนนเต็ม</th>
+              <th class="px-5 py-4 text-center whitespace-nowrap">คะแนนสูงสุด</th>
               <th class="px-5 py-4 text-right whitespace-nowrap">ดำเนินการ</th>
             </tr>
           </thead>
@@ -291,7 +276,6 @@
               <a href="index.html" class="block px-4 py-2.5 text-xs text-gray-300 hover:bg-cyan-500/10 hover:text-cyan-300 transition"><i class="fa-solid fa-house mr-2 text-cyan-400"></i> หน้าหลัก</a>
               <a href="scoreboard.html" class="block px-4 py-2.5 text-xs text-gray-300 hover:bg-cyan-500/10 hover:text-cyan-300 transition"><i class="fa-solid fa-ranking-star mr-2 text-amber-400"></i> Live Scoreboard</a>
               <a href="problems.html" class="block px-4 py-2.5 text-xs text-gray-300 hover:bg-cyan-500/10 hover:text-cyan-300 transition"><i class="fa-solid fa-laptop-code mr-2 text-cyan-400"></i> คลังโจทย์</a>
-              <a href="ranking.html" class="block px-4 py-2.5 text-xs text-gray-300 hover:bg-cyan-500/10 hover:text-cyan-300 transition"><i class="fa-solid fa-ranking-star mr-2 text-cyan-400"></i> บอร์ดจัดอันดับ</a>
               <a href="announcement.html" class="block px-4 py-2.5 text-xs text-gray-300 hover:bg-cyan-500/10 hover:text-cyan-300 transition"><i class="fa-solid fa-bullhorn mr-2 text-cyan-400"></i> ประกาศระบบ</a>
               <div class="border-t border-cyan-500/20 my-1"></div>
               <button type="button" onclick="handleLogout()" class="w-full text-left px-4 py-2.5 text-xs text-rose-400 hover:bg-rose-500/20 transition cursor-pointer"><i class="fa-solid fa-right-from-bracket mr-2"></i> ออกจากระบบ</button>
@@ -388,8 +372,6 @@
       document.getElementById('contestArenaView').classList.remove('hidden');
       document.getElementById('arenaContestTitle').textContent = currentActiveContest.title;
       document.getElementById('arenaContestDesc').textContent = currentActiveContest.description || '';
-
-      // เชื่อมลิงก์ปุ่ม Scoreboard ในหน้าห้องแข่งขันให้ส่ง contestId ไปด้วย
       document.getElementById('goToScoreboardPageBtn').href = `scoreboard.html?id=${contestId}`;
 
       startCountdown(currentActiveContest.end_time);
@@ -426,24 +408,50 @@
 
     async function loadContestProblems(contestId) {
       const tbody = document.getElementById('arenaProblemsTableBody');
-      const { data } = await supabaseClient.from('problems').select('*').limit(5);
-      if (!data || data.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-gray-400">ยังไม่มีโจทย์ในคอนเทสต์นี้</td></tr>`;
+      
+      // ดึงโจทย์ที่ผูกกับคอนเทสต์นี้ผ่าน contest_problems หรือดึงโจทย์ทั้งหมดมาแสดง
+      const [cpRes, probsRes, subsRes] = await Promise.all([
+        supabaseClient.from('contest_problems').select('*').eq('contest_id', contestId),
+        supabaseClient.from('problems').select('*'),
+        currentUser ? supabaseClient.from('submissions').select('*').eq('user_id', currentUser.id) : { data: [] }
+      ]);
+
+      const linkedIds = (cpRes.data || []).map(cp => cp.problem_id);
+      const allProbs = probsRes.data || [];
+      const contestProbs = linkedIds.length > 0 ? allProbs.filter(p => linkedIds.includes(p.id)) : allProbs.slice(0, 5);
+      const userSubs = subsRes.data || [];
+
+      if (contestProbs.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-gray-400">ยังไม่มีโจทย์ในห้องแข่งขันนี้</td></tr>`;
         return;
       }
-      tbody.innerHTML = data.map((p, idx) => `
-        <tr class="hover:bg-cyan-500/5 transition">
-          <td class="px-5 py-4 text-center"><i class="fa-regular fa-circle text-gray-500"></i></td>
-          <td class="px-5 py-4 font-mono text-cyan-300 font-bold">${p.problem_code || 'CON-' + (idx + 1)}</td>
-          <td class="px-5 py-4 font-semibold text-white">${p.title}</td>
-          <td class="px-5 py-4 text-center font-mono text-cyan-400 font-semibold">100 คะแนน</td>
-          <td class="px-5 py-4 text-right">
-            <a href="editor.html?id=${p.id}&contest_id=${contestId}" class="bg-gradient-to-r from-blue-600 to-cyan-500 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md inline-flex items-center gap-1.5 hover:opacity-95 transition">
-              <i class="fa-solid fa-code"></i> ทำโจทย์
-            </a>
-          </td>
-        </tr>
-      `).join('');
+
+      tbody.innerHTML = contestProbs.map((p, idx) => {
+        const probSubs = userSubs.filter(s => String(s.problem_id) === String(p.id));
+        const isPassed = probSubs.some(s => s.status === 'Accepted' || s.status === 'AC');
+        const maxScore = probSubs.length > 0 ? Math.max(...probSubs.map(s => Number(s.score) || 0)) : 0;
+
+        let statusIcon = `<i class="fa-regular fa-circle text-gray-500 text-base" title="ยังไม่ทำ"></i>`;
+        if (isPassed) {
+          statusIcon = `<i class="fa-solid fa-circle-check text-emerald-400 text-base animate-pulse" title="ผ่านแล้ว (Accepted)"></i>`;
+        } else if (probSubs.length > 0) {
+          statusIcon = `<i class="fa-solid fa-circle-xmark text-rose-400 text-base" title="ยังไม่ผ่าน"></i>`;
+        }
+
+        return `
+          <tr class="hover:bg-cyan-500/5 transition">
+            <td class="px-5 py-4 text-center">${statusIcon}</td>
+            <td class="px-5 py-4 font-mono text-cyan-300 font-bold">${p.problem_code || 'CON-' + (idx + 1)}</td>
+            <td class="px-5 py-4 font-semibold text-white">${p.title}</td>
+            <td class="px-5 py-4 text-center font-mono text-cyan-400 font-semibold">${maxScore} / ${p.max_score || 100} คะแนน</td>
+            <td class="px-5 py-4 text-right">
+              <a href="editor.html?id=${p.id}&contest_id=${contestId}" class="bg-gradient-to-r from-blue-600 to-cyan-500 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md inline-flex items-center gap-1.5 hover:opacity-95 transition">
+                <i class="fa-solid fa-code"></i> ทำโจทย์
+              </a>
+            </td>
+          </tr>
+        `;
+      }).join('');
     }
 
     function openContestModal() {
@@ -462,11 +470,7 @@
       const end_time = document.getElementById('conEndInput').value;
 
       const { error } = await supabaseClient.from('contests').insert([{ 
-        title, 
-        description, 
-        start_time, 
-        end_time, 
-        is_published: true 
+        title, description, start_time, end_time, is_published: true 
       }]);
 
       if (error) { 

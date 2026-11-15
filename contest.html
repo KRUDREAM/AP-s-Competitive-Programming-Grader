@@ -75,7 +75,39 @@
     </div>
   </div>
 
-  <!-- NAVIGATION BAR (นำลิงก์ Ranking ออกแล้ว) -->
+  <!-- ANNOUNCEMENT POP-UP MODAL (แจ้งเตือนประกาศใหม่แบบ Realtime) -->
+  <div id="announcementModal" onclick="if(event.target === this) closeAnnouncementModal()" class="fixed inset-0 z-[100] flex items-center justify-center px-4 bg-black/85 backdrop-blur-md opacity-0 pointer-events-none transition-all duration-300">
+    <div class="tech-modal rounded-3xl p-6 md:p-8 max-w-lg w-full relative space-y-4 border border-cyan-500/35 animate-modal-in">
+      <button type="button" onclick="closeAnnouncementModal()" class="absolute top-5 right-5 text-gray-400 hover:text-white w-9 h-9 rounded-full bg-cyan-500/10 flex items-center justify-center cursor-pointer hover:bg-cyan-500/25 transition">
+        <i class="fa-solid fa-xmark text-sm"></i>
+      </button>
+      <div class="flex items-center gap-3 border-b border-cyan-500/20 pb-3">
+        <div class="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 text-lg shadow-lg">
+          <i class="fa-solid fa-bullhorn fa-bounce"></i>
+        </div>
+        <div>
+          <h3 class="text-base font-bold text-white">ประกาศด่วนจากระบบ</h3>
+          <p id="popupAnnouncementTime" class="text-[10px] text-gray-400 font-mono">เมื่อสักครู่</p>
+        </div>
+      </div>
+      <div class="space-y-2">
+        <h4 id="popupAnnouncementTitle" class="text-lg font-bold text-cyan-300">หัวข้อประกาศ</h4>
+        <div id="popupAnnouncementContent" class="text-xs text-gray-300 leading-relaxed max-h-60 overflow-y-auto pr-1 bg-black/40 p-3.5 rounded-2xl border border-white/10">
+          เนื้อหาประกาศ...
+        </div>
+      </div>
+      <div class="flex justify-end gap-2 pt-2 border-t border-cyan-500/20">
+        <a href="announcement.html" class="tech-glass hover:bg-cyan-500/15 text-cyan-300 border border-cyan-500/35 px-4 py-2.5 rounded-xl text-xs font-semibold transition">
+          ดูประกาศทั้งหมด
+        </a>
+        <button type="button" onclick="closeAnnouncementModal()" class="bg-gradient-to-r from-blue-600 to-cyan-500 text-white px-5 py-2.5 rounded-xl text-xs font-bold shadow-lg hover:opacity-95 transition">
+          รับทราบ
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- NAVIGATION BAR -->
   <header class="sticky top-0 z-50 tech-glass border-b border-cyan-500/20 px-4 md:px-8 py-3.5 transition-all">
     <div class="max-w-6xl mx-auto flex items-center justify-between">
       <div class="flex items-center gap-3">
@@ -98,7 +130,12 @@
         <a href="contest.html" class="text-cyan-400 font-semibold transition hover:scale-105"><i class="fa-solid fa-trophy mr-1"></i> Contest</a>
         <a href="scoreboard.html" class="hover:text-cyan-400 transition hover:scale-105"><i class="fa-solid fa-ranking-star mr-1 text-cyan-500"></i> Scoreboard</a>
         <a href="problems.html" class="hover:text-cyan-400 transition hover:scale-105"><i class="fa-solid fa-laptop-code mr-1 text-cyan-500"></i> คลังโจทย์</a>
-        <a href="announcement.html" class="hover:text-cyan-400 transition hover:scale-105">ประกาศระบบ</a>
+        
+        <!-- ปุ่มกระดิ่งแจ้งเตือนประกาศระบบ -->
+        <a href="announcement.html" class="relative hover:text-cyan-400 transition hover:scale-110 flex items-center gap-1.5 text-amber-400 font-bold" title="ประกาศระบบ">
+          <i class="fa-solid fa-bell text-sm"></i>
+          <span id="announcementBadgeDot" class="hidden absolute -top-1 -right-2 w-2.5 h-2.5 bg-rose-500 rounded-full animate-ping"></span>
+        </a>
       </nav>
 
       <div id="authNavArea" class="flex items-center gap-2.5">
@@ -112,7 +149,7 @@
       <a href="contest.html" class="px-3 py-2 rounded-xl hover:bg-cyan-500/10 text-cyan-300"><i class="fa-solid fa-trophy mr-2 text-cyan-400"></i> Contest Arena</a>
       <a href="scoreboard.html" class="px-3 py-2 rounded-xl hover:bg-cyan-500/10"><i class="fa-solid fa-ranking-star mr-2 text-cyan-400"></i> Scoreboard</a>
       <a href="problems.html" class="px-3 py-2 rounded-xl hover:bg-cyan-500/10"><i class="fa-solid fa-laptop-code mr-2 text-cyan-400"></i> คลังโจทย์</a>
-      <a href="announcement.html" class="px-3 py-2 rounded-xl hover:bg-cyan-500/10"><i class="fa-solid fa-bullhorn mr-2 text-cyan-400"></i> ประกาศระบบ</a>
+      <a href="announcement.html" class="px-3 py-2 rounded-xl hover:bg-cyan-500/10 text-amber-400"><i class="fa-solid fa-bell mr-2"></i> ประกาศระบบ</a>
     </div>
   </header>
 
@@ -236,6 +273,7 @@
     let allContestsCache = [];
     let currentActiveContest = null;
     let countdownInterval = null;
+    let announcementChannel = null;
 
     function showToast(title, desc, isError = false) {
       const toast = document.getElementById('systemToast');
@@ -301,6 +339,8 @@
       if (targetContestId && allContestsCache.length > 0) {
         enterContest(targetContestId);
       }
+
+      setupAnnouncementRealtime();
     }
 
     function toggleDropdown() {
@@ -409,7 +449,6 @@
     async function loadContestProblems(contestId) {
       const tbody = document.getElementById('arenaProblemsTableBody');
       
-      // ดึงโจทย์ที่ผูกกับคอนเทสต์นี้ผ่าน contest_problems หรือดึงโจทย์ทั้งหมดมาแสดง
       const [cpRes, probsRes, subsRes] = await Promise.all([
         supabaseClient.from('contest_problems').select('*').eq('contest_id', contestId),
         supabaseClient.from('problems').select('*'),
@@ -438,11 +477,18 @@
           statusIcon = `<i class="fa-solid fa-circle-xmark text-rose-400 text-base" title="ยังไม่ผ่าน"></i>`;
         }
 
+        // จัดรหัสข้อให้เรียงลำดับเป็น A, B, C, D... จากบนลงล่าง
+        const alphabetCode = String.fromCharCode(65 + idx);
+
         return `
           <tr class="hover:bg-cyan-500/5 transition">
             <td class="px-5 py-4 text-center">${statusIcon}</td>
-            <td class="px-5 py-4 font-mono text-cyan-300 font-bold">${p.problem_code || 'CON-' + (idx + 1)}</td>
-            <td class="px-5 py-4 font-semibold text-white">${p.title}</td>
+            <td class="px-5 py-4 font-mono text-cyan-300 font-bold">${alphabetCode}</td>
+            <td class="px-5 py-4 font-semibold text-white">
+              <a href="editor.html?id=${p.id}&contest_id=${contestId}" class="hover:text-cyan-300 hover:underline transition cursor-pointer">
+                ${p.title}
+              </a>
+            </td>
             <td class="px-5 py-4 text-center font-mono text-cyan-400 font-semibold">${maxScore} / ${p.max_score || 100} คะแนน</td>
             <td class="px-5 py-4 text-right">
               <a href="editor.html?id=${p.id}&contest_id=${contestId}" class="bg-gradient-to-r from-blue-600 to-cyan-500 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md inline-flex items-center gap-1.5 hover:opacity-95 transition">
@@ -452,6 +498,36 @@
           </tr>
         `;
       }).join('');
+    }
+
+    function setupAnnouncementRealtime() {
+      document.getElementById('announcementBadgeDot').classList.remove('hidden');
+
+      if (announcementChannel) supabaseClient.removeChannel(announcementChannel);
+
+      announcementChannel = supabaseClient.channel('public:announcements')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'announcements' }, payload => {
+          const newAnn = payload.new;
+          if (newAnn) {
+            document.getElementById('announcementBadgeDot').classList.remove('hidden');
+            showAnnouncementPopup(newAnn.title, newAnn.content, newAnn.created_at);
+          }
+        })
+        .subscribe();
+    }
+
+    function showAnnouncementPopup(title, content, timeStr) {
+      document.getElementById('popupAnnouncementTitle').textContent = title || 'ประกาศใหม่';
+      document.getElementById('popupAnnouncementContent').textContent = content || '';
+      document.getElementById('popupAnnouncementTime').textContent = timeStr ? new Date(timeStr).toLocaleString('th-TH') : 'เมื่อสักครู่';
+      
+      const modal = document.getElementById('announcementModal');
+      modal.classList.remove('opacity-0', 'pointer-events-none');
+    }
+
+    function closeAnnouncementModal() {
+      const modal = document.getElementById('announcementModal');
+      modal.classList.add('opacity-0', 'pointer-events-none');
     }
 
     function openContestModal() {

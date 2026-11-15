@@ -930,16 +930,20 @@
       }
     }
 
-    async function initEditorPage() {
+async function initEditorPage() {
       if (!problemId) {
-        window.location.href = 'contest.html';
+        window.location.href = contestId ? `contest.html?id=${contestId}` : 'contest.html';
         return;
       }
 
-      // ปรับลิงก์ปุ่มย้อนกลับให้กลับไปที่หน้าห้องแข่งขันเดิมพร้อม contest_id (ถ้ามี)
+      // ดึงค่า contest_id จาก URL (รองรับทั้ง ?contest_id=... และ ?id=... ร่วมกัน)
+      const urlParamsAll = new URLSearchParams(window.location.search);
+      const activeContestId = urlParamsAll.get('contest_id') || urlParamsAll.get('contestId');
+
+      // กำหนดลิงก์ปุ่มย้อนกลับให้อ้างอิงกลับไปที่ห้องแข่งขัน Contest ทันทีถ้ามีค่า
       const backBtn = document.getElementById('backToContestBtn');
-      if (contestId) {
-        backBtn.href = `contest.html?id=${contestId}`;
+      if (activeContestId) {
+        backBtn.href = `contest.html?id=${activeContestId}`;
       } else {
         backBtn.href = 'contest.html';
       }
@@ -957,6 +961,7 @@
 
       const { data: prof } = await supabaseClient.from('profiles').select('*').eq('id', currentUser.id).maybeSingle();
       currentUserProfile = prof;
+      isAdminUser = prof && prof.role === 'admin';
       const displayName = (prof && (prof.display_name || prof.username)) || currentUser.email;
       const badge = document.getElementById('navUserBadge');
       badge.innerHTML = `<i class="fa-solid fa-user-astronaut text-cyan-400"></i> ${displayName}`;

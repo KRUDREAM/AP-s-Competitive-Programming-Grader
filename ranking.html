@@ -106,7 +106,7 @@
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-gradient-to-r from-amber-950/40 via-cyan-950/25 to-blue-950/20 p-5 md:p-6 rounded-3xl border border-cyan-500/20">
       <div>
         <h2 class="text-xl md:text-2xl font-bold text-white mb-1"><i class="fa-solid fa-ranking-star text-amber-400 mr-2"></i> บอร์ดจัดอันดับคะแนน (TOI Scoreboard)</h2>
-        <p class="text-xs text-gray-400">กราฟเส้นแสดงจังหวะคะแนนพุ่งตามเวลา &bull; คะแนนรายข้อเรียงตามรหัสโจทย์</p>
+        <p class="text-xs text-gray-400">คะแนนรวมอยู่ด้านหลังสุด &bull; เรียงโจทย์ตามรหัส &bull; กราฟเส้นพัฒนาการตามเวลา</p>
       </div>
       <button type="button" onclick="loadScoreboardEnvironment()" class="tech-glass hover:bg-cyan-500/15 text-cyan-300 border border-cyan-500/35 px-4 py-2.5 rounded-xl text-xs font-semibold transition cursor-pointer shrink-0">
         <i class="fa-solid fa-rotate mr-1.5"></i> รีเฟรชผลคะแนน
@@ -547,13 +547,14 @@
         </th>
       `).join('');
 
+      // ย้ายคอลัมน์ "คะแนนรวม" มาไว้ด้านหลังสุด (หลังคอลัมน์โจทย์ทั้งหมด)
       thead.innerHTML = `
         <tr>
           <th class="px-3 py-3.5 text-center w-14">กราฟ</th>
           <th class="px-3 py-3.5 text-center w-20">อันดับ</th>
           <th class="px-4 py-3.5 min-w-[180px]">ชื่อผู้ใช้ (คลิกดูโปรไฟล์)</th>
-          <th class="px-4 py-3.5 text-center whitespace-nowrap">คะแนนรวม</th>
           ${probHeaders}
+          <th class="px-4 py-3.5 text-center whitespace-nowrap">คะแนนรวม</th>
         </tr>
       `;
 
@@ -606,10 +607,10 @@
                 <div class="text-[11px] text-gray-400">@${row.username} &bull; ${row.fullSolvedCount} ข้อ</div>
               </button>
             </td>
+            ${problemCells}
             <td class="px-4 py-3 text-center whitespace-nowrap">
               <span class="text-base font-bold text-cyan-300 bg-cyan-500/15 px-3 py-1 rounded-xl border border-cyan-500/30 font-mono">${row.totalScore}</span>
             </td>
-            ${problemCells}
           </tr>
         `;
       }).join('');

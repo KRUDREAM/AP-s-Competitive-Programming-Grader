@@ -74,8 +74,8 @@
       </nav>
 
       <div id="authNavArea" class="flex items-center gap-2.5">
-        <button type="button" onclick="toggleModal('login')" class="text-xs font-semibold text-gray-300 hover:text-cyan-400 px-3 py-2 transition cursor-pointer">เข้าสู่ระบบ</button>
-        <button type="button" onclick="toggleModal('register')" class="bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-lg shadow-cyan-500/20 transition cursor-pointer">สมัครสมาชิก</button>
+        <button type="button" onclick="openAuthModal('login')" class="text-xs font-semibold text-gray-300 hover:text-cyan-400 px-3 py-2 transition cursor-pointer">เข้าสู่ระบบ</button>
+        <button type="button" onclick="openAuthModal('register')" class="bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-lg shadow-cyan-500/20 transition cursor-pointer">สมัครสมาชิก</button>
       </div>
     </div>
 
@@ -105,7 +105,7 @@
           แพลตฟอร์มฝึกฝน Competitive Programming และตรวจโค้ดอัตโนมัติความเร็วสูง รองรับการแข่งขันรูปแบบ <strong>TOI / IOI</strong> พร้อมตารางคะแนนรายข้อและระบบจัดอันดับแบบเรียลไทม์
         </p>
         <div class="flex flex-wrap justify-center lg:justify-start gap-3.5 pt-1">
-          <button type="button" id="heroPrimaryCta" onclick="toggleModal('register')" class="bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-95 text-white px-7 py-3.5 rounded-xl text-xs md:text-sm font-bold shadow-lg shadow-cyan-500/25 transition cursor-pointer">
+          <button type="button" id="heroPrimaryCta" onclick="openAuthModal('register')" class="bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-95 text-white px-7 py-3.5 rounded-xl text-xs md:text-sm font-bold shadow-lg shadow-cyan-500/25 transition cursor-pointer">
             <i class="fa-solid fa-rocket mr-1.5"></i> เริ่มต้นใช้งานฟรี
           </button>
           <a href="problems.html" class="tech-glass text-cyan-300 hover:bg-cyan-500/15 border border-cyan-500/35 px-7 py-3.5 rounded-xl text-xs md:text-sm font-semibold transition flex items-center gap-2">
@@ -221,7 +221,6 @@
 
     <!-- 5. FEATURED PROBLEMS & TOP 3 LEADERBOARD -->
     <section id="showcase" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-      <!-- Latest Problems -->
       <div class="lg:col-span-7 tech-glass rounded-3xl p-6 border border-cyan-500/20 space-y-4">
         <div class="flex justify-between items-center">
           <h3 class="text-base font-bold text-white"><i class="fa-solid fa-fire text-cyan-400 mr-2"></i> โจทย์อัปเดตล่าสุด</h3>
@@ -232,7 +231,6 @@
         </div>
       </div>
 
-      <!-- Top 3 Coders -->
       <div class="lg:col-span-5 tech-glass rounded-3xl p-6 border border-amber-500/20 space-y-4">
         <div class="flex justify-between items-center">
           <h3 class="text-base font-bold text-white"><i class="fa-solid fa-crown text-yellow-400 mr-2"></i> Top Coders ประจำระบบ</h3>
@@ -321,10 +319,10 @@
     </div>
   </div>
 
-  <!-- AUTH MODAL -->
-  <div id="authModal" onclick="if(event.target === this) toggleModal(null)" class="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/80 backdrop-blur-md opacity-0 pointer-events-none transition-all duration-300">
+  <!-- AUTH MODAL (Login / Register / Forgot Password) -->
+  <div id="authModal" onclick="if(event.target === this) closeAuthModal()" class="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/80 backdrop-blur-md opacity-0 pointer-events-none transition-all duration-300">
     <div class="tech-modal rounded-3xl p-8 max-w-md w-full relative transform scale-95 transition-all duration-300 border border-cyan-500/30" id="modalContainer">
-      <button type="button" onclick="toggleModal(null)" class="absolute top-5 right-5 text-gray-400 hover:text-white w-8 h-8 rounded-full bg-cyan-500/10 flex items-center justify-center transition cursor-pointer">
+      <button type="button" onclick="closeAuthModal()" class="absolute top-5 right-5 text-gray-400 hover:text-white w-8 h-8 rounded-full bg-cyan-500/10 flex items-center justify-center transition cursor-pointer">
         <i class="fa-solid fa-xmark text-xs"></i>
       </button>
 
@@ -334,28 +332,77 @@
       </div>
 
       <form id="authForm" class="space-y-3.5">
+        <!-- Username Group (Register Only) -->
         <div id="usernameGroup" class="hidden">
           <label class="block text-xs font-medium text-cyan-300 mb-1">ชื่อผู้ใช้งาน (Username)</label>
           <input type="text" id="authUsername" placeholder="angpao_dev" class="w-full bg-black/60 border border-cyan-500/20 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-400 font-mono">
         </div>
+
+        <!-- Display Name Group (Register Only) -->
         <div id="displayNameGroup" class="hidden">
           <label class="block text-xs font-medium text-cyan-300 mb-1">ชื่อที่ใช้แสดง (Display Name)</label>
           <input type="text" id="authDisplayName" placeholder="อั่งเปา ซุปตาร์โค้ด" class="w-full bg-black/60 border border-cyan-500/20 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-400">
         </div>
+
+        <!-- Identifier Group (Login & Register & Forgot) -->
         <div id="identifierGroup">
           <label class="block text-xs font-medium text-cyan-300 mb-1" id="identifierLabel">อีเมล หรือ ชื่อผู้ใช้งาน</label>
           <input type="text" id="authIdentifier" placeholder="name@example.com หรือ username" class="w-full bg-black/60 border border-cyan-500/20 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-400 font-mono">
         </div>
-        <div id="passwordGroup">
-          <label class="block text-xs font-medium text-cyan-300 mb-1">รหัสผ่าน (Password)</label>
-          <input type="password" id="authPassword" placeholder="••••••••" class="w-full bg-black/60 border border-cyan-500/20 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-400 font-mono">
+
+        <!-- Password Group (Login & Register & ChangePass) -->
+        <div id="passwordGroup" class="relative">
+          <div class="flex justify-between items-center mb-1">
+            <label class="block text-xs font-medium text-cyan-300">รหัสผ่าน (Password)</label>
+            <button type="button" id="forgotPassLink" onclick="switchAuthMode('forgot')" class="text-[11px] text-cyan-400 hover:underline hidden">ลืมรหัสผ่าน?</button>
+          </div>
+          <div class="relative">
+            <input type="password" id="authPassword" placeholder="••••••••" class="w-full bg-black/60 border border-cyan-500/20 rounded-xl px-4 py-2.5 pr-10 text-xs text-white focus:outline-none focus:border-cyan-400 font-mono">
+            <button type="button" onclick="togglePasswordVisibility('authPassword', 'eyeIcon1')" class="absolute right-3 top-3 text-gray-400 hover:text-cyan-300 cursor-pointer">
+              <i id="eyeIcon1" class="fa-solid fa-eye text-xs"></i>
+            </button>
+          </div>
+          <!-- Password Strength Indicator (Register Only) -->
+          <div id="passwordStrengthBox" class="hidden mt-2 space-y-1">
+            <div class="flex gap-1 h-1 w-full bg-black/50 rounded-full overflow-hidden">
+              <div id="strengthBar1" class="w-1/3 bg-gray-600 transition-all"></div>
+              <div id="strengthBar2" class="w-1/3 bg-gray-600 transition-all"></div>
+              <div id="strengthBar3" class="w-1/3 bg-gray-600 transition-all"></div>
+            </div>
+            <p id="strengthText" class="text-[10px] text-gray-400">ความปลอดภัยของรหัสผ่าน: ยังไม่ปลอดภัย</p>
+          </div>
         </div>
-        <div id="confirmPasswordGroup" class="hidden">
+
+        <!-- Confirm Password Group (Register Only) -->
+        <div id="confirmPasswordGroup" class="hidden relative">
           <label class="block text-xs font-medium text-cyan-300 mb-1">ยืนยันรหัสผ่านอีกครั้ง</label>
-          <input type="password" id="authConfirmPassword" placeholder="••••••••" class="w-full bg-black/60 border border-cyan-500/20 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-400 font-mono">
+          <div class="relative">
+            <input type="password" id="authConfirmPassword" placeholder="••••••••" class="w-full bg-black/60 border border-cyan-500/20 rounded-xl px-4 py-2.5 pr-10 text-xs text-white focus:outline-none focus:border-cyan-400 font-mono">
+            <button type="button" onclick="togglePasswordVisibility('authConfirmPassword', 'eyeIcon2')" class="absolute right-3 top-3 text-gray-400 hover:text-cyan-300 cursor-pointer">
+              <i id="eyeIcon2" class="fa-solid fa-eye text-xs"></i>
+            </button>
+          </div>
         </div>
+
+        <!-- Remember Me Checkbox (Login Only) -->
+        <div id="rememberMeGroup" class="flex items-center justify-between text-xs pt-1">
+          <label class="flex items-center gap-2 cursor-pointer text-gray-300">
+            <input type="checkbox" id="authRememberMe" class="accent-cyan-400 rounded cursor-pointer" checked>
+            <span>จดจำฉันไว้ในระบบ</span>
+          </label>
+        </div>
+
+        <!-- Message Box -->
         <div id="authMessage" class="text-xs text-center hidden"></div>
+
+        <!-- Submit Button -->
         <button type="submit" id="authSubmitBtn" class="w-full bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-bold py-3 rounded-xl text-xs transition shadow-lg shadow-cyan-500/20 mt-2 cursor-pointer">เข้าสู่ระบบ</button>
+
+        <!-- Toggle Switch Links Between Login / Register / Forgot -->
+        <div class="text-center pt-3 text-xs border-t border-cyan-500/15 mt-4">
+          <span id="authToggleText" class="text-gray-400">ยังไม่มีบัญชีผู้ใช้งาน?</span>
+          <button type="button" onclick="switchAuthMode()" id="authToggleBtn" class="text-cyan-400 font-semibold hover:underline ml-1 cursor-pointer">สมัครสมาชิก</button>
+        </div>
       </form>
     </div>
   </div>
@@ -370,10 +417,13 @@
   <script>
     const SUPABASE_URL = 'https://hqnmfkafwwnjiqpdhzoh.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhxbm1ma2Fmd3duamlxcGRoem9oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQyMTc0NzEsImV4cCI6MjEwOTc5MzQ3MX0.m6dHtNnXuQ108DvafyKWeFvAg_oySuQH3LRg0Jzaops';
-    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: { persistSession: true, autoRefreshToken: true }
+    });
 
     let currentSessionUser = null;
     let loggedInProfile = null;
+    let currentAuthMode = 'login'; // 'login', 'register', 'forgot'
 
     function toggleMobileMenu() {
       const drawer = document.getElementById('mobileNavDrawer');
@@ -415,7 +465,6 @@
             <a href="problems.html" class="block px-4 py-2.5 text-xs text-gray-300 hover:bg-cyan-500/10 hover:text-cyan-300 transition"><i class="fa-solid fa-laptop-code mr-2 text-cyan-400"></i> คลังโจทย์</a>
             <a href="ranking.html" class="block px-4 py-2.5 text-xs text-gray-300 hover:bg-cyan-500/10 hover:text-cyan-300 transition"><i class="fa-solid fa-ranking-star mr-2 text-cyan-400"></i> บอร์ดจัดอันดับ</a>
             <button type="button" onclick="toggleStatsModal(true)" class="w-full text-left px-4 py-2.5 text-xs text-gray-300 hover:bg-cyan-500/10 hover:text-cyan-300 transition cursor-pointer"><i class="fa-solid fa-chart-line mr-2 text-cyan-400"></i> สถิติพัฒนาการ &amp; Submission</button>
-            <button type="button" onclick="toggleModal('changepass')" class="w-full text-left px-4 py-2.5 text-xs text-gray-300 hover:bg-cyan-500/10 hover:text-cyan-300 transition cursor-pointer"><i class="fa-solid fa-key mr-2 text-cyan-400"></i> เปลี่ยนรหัสผ่าน</button>
             <div class="border-t border-cyan-500/20 my-1"></div>
             <button type="button" onclick="handleLogout()" class="w-full text-left px-4 py-2.5 text-xs text-rose-400 hover:bg-rose-500/20 transition cursor-pointer"><i class="fa-solid fa-right-from-bracket mr-2"></i> ออกจากระบบ</button>
           </div>
@@ -460,8 +509,6 @@
       } else {
         modal.classList.add('opacity-0', 'pointer-events-none');
       }
-      const dd = document.getElementById('userDropdown');
-      if (dd) dd.classList.add('hidden');
     }
 
     async function handleLogout() {
@@ -469,6 +516,233 @@
       window.location.reload();
     }
 
+    // Modal Manager with 3 Modes (Login, Register, Forgot)
+    function openAuthModal(mode = 'login') {
+      const modal = document.getElementById('authModal');
+      const container = document.getElementById('modalContainer');
+      setAuthMode(mode);
+      modal.classList.remove('opacity-0', 'pointer-events-none');
+      container.classList.remove('scale-95'); container.classList.add('scale-100');
+    }
+
+    function closeAuthModal() {
+      const modal = document.getElementById('authModal');
+      const container = document.getElementById('modalContainer');
+      modal.classList.add('opacity-0', 'pointer-events-none');
+      container.classList.remove('scale-100'); container.classList.add('scale-95');
+    }
+
+    function switchAuthMode(targetMode) {
+      if (!targetMode) {
+        if (currentAuthMode === 'login') targetMode = 'register';
+        else targetMode = 'login';
+      }
+      currentAuthMode = targetMode;
+      document.getElementById('authForm').reset();
+      document.getElementById('authMessage').classList.add('hidden');
+      resetPasswordStrengthUI();
+
+      const usernameGroup = document.getElementById('usernameGroup');
+      const displayNameGroup = document.getElementById('displayNameGroup');
+      const identifierGroup = document.getElementById('identifierGroup');
+      const passwordGroup = document.getElementById('passwordGroup');
+      const confirmPasswordGroup = document.getElementById('confirmPasswordGroup');
+      const rememberMeGroup = document.getElementById('rememberMeGroup');
+      const forgotPassLink = document.getElementById('forgotPassLink');
+      const strengthBox = document.getElementById('passwordStrengthBox');
+
+      if (currentAuthMode === 'login') {
+        modalTitle.textContent = 'เข้าสู่ระบบ';
+        modalSubtitle.textContent = 'ใช้ Email หรือ Username ของคุณ';
+        authSubmitBtn.textContent = 'เข้าสู่ระบบ';
+        usernameGroup.classList.add('hidden');
+        displayNameGroup.classList.add('hidden');
+        identifierGroup.classList.remove('hidden');
+        passwordGroup.classList.remove('hidden');
+        confirmPasswordGroup.classList.add('hidden');
+        rememberMeGroup.classList.remove('hidden');
+        forgotPassLink.classList.remove('hidden');
+        strengthBox.classList.add('hidden');
+        document.getElementById('authToggleText').textContent = 'ยังไม่มีบัญชีผู้ใช้งาน?';
+        document.getElementById('authToggleBtn').textContent = 'สมัครสมาชิก';
+      } else if (currentAuthMode === 'register') {
+        modalTitle.textContent = 'สมัครสมาชิกใหม่';
+        modalSubtitle.textContent = 'สมัครปุ๊บ เริ่มประลองโค้ดได้ทันที';
+        authSubmitBtn.textContent = 'ลงทะเบียนใช้งาน';
+        usernameGroup.classList.remove('hidden');
+        displayNameGroup.classList.remove('hidden');
+        identifierGroup.classList.remove('hidden');
+        passwordGroup.classList.remove('hidden');
+        confirmPasswordGroup.classList.remove('hidden');
+        rememberMeGroup.classList.add('hidden');
+        forgotPassLink.classList.add('hidden');
+        strengthBox.classList.remove('hidden');
+        document.getElementById('authToggleText').textContent = 'มีบัญชีอยู่แล้ว?';
+        document.getElementById('authToggleBtn').textContent = 'เข้าสู่ระบบ';
+      } else if (currentAuthMode === 'forgot') {
+        modalTitle.textContent = 'กู้คืนรหัสผ่าน';
+        modalSubtitle.textContent = 'กรอกอีเมลของคุณเพื่อรับลิงก์รีเซ็ตรหัสผ่าน';
+        authSubmitBtn.textContent = 'ส่งลิงก์รีเซ็ตรหัสผ่าน';
+        usernameGroup.classList.add('hidden');
+        displayNameGroup.classList.add('hidden');
+        identifierGroup.classList.remove('hidden');
+        passwordGroup.classList.add('hidden');
+        confirmPasswordGroup.classList.add('hidden');
+        rememberMeGroup.classList.add('hidden');
+        forgotPassLink.classList.add('hidden');
+        strengthBox.classList.add('hidden');
+        document.getElementById('authToggleText').textContent = 'จำรหัสผ่านได้แล้ว?';
+        document.getElementById('authToggleBtn').textContent = 'กลับไปเข้าสู่ระบบ';
+      }
+    }
+
+    // Show / Hide Password Toggle
+    function togglePasswordVisibility(inputId, iconId) {
+      const input = document.getElementById(inputId);
+      const icon = document.getElementById(iconId);
+      if (input.type === 'password') {
+        input.type = 'text';
+        icon.className = 'fa-solid fa-eye-slash text-xs text-cyan-400';
+      } else {
+        input.type = 'password';
+        icon.className = 'fa-solid fa-eye text-xs';
+      }
+    }
+
+    // Password Strength Checker
+    document.getElementById('authPassword').addEventListener('input', (e) => {
+      if (currentAuthMode !== 'register') return;
+      const val = e.target.value;
+      const b1 = document.getElementById('strengthBar1');
+      const b2 = document.getElementById('strengthBar2');
+      const b3 = document.getElementById('strengthBar3');
+      const txt = document.getElementById('strengthText');
+
+      let score = 0;
+      if (val.length >= 6) score++;
+      if (val.length >= 10 && /[A-Z]/.test(val) && /[0-9]/.test(val)) score++;
+      if (val.length >= 12 && /[^A-Za-z0-9]/.test(val)) score++;
+
+      b1.className = 'w-1/3 transition-all ' + (score >= 1 ? 'bg-rose-500' : 'bg-gray-600');
+      b2.className = 'w-1/3 transition-all ' + (score >= 2 ? 'bg-amber-400' : 'bg-gray-600');
+      b3.className = 'w-1/3 transition-all ' + (score >= 3 ? 'bg-emerald-400' : 'bg-gray-600');
+
+      if (val.length === 0) {
+        txt.textContent = 'ความปลอดภัยของรหัสผ่าน: ยังไม่กรอกรหัสผ่าน';
+        txt.className = 'text-[10px] text-gray-400';
+      } else if (score === 1) {
+        txt.textContent = 'ระดับ: ปานกลาง (ควรมีความยาวอย่างน้อย 8 ตัวอักษรและมีตัวเลข)';
+        txt.className = 'text-[10px] text-rose-400';
+      } else if (score === 2) {
+        txt.textContent = 'ระดับ: ดี (รหัสผ่านปลอดภัยปานกลาง)';
+        txt.className = 'text-[10px] text-amber-300';
+      } else if (score >= 3) {
+        txt.textContent = 'ระดับ: ยอดเยี่ยม (รหัสผ่านแข็งแกร่งมาก)';
+        txt.className = 'text-[10px] text-emerald-400';
+      } else {
+        txt.textContent = 'ระดับ: อ่อน (สั้นเกินไป)';
+        txt.className = 'text-[10px] text-gray-400';
+      }
+    });
+
+    function resetPasswordStrengthUI() {
+      document.getElementById('strengthBar1').className = 'w-1/3 bg-gray-600';
+      document.getElementById('strengthBar2').className = 'w-1/3 bg-gray-600';
+      document.getElementById('strengthBar3').className = 'w-1/3 bg-gray-600';
+      document.getElementById('strengthText').textContent = 'ความปลอดภัยของรหัสผ่าน: ยังไม่กรอกรหัสผ่าน';
+    }
+
+    // Form Submit Handler
+    document.getElementById('authForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const authMsg = document.getElementById('authMessage');
+      authMsg.classList.remove('hidden');
+
+      if (currentAuthMode === 'register') {
+        const username = document.getElementById('authUsername').value.trim();
+        const displayName = document.getElementById('authDisplayName').value.trim() || username;
+        const email = document.getElementById('authIdentifier').value.trim();
+        const password = document.getElementById('authPassword').value;
+        const confirmPassword = document.getElementById('authConfirmPassword').value;
+
+        if (!username) { authMsg.textContent = '❌ กรุณากรอกชื่อผู้ใช้งาน (Username)'; authMsg.className = 'text-xs text-center text-rose-400 font-semibold'; return; }
+        if (password !== confirmPassword) { authMsg.textContent = '❌ รหัสผ่านไม่ตรงกัน'; authMsg.className = 'text-xs text-center text-rose-400 font-semibold'; return; }
+        
+        authMsg.textContent = 'กำลังสมัครสมาชิก...'; authMsg.className = 'text-xs text-center text-cyan-300 font-semibold';
+
+        const { data, error } = await supabaseClient.auth.signUp({ email, password });
+        if (error) {
+          authMsg.textContent = `❌ ${error.message}`; authMsg.className = 'text-xs text-center text-rose-400 font-semibold';
+        } else {
+          if (data.user) {
+            await supabaseClient.from('profiles').upsert([{
+              id: data.user.id,
+              display_name: displayName,
+              username: username,
+              email: email,
+              xp: 0
+            }]);
+          }
+          authMsg.textContent = '✅ สมัครสมาชิกสำเร็จ!'; authMsg.className = 'text-xs text-center text-emerald-400 font-semibold';
+          setTimeout(() => { closeAuthModal(); window.location.reload(); }, 1200);
+        }
+      } else if (currentAuthMode === 'login') {
+        const identifier = document.getElementById('authIdentifier').value.trim();
+        const password = document.getElementById('authPassword').value;
+        authMsg.textContent = 'กำลังเข้าสู่ระบบ...'; authMsg.className = 'text-xs text-center text-cyan-300 font-semibold';
+
+        let emailToLogin = identifier;
+        if (!identifier.includes('@')) {
+          const { data: profile } = await supabaseClient
+            .from('profiles')
+            .select('email, auth_email')
+            .or(`display_name.eq.${identifier},username.eq.${identifier}`)
+            .maybeSingle();
+
+          const foundEmail = profile && (profile.email || profile.auth_email);
+          if (!foundEmail) {
+            authMsg.textContent = '❌ ไม่พบ Username นี้ในระบบ';
+            authMsg.className = 'text-xs text-center text-rose-400 font-semibold';
+            return;
+          }
+          emailToLogin = foundEmail;
+        }
+
+        const { error } = await supabaseClient.auth.signInWithPassword({ email: emailToLogin, password });
+        if (error) {
+          authMsg.textContent = `❌ เข้าสู่ระบบไม่สำเร็จ: ${error.message}`;
+          authMsg.className = 'text-xs text-center text-rose-400 font-semibold';
+        } else {
+          authMsg.textContent = '✅ เข้าสู่ระบบสำเร็จ!';
+          authMsg.className = 'text-xs text-center text-emerald-400 font-semibold';
+          setTimeout(() => { closeAuthModal(); window.location.reload(); }, 1000);
+        }
+      } else if (currentAuthMode === 'forgot') {
+        const email = document.getElementById('authIdentifier').value.trim();
+        if (!email || !email.includes('@')) {
+          authMsg.textContent = '❌ กรุณากรอกอีเมลที่ถูกต้องสำหรับกู้คืนรหัสผ่าน';
+          authMsg.className = 'text-xs text-center text-rose-400 font-semibold';
+          return;
+        }
+        authMsg.textContent = 'กำลังส่งอีเมลรีเซ็ตรหัสผ่าน...';
+        authMsg.className = 'text-xs text-center text-cyan-300 font-semibold';
+
+        const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+          redirectTo: window.location.href,
+        });
+
+        if (error) {
+          authMsg.textContent = `❌ ${error.message}`;
+          authMsg.className = 'text-xs text-center text-rose-400 font-semibold';
+        } else {
+          authMsg.textContent = '✅ ส่งลิงก์รีเซ็ตรหัสผ่านไปยังอีเมลของคุณแล้ว!';
+          authMsg.className = 'text-xs text-center text-emerald-400 font-semibold';
+          setTimeout(() => switchAuthMode('login'), 3000);
+        }
+      }
+    });
+
+    // Fetch Landing Stats & Contests
     async function fetchLandingData() {
       try {
         const [totalProbRes, verifiedProbRes, subsCountRes, usersCountRes] = await Promise.all([
@@ -597,105 +871,6 @@
       }
     }
     fetchLandingData();
-
-    let currentAuthMode = 'login';
-    function toggleModal(mode) {
-      const modal = document.getElementById('authModal');
-      const container = document.getElementById('modalContainer');
-      if (!mode) {
-        modal.classList.add('opacity-0', 'pointer-events-none');
-        container.classList.remove('scale-100'); container.classList.add('scale-95');
-      } else {
-        currentAuthMode = mode;
-        document.getElementById('authForm').reset();
-        document.getElementById('authMessage').classList.add('hidden');
-        if (mode === 'login') {
-          modalTitle.textContent = 'เข้าสู่ระบบ'; modalSubtitle.textContent = 'ใช้ Email หรือ Username'; authSubmitBtn.textContent = 'เข้าสู่ระบบ';
-          usernameGroup.classList.add('hidden'); displayNameGroup.classList.add('hidden'); identifierGroup.classList.remove('hidden'); passwordGroup.classList.remove('hidden'); confirmPasswordGroup.classList.add('hidden');
-        } else if (mode === 'register') {
-          modalTitle.textContent = 'สมัครสมาชิกใหม่'; modalSubtitle.textContent = 'สมัครปุ๊บ ใช้งานได้ทันที'; authSubmitBtn.textContent = 'ลงทะเบียนใช้งาน';
-          usernameGroup.classList.remove('hidden'); displayNameGroup.classList.remove('hidden'); identifierGroup.classList.remove('hidden'); passwordGroup.classList.remove('hidden'); confirmPasswordGroup.classList.remove('hidden');
-        } else if (mode === 'changepass') {
-          modalTitle.textContent = 'เปลี่ยนรหัสผ่าน'; modalSubtitle.textContent = 'กำหนดรหัสผ่านใหม่'; authSubmitBtn.textContent = 'บันทึกรหัสผ่านใหม่';
-          usernameGroup.classList.add('hidden'); displayNameGroup.classList.add('hidden'); identifierGroup.classList.add('hidden'); passwordGroup.classList.remove('hidden'); confirmPasswordGroup.classList.remove('hidden');
-        }
-        modal.classList.remove('opacity-0', 'pointer-events-none');
-        container.classList.remove('scale-95'); container.classList.add('scale-100');
-      }
-    }
-
-    document.getElementById('authForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const authMsg = document.getElementById('authMessage');
-      authMsg.classList.remove('hidden');
-
-      if (currentAuthMode === 'register') {
-        const username = document.getElementById('authUsername').value.trim();
-        const displayName = document.getElementById('authDisplayName').value.trim() || username;
-        const email = document.getElementById('authIdentifier').value.trim();
-        const password = document.getElementById('authPassword').value;
-        const confirmPassword = document.getElementById('authConfirmPassword').value;
-
-        if (!username) { authMsg.textContent = '❌ กรุณากรอกชื่อผู้ใช้งาน (Username)'; authMsg.className = 'text-xs text-center text-rose-400 font-semibold'; return; }
-        if (password !== confirmPassword) { authMsg.textContent = '❌ รหัสผ่านไม่ตรงกัน'; authMsg.className = 'text-xs text-center text-rose-400 font-semibold'; return; }
-        
-        authMsg.textContent = 'กำลังสมัครสมาชิก...'; authMsg.className = 'text-xs text-center text-cyan-300 font-semibold';
-
-        const { data, error } = await supabaseClient.auth.signUp({ email, password });
-        if (error) {
-          authMsg.textContent = `❌ ${error.message}`; authMsg.className = 'text-xs text-center text-rose-400 font-semibold';
-        } else {
-          if (data.user) {
-            const { error: profileErr } = await supabaseClient.from('profiles').upsert([{
-              id: data.user.id,
-              display_name: displayName,
-              username: username,
-              email: email,
-              xp: 0
-            }]);
-            if (profileErr) console.error('Profile upsert error:', profileErr);
-          }
-          authMsg.textContent = '✅ สมัครสมาชิกสำเร็จ!'; authMsg.className = 'text-xs text-center text-emerald-400 font-semibold';
-          setTimeout(() => { toggleModal(null); window.location.reload(); }, 1200);
-        }
-      } else if (currentAuthMode === 'login') {
-        const identifier = document.getElementById('authIdentifier').value.trim();
-        const password = document.getElementById('authPassword').value;
-        authMsg.textContent = 'กำลังเข้าสู่ระบบ...'; authMsg.className = 'text-xs text-center text-cyan-300 font-semibold';
-
-        let emailToLogin = identifier;
-        if (!identifier.includes('@')) {
-          const { data: profile } = await supabaseClient
-            .from('profiles')
-            .select('email, auth_email')
-            .or(`display_name.eq.${identifier},username.eq.${identifier}`)
-            .maybeSingle();
-
-          const foundEmail = profile && (profile.email || profile.auth_email);
-          if (!foundEmail) {
-            authMsg.textContent = '❌ ไม่พบ Username นี้ในระบบ';
-            authMsg.className = 'text-xs text-center text-rose-400 font-semibold';
-            return;
-          }
-          emailToLogin = foundEmail;
-        }
-
-        const { error } = await supabaseClient.auth.signInWithPassword({ email: emailToLogin, password });
-        if (error) { authMsg.textContent = `❌ เข้าสู่ระบบไม่สำเร็จ: ${error.message}`; authMsg.className = 'text-xs text-center text-rose-400 font-semibold'; }
-        else {
-          authMsg.textContent = '✅ เข้าสู่ระบบสำเร็จ!'; authMsg.className = 'text-xs text-center text-emerald-400 font-semibold';
-          setTimeout(() => { toggleModal(null); window.location.reload(); }, 1000);
-        }
-      } else if (currentAuthMode === 'changepass') {
-        const p1 = document.getElementById('authPassword').value;
-        const p2 = document.getElementById('authConfirmPassword').value;
-        if (p1 !== p2) { authMsg.textContent = '❌ รหัสผ่านใหม่ไม่ตรงกัน'; authMsg.className = 'text-xs text-center text-rose-400 font-semibold'; return; }
-
-        const { error } = await supabaseClient.auth.updateUser({ password: p1 });
-        if (error) { authMsg.textContent = `❌ ${error.message}`; authMsg.className = 'text-xs text-center text-rose-400 font-semibold'; }
-        else { authMsg.textContent = '✅ เปลี่ยนรหัสผ่านสำเร็จ!'; authMsg.className = 'text-xs text-center text-emerald-400 font-semibold'; setTimeout(() => toggleModal(null), 1500); }
-      }
-    });
   </script>
 </body>
 </html>

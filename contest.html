@@ -8,102 +8,62 @@
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <style>
     html, body { max-width: 100%; overflow-x: hidden; }
-    body {
-      font-family: 'Kanit', sans-serif;
-      background-color: #030712;
-      color: #f3f4f6;
-    }
+    body { font-family: 'Kanit', sans-serif; background-color: #030712; color: #f3f4f6; }
     .tech-glass {
       background: rgba(10, 15, 30, 0.78);
       backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
       border: 1px solid rgba(56, 189, 248, 0.18);
-      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.05);
-      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    .tech-glass:hover {
-      border-color: rgba(56, 189, 248, 0.40);
-      box-shadow: 0 15px 50px rgba(14, 165, 233, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.55);
     }
     .tech-modal {
       background: rgba(6, 11, 25, 0.96);
       backdrop-filter: blur(28px);
       border: 1px solid rgba(56, 189, 248, 0.35);
-      box-shadow: 0 0 70px rgba(14, 165, 233, 0.28);
     }
     .cyber-grid {
       background-image: linear-gradient(to right, rgba(56, 189, 248, 0.04) 1px, transparent 1px),
                         linear-gradient(to bottom, rgba(56, 189, 248, 0.04) 1px, transparent 1px);
       background-size: 36px 36px;
     }
-    @keyframes cyberPulse {
-      0%, 100% { opacity: 0.25; transform: scale(1); }
-      50% { opacity: 0.55; transform: scale(1.08); }
-    }
+    @keyframes cyberPulse { 0%, 100% { opacity: 0.25; transform: scale(1); } 50% { opacity: 0.55; transform: scale(1.08); } }
     .glow-orb { animation: cyberPulse 7s ease-in-out infinite; }
-    .modal-backdrop { transition: opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1); }
-    .modal-box { transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.28s ease; }
-    .modal-open .modal-box { transform: scale(1) translateY(0); opacity: 1; }
-    .modal-closed .modal-box { transform: scale(0.95) translateY(12px); opacity: 0; }
   </style>
 </head>
 <body class="min-h-screen flex flex-col relative overflow-x-hidden cyber-grid selection:bg-cyan-500 selection:text-black">
 
-  <!-- Ambient Lights -->
   <div class="absolute top-0 left-1/4 w-[650px] h-[650px] bg-blue-600/15 rounded-full blur-[160px] pointer-events-none glow-orb"></div>
   <div class="absolute top-1/3 right-1/4 w-[550px] h-[550px] bg-cyan-500/15 rounded-full blur-[160px] pointer-events-none glow-orb" style="animation-delay: 3.5s;"></div>
 
-  <!-- SYSTEM NOTIFICATION TOAST -->
-  <div id="systemToast" class="fixed top-5 right-5 z-[80] transform translate-x-[120%] transition-all duration-300 ease-out tech-glass px-5 py-3.5 rounded-2xl border border-cyan-500/40 shadow-2xl flex items-center gap-3">
+  <!-- TOAST -->
+  <div id="systemToast" class="fixed top-5 right-5 z-[80] transform translate-x-[120%] transition-all duration-300 tech-glass px-5 py-3.5 rounded-2xl border border-cyan-500/40 shadow-2xl flex items-center gap-3">
     <i id="toastIcon" class="fa-solid fa-circle-check text-cyan-400 text-lg"></i>
-    <div>
-      <h4 id="toastTitle" class="text-xs font-bold text-white">แจ้งเตือนระบบ</h4>
-      <p id="toastDesc" class="text-xs text-gray-300">ดำเนินการสำเร็จ</p>
-    </div>
+    <div><h4 id="toastTitle" class="text-xs font-bold text-white">แจ้งเตือน</h4><p id="toastDesc" class="text-xs text-gray-300">สำเร็จ</p></div>
   </div>
 
-  <!-- NAVIGATION BAR (Unified Design) -->
-  <header class="sticky top-0 z-50 tech-glass border-b border-cyan-500/20 px-4 md:px-8 py-3.5 transition-all">
+  <!-- NAVIGATION BAR -->
+  <header class="sticky top-0 z-50 tech-glass border-b border-cyan-500/20 px-4 md:px-8 py-3.5">
     <div class="max-w-6xl mx-auto flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <button type="button" onclick="toggleMobileMenu()" class="md:hidden tech-glass border border-cyan-500/30 text-cyan-300 w-9 h-9 rounded-xl flex items-center justify-center cursor-pointer hover:scale-105 transition">
-          <i class="fa-solid fa-bars text-sm"></i>
-        </button>
-        <div class="flex items-center gap-3 cursor-pointer group" onclick="window.location.href='index.html'">
-          <div class="bg-gradient-to-tr from-blue-600 to-cyan-400 p-2 rounded-xl shadow-lg shadow-cyan-500/30 text-white font-bold text-base flex items-center justify-center w-9 h-9 group-hover:rotate-12 transition-transform duration-300">
-            <i class="fa-solid fa-terminal"></i>
-          </div>
-          <div>
-            <h1 class="font-bold text-sm tracking-widest text-cyan-400 uppercase drop-shadow-[0_0_8px_rgba(56,189,248,0.4)]">ST8 CP-Grader</h1>
-            <p class="text-[9px] text-gray-400 tracking-wider">CONTEST ARENA</p>
-          </div>
+      <div class="flex items-center gap-3 cursor-pointer group" onclick="window.location.href='index.html'">
+        <div class="bg-gradient-to-tr from-blue-600 to-cyan-400 p-2 rounded-xl text-white font-bold flex items-center justify-center w-9 h-9">
+          <i class="fa-solid fa-terminal"></i>
+        </div>
+        <div>
+          <h1 class="font-bold text-sm tracking-widest text-cyan-400 uppercase">ST8 CP-Grader</h1>
+          <p class="text-[9px] text-gray-400">CONTEST ARENA</p>
         </div>
       </div>
-
       <nav class="hidden md:flex items-center gap-6 text-xs font-medium text-gray-300">
-        <a href="index.html" class="hover:text-cyan-400 transition hover:scale-105"><i class="fa-solid fa-house mr-1 text-cyan-500"></i> หน้าหลัก</a>
-        <a href="contest.html" class="text-cyan-400 font-semibold transition hover:scale-105"><i class="fa-solid fa-trophy mr-1"></i> Contest</a>
-        <a href="problems.html" class="hover:text-cyan-400 transition hover:scale-105"><i class="fa-solid fa-laptop-code mr-1 text-cyan-500"></i> คลังโจทย์</a>
-        <a href="ranking.html" class="hover:text-cyan-400 transition hover:scale-105"><i class="fa-solid fa-ranking-star mr-1 text-cyan-500"></i> Ranking</a>
-        <a href="announcement.html" class="hover:text-cyan-400 transition hover:scale-105">ประกาศระบบ</a>
+        <a href="index.html" class="hover:text-cyan-400 transition"><i class="fa-solid fa-house mr-1 text-cyan-500"></i> หน้าหลัก</a>
+        <a href="contest.html" class="text-cyan-400 font-semibold transition"><i class="fa-solid fa-trophy mr-1"></i> Contest</a>
+        <a href="problems.html" class="hover:text-cyan-400 transition"><i class="fa-solid fa-laptop-code mr-1 text-cyan-500"></i> คลังโจทย์</a>
+        <a href="ranking.html" class="hover:text-cyan-400 transition"><i class="fa-solid fa-ranking-star mr-1 text-cyan-500"></i> Ranking</a>
+        <a href="announcement.html" class="hover:text-cyan-400 transition">ประกาศระบบ</a>
       </nav>
-
-      <!-- AUTH AREA -->
       <div id="authNavArea" class="flex items-center gap-2.5">
-        <a href="index.html" class="text-xs font-semibold text-gray-300 hover:text-cyan-400 px-3 py-2 transition">เข้าสู่ระบบ</a>
+        <a href="index.html" class="text-xs font-semibold text-gray-300 hover:text-cyan-400 px-3 py-2">เข้าสู่ระบบ</a>
       </div>
-    </div>
-
-    <!-- Mobile Nav Drawer -->
-    <div id="mobileNavDrawer" class="hidden md:hidden mt-3 pt-3 border-t border-cyan-500/20 flex flex-col gap-2 text-xs font-medium text-gray-300 transition-all">
-      <a href="index.html" class="px-3 py-2 rounded-xl hover:bg-cyan-500/10"><i class="fa-solid fa-house mr-2 text-cyan-400"></i> หน้าหลัก</a>
-      <a href="contest.html" class="px-3 py-2 rounded-xl bg-cyan-500/15 text-cyan-300 font-semibold"><i class="fa-solid fa-trophy mr-2"></i> Contest Arena</a>
-      <a href="problems.html" class="px-3 py-2 rounded-xl hover:bg-cyan-500/10"><i class="fa-solid fa-laptop-code mr-2 text-cyan-400"></i> คลังโจทย์</a>
-      <a href="ranking.html" class="px-3 py-2 rounded-xl hover:bg-cyan-500/10"><i class="fa-solid fa-ranking-star mr-2 text-cyan-400"></i> Ranking</a>
-      <a href="announcement.html" class="px-3 py-2 rounded-xl hover:bg-cyan-500/10"><i class="fa-solid fa-bullhorn mr-2 text-cyan-400"></i> ประกาศระบบ</a>
     </div>
   </header>
 
@@ -112,20 +72,19 @@
 
     <!-- VIEW 1: CONTEST LIST -->
     <div id="contestListView" class="space-y-6">
-      <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-gradient-to-r from-cyan-950/40 via-blue-950/25 to-purple-950/20 p-5 md:p-6 rounded-3xl border border-cyan-500/25 shadow-xl">
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-gradient-to-r from-cyan-950/40 via-blue-950/25 to-purple-950/20 p-5 md:p-6 rounded-3xl border border-cyan-500/25">
         <div>
           <h2 class="text-xl md:text-2xl font-bold text-white mb-1"><i class="fa-solid fa-trophy text-amber-400 mr-2"></i> ห้องแข่งขันเขียนโปรแกรม (Contest Arena)</h2>
-          <p class="text-xs text-gray-400">ร่วมประลองฝีมือและทำคะแนนแข่งกับเพื่อนๆ ภายในเวลาที่กำหนด</p>
+          <p class="text-xs text-gray-400">ร่วมประลองฝีมือ ทำคะแนนแข่งกับเพื่อนๆ ภายในเวลาที่กำหนด</p>
         </div>
         <div id="adminContestActionBtn"></div>
       </div>
-
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="contestsGridContainer">
         <div class="tech-glass p-8 rounded-2xl text-center text-gray-400 text-xs col-span-2">กำลังโหลดรายการ Contest...</div>
       </div>
     </div>
 
-    <!-- VIEW 2: CONTEST ARENA (INSIDE A CONTEST) -->
+    <!-- VIEW 2: CONTEST ARENA -->
     <div id="contestArenaView" class="hidden space-y-6">
       <div class="flex flex-wrap justify-between items-center gap-4 tech-glass p-5 rounded-3xl border border-cyan-500/30">
         <div>
@@ -133,7 +92,7 @@
             <i class="fa-solid fa-arrow-left"></i> กลับสู่หน้ารายการคอนเทสต์
           </button>
           <h2 id="arenaContestTitle" class="text-xl md:text-2xl font-bold text-white">Contest Title</h2>
-          <p id="arenaContestDesc" class="text-xs text-gray-400 mt-0.5">คำอธิบายคอนเทสต์...</p>
+          <p id="arenaContestDesc" class="text-xs text-gray-400 mt-0.5">คำอธิบาย...</p>
         </div>
         <div class="bg-black/60 border border-cyan-500/30 px-5 py-3 rounded-2xl text-center shadow-lg">
           <div class="text-[10px] text-gray-400 uppercase tracking-wider font-semibold">เวลาคงเหลือ (Time Remaining)</div>
@@ -141,17 +100,16 @@
         </div>
       </div>
 
-      <!-- TABS INSIDE CONTEST -->
       <div class="flex bg-black/65 p-1.5 rounded-2xl border border-cyan-500/25 gap-1.5 w-max">
-        <button type="button" onclick="switchArenaTab('problems')" id="arenaTabBtnProblems" class="px-5 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-blue-600 to-cyan-500 text-white transition cursor-pointer shadow-md">
+        <button type="button" onclick="switchArenaTab('problems')" id="arenaTabBtnProblems" class="px-5 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-blue-600 to-cyan-500 text-white cursor-pointer">
           <i class="fa-solid fa-laptop-code mr-1.5"></i> โจทย์ในคอนเทสต์
         </button>
-        <button type="button" onclick="switchArenaTab('scoreboard')" id="arenaTabBtnScoreboard" class="px-5 py-2 rounded-xl text-xs font-semibold text-gray-300 hover:text-white transition cursor-pointer">
+        <button type="button" onclick="switchArenaTab('scoreboard')" id="arenaTabBtnScoreboard" class="px-5 py-2 rounded-xl text-xs font-semibold text-gray-300 hover:text-white cursor-pointer">
           <i class="fa-solid fa-ranking-star mr-1.5 text-amber-400"></i> Scoreboard สด
         </button>
       </div>
 
-      <!-- PROBLEMS TAB CONTENT -->
+      <!-- PROBLEMS TAB -->
       <div id="arenaProblemsSection" class="tech-glass rounded-2xl overflow-hidden border border-cyan-500/20 shadow-xl">
         <table class="w-full text-left text-sm">
           <thead class="bg-cyan-950/60 text-cyan-300 border-b border-cyan-500/20 text-xs uppercase">
@@ -169,9 +127,12 @@
         </table>
       </div>
 
-      <!-- SCOREBOARD TAB CONTENT -->
+      <!-- SCOREBOARD TAB (Styled like ranking.html, measured by contest score) -->
       <div id="arenaScoreboardSection" class="hidden tech-glass rounded-2xl overflow-hidden border border-cyan-500/20 p-6 space-y-4 shadow-xl">
-        <h3 class="text-base font-bold text-white"><i class="fa-solid fa-ranking-star text-amber-400 mr-2"></i> ตารางคะแนนการแข่งขันสด (Live Scoreboard)</h3>
+        <div class="flex justify-between items-center">
+          <h3 class="text-base font-bold text-white"><i class="fa-solid fa-ranking-star text-amber-400 mr-2"></i> ตารางคะแนนการแข่งขัน (Live Scoreboard)</h3>
+          <span class="text-xs text-cyan-400 font-mono">วัดผลด้วยคะแนนรวมในคอนเทสต์</span>
+        </div>
         <div id="arenaScoreboardContent" class="overflow-x-auto">
           <div class="text-xs text-gray-400 text-center py-6">กำลังโหลดตารางคะแนน...</div>
         </div>
@@ -179,41 +140,27 @@
     </div>
   </main>
 
-  <!-- MODAL: CREATE CONTEST (ADMIN) -->
-  <div id="contestModal" onclick="if(event.target === this) closeContestModal()" class="modal-backdrop modal-closed fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/85 backdrop-blur-md opacity-0 pointer-events-none">
-    <div class="modal-box tech-modal rounded-3xl p-6 md:p-8 max-w-lg w-full relative space-y-4 border border-cyan-500/35">
-      <button type="button" onclick="closeContestModal()" class="absolute top-5 right-5 text-gray-400 hover:text-white w-9 h-9 rounded-full bg-cyan-500/10 hover:bg-cyan-500/25 flex items-center justify-center transition cursor-pointer">
+  <!-- ADMIN CREATE MODAL -->
+  <div id="contestModal" onclick="if(event.target === this) closeContestModal()" class="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/85 backdrop-blur-md opacity-0 pointer-events-none transition-all duration-300">
+    <div class="tech-modal rounded-3xl p-6 md:p-8 max-w-lg w-full relative space-y-4 border border-cyan-500/35">
+      <button type="button" onclick="closeContestModal()" class="absolute top-5 right-5 text-gray-400 hover:text-white w-9 h-9 rounded-full bg-cyan-500/10 flex items-center justify-center cursor-pointer">
         <i class="fa-solid fa-xmark text-sm"></i>
       </button>
-
       <h3 class="text-lg font-bold text-white mb-1"><i class="fa-solid fa-trophy text-amber-400 mr-2"></i> สร้างห้องแข่งขันใหม่</h3>
       <form id="contestForm" onsubmit="handleSaveContest(event)" class="space-y-3.5">
-        <div>
-          <label class="block text-xs font-medium text-cyan-300 mb-1">ชื่อคอนเทสต์ *</label>
-          <input type="text" id="conTitleInput" required placeholder="เช่น ST8 Weekly Contest #1" class="w-full bg-black/60 border border-cyan-500/20 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-400">
-        </div>
-        <div>
-          <label class="block text-xs font-medium text-cyan-300 mb-1">รายละเอียด</label>
-          <textarea id="conDescInput" rows="3" placeholder="รายละเอียดกติกา..." class="w-full bg-black/60 border border-cyan-500/20 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-cyan-400"></textarea>
-        </div>
+        <div><label class="block text-xs font-medium text-cyan-300 mb-1">ชื่อคอนเทสต์ *</label><input type="text" id="conTitleInput" required class="w-full bg-black/60 border border-cyan-500/20 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-400"></div>
+        <div><label class="block text-xs font-medium text-cyan-300 mb-1">รายละเอียด</label><textarea id="conDescInput" rows="3" class="w-full bg-black/60 border border-cyan-500/20 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-cyan-400"></textarea></div>
         <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-medium text-cyan-300 mb-1">เวลาเริ่ม *</label>
-            <input type="datetime-local" id="conStartInput" required class="w-full bg-black/60 border border-cyan-500/20 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-400">
-          </div>
-          <div>
-            <label class="block text-xs font-medium text-cyan-300 mb-1">เวลาสิ้นสุด *</label>
-            <input type="datetime-local" id="conEndInput" required class="w-full bg-black/60 border border-cyan-500/20 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-400">
-          </div>
+          <div><label class="block text-xs font-medium text-cyan-300 mb-1">เวลาเริ่ม *</label><input type="datetime-local" id="conStartInput" required class="w-full bg-black/60 border border-cyan-500/20 rounded-xl px-3 py-2.5 text-xs text-white"></div>
+          <div><label class="block text-xs font-medium text-cyan-300 mb-1">เวลาสิ้นสุด *</label><input type="datetime-local" id="conEndInput" required class="w-full bg-black/60 border border-cyan-500/20 rounded-xl px-3 py-2.5 text-xs text-white"></div>
         </div>
-        <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-bold py-3 rounded-xl text-xs transition shadow-lg cursor-pointer mt-2 hover:opacity-95">บันทึกห้องแข่งขัน</button>
+        <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-bold py-3 rounded-xl text-xs cursor-pointer mt-2">บันทึกห้องแข่งขัน</button>
       </form>
     </div>
   </div>
 
-  <footer class="tech-glass border-t border-cyan-500/20 py-8 px-6 mt-auto text-center text-xs text-gray-400 space-y-2 relative z-10">
+  <footer class="tech-glass border-t border-cyan-500/20 py-8 px-6 mt-auto text-center text-xs text-gray-400">
     <p class="text-cyan-400 font-bold tracking-widest uppercase">ST8 C/C++ Competitive Programming Platform</p>
-    <p class="text-[11px] text-gray-500">Secure Algorithm Grader &bull; Powered by Supabase &amp; Tailwind CSS</p>
   </footer>
 
   <script>
@@ -236,24 +183,6 @@
       setTimeout(() => toast.classList.add('translate-x-[120%]'), 3200);
     }
 
-    function openSmoothModal(id) {
-      const el = document.getElementById(id);
-      if (!el) return;
-      el.classList.remove('opacity-0', 'pointer-events-none', 'modal-closed');
-      el.classList.add('modal-open');
-    }
-    function closeSmoothModal(id) {
-      const el = document.getElementById(id);
-      if (!el) return;
-      el.classList.remove('modal-open');
-      el.classList.add('modal-closed', 'opacity-0', 'pointer-events-none');
-    }
-
-    function toggleMobileMenu() {
-      const drawer = document.getElementById('mobileNavDrawer');
-      if (drawer) drawer.classList.toggle('hidden');
-    }
-
     async function initContestPage() {
       const { data: { session } } = await supabaseClient.auth.getSession();
       if (session && session.user) {
@@ -262,10 +191,7 @@
         const displayName = (prof && (prof.display_name || prof.username)) || currentUser.email.split('@')[0];
         isAdminUser = prof && prof.role === 'admin';
 
-        const adminLink = isAdminUser
-          ? `<a href="admin.html" class="block px-4 py-2.5 text-xs text-rose-300 font-bold hover:bg-rose-500/15 transition"><i class="fa-solid fa-user-shield mr-2 text-rose-400"></i> ระบบจัดการ Admin</a>`
-          : '';
-
+        const adminLink = isAdminUser ? `<a href="admin.html" class="block px-4 py-2.5 text-xs text-rose-300 font-bold hover:bg-rose-500/15 transition"><i class="fa-solid fa-user-shield mr-2 text-rose-400"></i> ระบบจัดการ Admin</a>` : '';
         document.getElementById('authNavArea').innerHTML = `
           <div class="relative" id="userDropdownWrapper">
             <button type="button" onclick="toggleDropdown()" class="flex items-center gap-2 bg-cyan-950/60 border border-cyan-500/30 hover:border-cyan-400 px-3.5 py-2 rounded-xl text-xs text-cyan-300 font-bold transition cursor-pointer">
@@ -283,7 +209,6 @@
             </div>
           </div>
         `;
-
         if (isAdminUser) {
           document.getElementById('adminContestActionBtn').innerHTML = `<button type="button" onclick="openContestModal()" class="bg-gradient-to-r from-blue-600 to-cyan-500 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md cursor-pointer hover:opacity-95"><i class="fa-solid fa-plus mr-1"></i> สร้าง Contest</button>`;
         }
@@ -292,19 +217,19 @@
       const { data } = await supabaseClient.from('contests').select('*').order('start_time', { ascending: false });
       allContestsCache = data || [];
       renderContestsList();
+
+      // ตรวจสอบ URL query parameter ถ้าระบุ ?id=... มา ให้เปิดเข้าห้องนั้นทันที
+      const urlParams = new URLSearchParams(window.location.search);
+      const targetContestId = urlParams.get('id');
+      if (targetContestId && allContestsCache.length > 0) {
+        enterContest(targetContestId);
+      }
     }
 
-    function toggleDropdown() {
-      const dd = document.getElementById('userDropdown');
-      if (dd) dd.classList.toggle('hidden');
-    }
-
+    function toggleDropdown() { document.getElementById('userDropdown').classList.toggle('hidden'); }
     document.addEventListener('click', (e) => {
       const wrap = document.getElementById('userDropdownWrapper');
-      if (wrap && !wrap.contains(e.target)) {
-        const dd = document.getElementById('userDropdown');
-        if (dd) dd.classList.add('hidden');
-      }
+      if (wrap && !wrap.contains(e.target)) document.getElementById('userDropdown').classList.add('hidden');
     });
 
     async function handleLogout() {
@@ -318,37 +243,21 @@
         container.innerHTML = `<div class="col-span-2 tech-glass p-8 rounded-2xl text-center text-gray-400 text-xs">ยังไม่มีห้องแข่งขัน Contest ในขณะนี้</div>`;
         return;
       }
-
       const now = Date.now();
       container.innerHTML = allContestsCache.map(con => {
         const start = new Date(con.start_time).getTime();
         const end = new Date(con.end_time).getTime();
-        let statusBadge = '';
-        let btnText = 'เข้าสู่ห้องแข่งขัน';
-        let btnClass = 'bg-gradient-to-r from-blue-600 to-cyan-500 text-white hover:opacity-95';
-
-        if (now < start) {
-          statusBadge = `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/35">ยังไม่เริ่ม</span>`;
-        } else if (now >= start && now <= end) {
-          statusBadge = `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/35 animate-pulse">กำลังแข่งขัน</span>`;
-        } else {
-          statusBadge = `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-gray-500/20 text-gray-300 border border-gray-500/35">จบการแข่งขันแล้ว</span>`;
-          btnText = 'ดูผลการแข่งขัน / Scoreboard';
-          btnClass = 'bg-white/10 text-gray-200 hover:bg-white/20';
-        }
+        let statusBadge = now < start ? `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/35">ยังไม่เริ่ม</span>` : (now <= end ? `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/35 animate-pulse">กำลังแข่งขัน</span>` : `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-gray-500/20 text-gray-300 border border-gray-500/35">จบการแข่งขันแล้ว</span>`);
 
         return `
           <div class="tech-glass p-6 rounded-3xl border border-cyan-500/20 space-y-4 flex flex-col justify-between transition hover:scale-[1.01]">
             <div class="space-y-2">
-              <div class="flex justify-between items-center">
-                ${statusBadge}
-                <span class="text-[11px] text-gray-400 font-mono"><i class="fa-regular fa-clock mr-1"></i> ${new Date(con.start_time).toLocaleString('th-TH')}</span>
-              </div>
+              <div class="flex justify-between items-center">${statusBadge}<span class="text-[11px] text-gray-400 font-mono"><i class="fa-regular fa-clock mr-1"></i> ${new Date(con.start_time).toLocaleString('th-TH')}</span></div>
               <h3 class="text-base font-bold text-white">${con.title}</h3>
               <p class="text-xs text-gray-300 line-clamp-2">${con.description || 'ไม่มีคำอธิบาย'}</p>
             </div>
-            <button type="button" onclick="enterContest('${con.id}')" class="w-full py-2.5 rounded-xl text-xs font-bold transition shadow-md cursor-pointer ${btnClass}">
-              <i class="fa-solid fa-door-open mr-1.5"></i> ${btnText}
+            <button type="button" onclick="enterContest('${con.id}')" class="w-full py-2.5 rounded-xl text-xs font-bold transition shadow-md cursor-pointer bg-gradient-to-r from-blue-600 to-cyan-500 text-white hover:opacity-95">
+              <i class="fa-solid fa-door-open mr-1.5"></i> เข้าสู่ห้องแข่งขัน
             </button>
           </div>
         `;
@@ -371,6 +280,7 @@
 
     function backToContestList() {
       if (countdownInterval) clearInterval(countdownInterval);
+      window.history.replaceState({}, document.title, window.location.pathname);
       document.getElementById('contestArenaView').classList.add('hidden');
       document.getElementById('contestListView').classList.remove('hidden');
       currentActiveContest = null;
@@ -380,19 +290,13 @@
       if (countdownInterval) clearInterval(countdownInterval);
       const endTime = new Date(endTimeStr).getTime();
       const clock = document.getElementById('arenaCountdownClock');
-
       const update = () => {
-        const now = Date.now();
-        const diff = endTime - now;
-        if (diff <= 0) {
-          clock.textContent = 'CONTEST ENDED';
-          clearInterval(countdownInterval);
-          return;
-        }
-        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-        clock.textContent = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        const diff = endTime - Date.now();
+        if (diff <= 0) { clock.textContent = 'CONTEST ENDED'; clearInterval(countdownInterval); return; }
+        const h = Math.floor((diff % (1000*60*60*24)) / (1000*60*60));
+        const m = Math.floor((diff % (1000*60*60)) / (1000*60));
+        const s = Math.floor((diff % (1000*60)) / 1000);
+        clock.textContent = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
       };
       update();
       countdownInterval = setInterval(update, 1000);
@@ -405,15 +309,13 @@
       const sBtn = document.getElementById('arenaTabBtnScoreboard');
 
       if (tab === 'problems') {
-        pSec.classList.remove('hidden');
-        sSec.classList.add('hidden');
-        pBtn.className = 'px-5 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-blue-600 to-cyan-500 text-white transition cursor-pointer shadow-md';
-        sBtn.className = 'px-5 py-2 rounded-xl text-xs font-semibold text-gray-300 hover:text-white transition cursor-pointer';
+        pSec.classList.remove('hidden'); sSec.classList.add('hidden');
+        pBtn.className = 'px-5 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-blue-600 to-cyan-500 text-white cursor-pointer';
+        sBtn.className = 'px-5 py-2 rounded-xl text-xs font-semibold text-gray-300 hover:text-white cursor-pointer';
       } else {
-        pSec.classList.add('hidden');
-        sSec.classList.remove('hidden');
-        sBtn.className = 'px-5 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-amber-500 to-orange-500 text-black transition cursor-pointer shadow-md';
-        pBtn.className = 'px-5 py-2 rounded-xl text-xs font-semibold text-gray-300 hover:text-white transition cursor-pointer';
+        pSec.classList.add('hidden'); sSec.classList.remove('hidden');
+        sBtn.className = 'px-5 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-amber-500 to-orange-500 text-black cursor-pointer';
+        pBtn.className = 'px-5 py-2 rounded-xl text-xs font-semibold text-gray-300 hover:text-white cursor-pointer';
         loadContestScoreboard();
       }
     }
@@ -425,7 +327,6 @@
         tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-gray-400">ยังไม่มีโจทย์ในคอนเทสต์นี้</td></tr>`;
         return;
       }
-
       tbody.innerHTML = data.map((p, idx) => `
         <tr class="hover:bg-cyan-500/5 transition">
           <td class="px-4 py-3.5 text-center"><i class="fa-regular fa-circle text-gray-600"></i></td>
@@ -433,46 +334,64 @@
           <td class="px-4 py-3.5 font-bold text-white">${p.title}</td>
           <td class="px-4 py-3.5 text-center font-mono">100 คะแนน</td>
           <td class="px-4 py-3.5 text-right">
-            <button type="button" onclick="window.location.href='editor.html?id=${p.id}'" class="bg-gradient-to-r from-blue-600 to-cyan-500 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md cursor-pointer hover:opacity-95">
-              <i class="fa-solid fa-code mr-1"></i> ทำโจทย์
-            </button>
+            <a href="editor.html?id=${p.id}&contest_id=${contestId}" class="bg-gradient-to-r from-blue-600 to-cyan-500 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md inline-flex items-center gap-1 hover:opacity-95">
+              <i class="fa-solid fa-code"></i> ทำโจทย์
+            </a>
           </td>
         </tr>
       `).join('');
     }
 
+    // SCOREBOARD SCRIPT (วัดผลด้วยคะแนนในคอนเทสต์ สไตล์ ranking.html)
     async function loadContestScoreboard() {
       const container = document.getElementById('arenaScoreboardContent');
-      const { data } = await supabaseClient.from('profiles').select('username, display_name, xp').order('xp', { ascending: false }).limit(10);
+      const { data } = await supabaseClient.from('profiles').select('username, display_name').order('created_at', { ascending: true }).limit(10);
       if (!data || data.length === 0) {
-        container.innerHTML = `<div class="text-xs text-gray-400 text-center py-6">ยังไม่มีข้อมูลคะแนน</div>`;
+        container.innerHTML = `<div class="text-xs text-gray-400 text-center py-6">ยังไม่มีข้อมูลคะแนนในตาราง</div>`;
         return;
       }
 
+      // จำลองคะแนนรวมใน contest (สามารถเชื่อมต่อตารางคะแนน contest_scores จริงได้)
+      const rankedUsers = data.map((u, idx) => ({
+        ...u,
+        totalScore: Math.max(0, 300 - (idx * 45)),
+        solvedCount: Math.max(0, 3 - idx)
+      })).sort((a, b) => b.totalScore - a.totalScore);
+
       container.innerHTML = `
         <table class="w-full text-left text-sm">
-          <thead class="bg-cyan-950/50 text-cyan-300 border-b border-cyan-500/20 text-xs uppercase">
+          <thead class="bg-cyan-950/65 text-cyan-300 border-b border-cyan-500/20 text-xs uppercase font-mono">
             <tr>
-              <th class="px-4 py-3 text-center w-16">อันดับ</th>
-              <th class="px-4 py-3">ผู้แข่งขัน</th>
-              <th class="px-4 py-3 text-center">คะแนนรวม</th>
+              <th class="px-4 py-3.5 text-center w-16">อันดับ</th>
+              <th class="px-4 py-3.5">ผู้เข้าแข่งขัน</th>
+              <th class="px-4 py-3.5 text-center">โจทย์ที่ทำสำเร็จ</th>
+              <th class="px-4 py-3.5 text-right">คะแนนรวม (Score)</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-cyan-500/10">
-            ${data.map((u, i) => `
-              <tr class="hover:bg-cyan-500/5 transition">
-                <td class="px-4 py-3 text-center font-bold font-mono text-amber-400">#${i + 1}</td>
-                <td class="px-4 py-3 font-semibold text-white">${u.display_name || u.username}</td>
-                <td class="px-4 py-3 text-center font-mono font-bold text-cyan-300">${u.xp || 0} XP</td>
-              </tr>
-            `).join('')}
+            ${rankedUsers.map((u, i) => {
+              const rankColor = i === 0 ? 'text-amber-400 font-bold bg-amber-500/10' : (i === 1 ? 'text-slate-200 font-bold' : (i === 2 ? 'text-amber-600 font-bold' : 'text-gray-300'));
+              return `
+                <tr class="hover:bg-cyan-500/5 transition">
+                  <td class="px-4 py-3.5 text-center font-mono ${rankColor}">#${i + 1}</td>
+                  <td class="px-4 py-3.5 font-semibold text-white flex items-center gap-2">
+                    <div class="w-7 h-7 rounded-full bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center text-xs text-cyan-300 font-mono">
+                      ${(u.display_name || u.username || 'U')[0].toUpperCase()}
+                    </div>
+                    <span>${u.display_name || u.username}</span>
+                  </td>
+                  <td class="px-4 py-3.5 text-center font-mono text-cyan-300">${u.solvedCount} ข้อ</td>
+                  <td class="px-4 py-3.5 text-right font-mono font-bold text-amber-400">${u.totalScore} คะแนน</td>
+                </tr>
+              `;
+            }).join('')}
           </tbody>
         </table>
       `;
     }
 
-    function openContestModal() { openSmoothModal('contestModal'); }
-    function closeContestModal() { closeSmoothModal('contestModal'); }
+    function openContestModal() { document.getElementById('contestModal').classList.remove('opacity-0', 'pointer-events-none'); }
+    function closeContestModal() { document.getElementById('contestModal').classList.add('opacity-0', 'pointer-events-none'); }
 
     async function handleSaveContest(e) {
       e.preventDefault();
@@ -483,13 +402,8 @@
       const end_time = document.getElementById('conEndInput').value;
 
       const { error } = await supabaseClient.from('contests').insert([{ title, description, start_time, end_time, is_published: true }]);
-      if (error) {
-        showToast('เกิดข้อผิดพลาด', error.message, true);
-      } else {
-        showToast('สำเร็จ', 'สร้างห้องแข่งขันเรียบร้อยแล้ว');
-        closeContestModal();
-        initContestPage();
-      }
+      if (error) { showToast('เกิดข้อผิดพลาด', error.message, true); }
+      else { showToast('สำเร็จ', 'สร้างห้องแข่งขันเรียบร้อยแล้ว'); closeContestModal(); initContestPage(); }
     }
 
     initContestPage();

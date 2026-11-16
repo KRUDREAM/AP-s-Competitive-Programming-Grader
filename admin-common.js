@@ -5,6 +5,7 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const ADMIN_MENU_ITEMS = [
   { id: 'problems', label: 'จัดการโจทย์ทั้งหมด', icon: 'fa-book-open', href: 'admin.html' },
   { id: 'verify', label: 'ตรวจสอบโจทย์จากทางบ้าน', icon: 'fa-clipboard-check', href: 'admin-verify.html' },
+  { id: 'playground', label: 'ห้องทดลองรันโค้ด', icon: 'fa-flask-vial', href: 'admin-playground.html' },
   { id: 'contests', label: 'จัดการ Contest', icon: 'fa-trophy', href: 'admin-contests.html' },
   { id: 'scoreboard', label: 'Scoreboard กระดานคะแนน', icon: 'fa-ranking-star', href: 'admin-scoreboard.html' },
   { id: 'users', label: 'จัดการผู้ใช้ (Users)', icon: 'fa-users-gear', href: 'admin-users.html' },

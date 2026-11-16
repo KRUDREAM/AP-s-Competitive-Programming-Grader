@@ -8,7 +8,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <style>
     html, body { max-width: 100%; overflow-x: hidden; }
@@ -218,7 +218,6 @@
   <!-- MODAL: STUDENT ALL CHATS WITH ADMIN -->
   <div id="studentChatModal" onclick="if(event.target === this) closeStudentChatModal()" class="modal-backdrop modal-closed fixed inset-0 z-[55] flex items-center justify-center px-3 md:px-6 bg-black/85 backdrop-blur-md opacity-0 pointer-events-none">
     <div class="modal-box tech-modal rounded-3xl w-full max-w-5xl h-[85vh] max-h-[760px] flex flex-col overflow-hidden border border-cyan-500/35">
-      <!-- Top Header -->
       <div class="px-5 py-3.5 bg-[#080e20] border-b border-cyan-500/20 flex items-center justify-between gap-3 shrink-0">
         <div class="flex items-center gap-3">
           <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-500/25 to-cyan-500/25 border border-amber-400/40 flex items-center justify-center text-amber-300">
@@ -239,9 +238,7 @@
         </div>
       </div>
 
-      <!-- Body: Split Rooms List & Messages -->
       <div class="flex-1 flex min-h-0 overflow-hidden">
-        <!-- Left Rooms Sidebar -->
         <aside id="stuChatRoomsSidebar" class="w-full md:w-80 shrink-0 bg-[#070c1b]/95 border-r border-cyan-500/20 flex flex-col min-h-0">
           <div class="p-3 border-b border-cyan-500/15 space-y-2 shrink-0">
             <div class="relative">
@@ -263,7 +260,6 @@
           </div>
         </aside>
 
-        <!-- Right Conversation View -->
         <section id="stuActiveChatPanel" class="hidden md:flex flex-1 flex-col bg-[#050914]/90 min-w-0 min-h-0">
           <div id="stuNoRoomSelected" class="flex-1 flex flex-col items-center justify-center p-6 text-center space-y-3">
             <div class="w-14 h-14 rounded-2xl bg-cyan-500/10 border border-cyan-500/25 flex items-center justify-center text-cyan-400 text-xl">
@@ -276,7 +272,6 @@
           </div>
 
           <div id="stuConversationWrapper" class="hidden flex-1 flex-col min-h-0">
-            <!-- Active Room Header -->
             <div class="px-4 py-3 bg-[#080e20] border-b border-cyan-500/20 flex items-center justify-between gap-2 shrink-0">
               <div class="flex items-center gap-2.5 min-w-0">
                 <button type="button" onclick="closeMobileStuChat()" class="md:hidden w-8 h-8 rounded-xl bg-white/5 text-gray-300 flex items-center justify-center shrink-0 cursor-pointer">
@@ -296,10 +291,8 @@
               </a>
             </div>
 
-            <!-- Messages Box -->
             <div id="stuChatMessagesBox" class="flex-1 overflow-y-auto p-4 md:p-5 space-y-3.5"></div>
 
-            <!-- Reply Input -->
             <form onsubmit="sendStudentFollowupMessage(event)" class="p-3 bg-[#080e20] border-t border-cyan-500/20 flex items-end gap-2 shrink-0">
               <textarea id="stuFollowupInput" rows="1" onkeydown="if(event.key==='Enter' && !event.shiftKey){ event.preventDefault(); sendStudentFollowupMessage(event); }" placeholder="พิมพ์ข้อความถาม Admin เพิ่มเติม... (Enter เพื่อส่ง)" class="flex-1 bg-black/65 border border-cyan-500/30 focus:border-cyan-400 focus:outline-none rounded-xl px-3.5 py-2 text-xs text-white resize-none max-h-28"></textarea>
               <button type="submit" id="stuSendFollowupBtn" class="bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-95 text-white px-4 py-2 rounded-xl text-xs font-bold shadow cursor-pointer shrink-0 flex items-center gap-1.5">
@@ -329,7 +322,6 @@
         </div>
       </div>
 
-      <!-- EDIT PROFILE FORM -->
       <div id="myProfileSettingsSection" class="hidden tech-glass p-4 rounded-2xl border border-cyan-500/20 space-y-3.5">
         <h4 class="text-xs font-bold text-cyan-300 uppercase tracking-wider"><i class="fa-solid fa-gear mr-1.5"></i> ตั้งค่าข้อมูลส่วนตัว</h4>
         <form id="editProfileForm" onsubmit="handleUpdateProfile(event)" class="space-y-3">
@@ -365,7 +357,6 @@
         </div>
       </div>
 
-      <!-- STATS & XP -->
       <div class="grid grid-cols-3 gap-3">
         <div class="tech-glass p-3.5 rounded-2xl border border-amber-500/25 text-center">
           <div class="text-[11px] text-gray-400">แต้มประสบการณ์ (XP)</div>
@@ -381,7 +372,6 @@
         </div>
       </div>
 
-      <!-- SUBMISSION HISTORY -->
       <div class="space-y-3">
         <h4 class="text-sm font-bold text-cyan-300"><i class="fa-solid fa-clock-rotate-left mr-1.5"></i> ประวัติการส่งโค้ด</h4>
         <div id="modalSubmissionHistoryList" class="max-h-48 overflow-y-auto space-y-2 pr-1">
@@ -507,7 +497,7 @@
         <div class="space-y-2 relative" id="categoryDropdownWrapper">
           <div class="flex flex-wrap gap-2 justify-between items-center">
             <label class="text-sm font-medium text-cyan-300">หมวดหมู่ / แท็ก (เลือกได้หลายแท็ก)</label>
-            <button type="button" onclick="openNewTagPopup()" class="text-xs font-semibold text-cyan-300 bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-500/35 px-3 py-1.5 rounded-xl transition cursor-pointer flex items-center gap-1.5">
+            <button type="button" onclick="openNewTagPopup(event)" class="text-xs font-semibold text-cyan-300 bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-500/35 px-3 py-1.5 rounded-xl transition cursor-pointer flex items-center gap-1.5">
               <i class="fa-solid fa-plus"></i> เพิ่มหมวดหมู่ใหม่
             </button>
           </div>
@@ -669,13 +659,13 @@
   </div>
 
   <!-- POPUP: NEW TAG -->
-  <div id="newTagPopupModal" onclick="if(event.target === this) closeNewTagPopup()" class="modal-backdrop modal-closed fixed inset-0 z-[65] flex items-center justify-center px-4 bg-black/80 backdrop-blur-md opacity-0 pointer-events-none">
-    <div class="modal-box tech-modal rounded-3xl p-6 max-w-sm w-full relative space-y-4 border border-cyan-500/30">
+  <div id="newTagPopupModal" onclick="if(event.target === this) { event.stopPropagation(); closeNewTagPopup(event); }" class="modal-backdrop modal-closed fixed inset-0 z-[70] flex items-center justify-center px-4 bg-black/80 backdrop-blur-md opacity-0 pointer-events-none">
+    <div onclick="event.stopPropagation()" class="modal-box tech-modal rounded-3xl p-6 max-w-sm w-full relative space-y-4 border border-cyan-500/30">
       <h3 class="text-base font-bold text-white"><i class="fa-solid fa-folder-plus text-cyan-400 mr-1.5"></i> เพิ่มหมวดหมู่ใหม่</h3>
-      <input type="text" id="customNewTagInput" placeholder="ชื่อหมวดหมู่ (เช่น Backtracking)" class="w-full bg-black/60 border border-cyan-500/25 focus:border-cyan-400 focus:outline-none rounded-xl px-3.5 py-2.5 text-sm text-white">
+      <input type="text" id="customNewTagInput" onkeydown="if(event.key === 'Enter'){ event.preventDefault(); event.stopPropagation(); saveNewTagToSystem(event); }" placeholder="ชื่อหมวดหมู่ (เช่น Backtracking)" class="w-full bg-black/60 border border-cyan-500/25 focus:border-cyan-400 focus:outline-none rounded-xl px-3.5 py-2.5 text-sm text-white">
       <div class="flex gap-2 justify-end">
-        <button type="button" onclick="closeNewTagPopup()" class="px-4 py-2 rounded-xl text-xs text-gray-300 hover:bg-white/5 transition cursor-pointer">ยกเลิก</button>
-        <button type="button" onclick="saveNewTagToSystem()" class="bg-gradient-to-r from-blue-600 to-cyan-500 px-4 py-2 rounded-xl text-xs font-semibold text-white transition cursor-pointer">บันทึกหมวดหมู่</button>
+        <button type="button" onclick="event.stopPropagation(); closeNewTagPopup(event)" class="px-4 py-2 rounded-xl text-xs text-gray-300 hover:bg-white/5 transition cursor-pointer">ยกเลิก</button>
+        <button type="button" onclick="event.stopPropagation(); saveNewTagToSystem(event)" class="bg-gradient-to-r from-blue-600 to-cyan-500 px-4 py-2 rounded-xl text-xs font-semibold text-white transition cursor-pointer">บันทึกหมวดหมู่</button>
       </div>
     </div>
   </div>
@@ -812,7 +802,7 @@
     });
 
     /* =========================================================================
-       STUDENT CHAT INBOX (แชตทั้งหมดที่คุยกับ Admin)
+       STUDENT CHAT INBOX
        ========================================================================= */
     function updateStudentChatBadgesUI() {
       const totalUnreadAdminReplies = studentChatRooms.reduce((sum, r) => sum + r.unreadCount, 0);
@@ -861,14 +851,12 @@
 
         if (error) throw error;
 
-        // โหลดข้อมูล Submission ที่แนบในแชต (ถ้ามี)
         const subIds = [...new Set((messages || []).map(m => m.submission_id).filter(id => id != null && !chatSubmissionsCache.has(String(id))))];
         if (subIds.length > 0) {
           const { data: subsData } = await supabaseClient.from('submissions').select('id, language, status, score, execution_time').in('id', subIds);
           (subsData || []).forEach(s => chatSubmissionsCache.set(String(s.id), s));
         }
 
-        // จัดกลุ่มเป็นห้องตาม problem_id
         const map = new Map();
         (messages || []).forEach(msg => {
           const pid = String(msg.problem_id);
@@ -1114,7 +1102,6 @@
       }
       openSmoothModal('studentChatModal');
       loadStudentChatRooms(false).then(() => {
-        // ถ้าเปิดบนจอใหญ่และยังไม่เลือกห้อง ให้เลือกห้องที่มี Admin ตอบล่าสุดให้อัตโนมัติ
         if (window.innerWidth >= 768 && !activeStudentChatProblemId && studentChatRooms.length > 0) {
           const unreadRoom = studentChatRooms.find(r => r.unreadCount > 0) || studentChatRooms[0];
           selectStudentChatRoom(unreadRoom.problem_id);
@@ -1483,14 +1470,14 @@
       const container = document.getElementById('categoryOptionsList');
       const filtered = customTagsList.filter(t => t.toLowerCase().includes(filterText));
       if (filtered.length === 0) {
-        container.innerHTML = `<div class="text-xs text-gray-400 text-center py-3">ไม่พบหมวดหมู่ "${filterText}"</div>`;
+        container.innerHTML = `<div class="text-xs text-gray-400 text-center py-3">ไม่พบหมวดหมู่ "${escapeHtml(filterText)}"</div>`;
         return;
       }
       container.innerHTML = filtered.map(tag => {
         const isSelected = activeTags.includes(tag);
         return `
           <div onclick="toggleTagSelection('${tag.replace(/'/g, "\\'")}')" class="flex items-center justify-between px-3 py-2 rounded-xl text-sm cursor-pointer transition ${isSelected ? 'bg-cyan-500/20 text-cyan-300 font-semibold' : 'text-gray-300 hover:bg-white/5'}">
-            <span>${tag}</span>
+            <span>${escapeHtml(tag)}</span>
             ${isSelected ? '<i class="fa-solid fa-square-check text-cyan-400 text-sm"></i>' : '<i class="fa-regular fa-square text-gray-500 text-sm"></i>'}
           </div>
         `;
@@ -1503,25 +1490,56 @@
       renderCategoryOptions(document.getElementById('categorySearchInput').value.trim().toLowerCase());
     }
 
-    function openNewTagPopup() { toggleCategoryDropdown(false); openSmoothModal('newTagPopupModal'); }
-    function closeNewTagPopup() { closeSmoothModal('newTagPopupModal'); }
-    function saveNewTagToSystem() {
-      const val = document.getElementById('customNewTagInput').value.trim();
-      if (val && !customTagsList.includes(val)) {
-        customTagsList.push(val);
-        localStorage.setItem('st8_custom_tags', JSON.stringify(customTagsList));
-        activeTags.push(val);
-        renderTags();
-        renderQuickTagFilterBar();
-        showToast('เพิ่มหมวดหมู่สำเร็จ', `บันทึกแท็ก "${val}" เรียบร้อย`);
+    function openNewTagPopup(e) {
+      if (e) e.stopPropagation();
+      toggleCategoryDropdown(false);
+      const input = document.getElementById('customNewTagInput');
+      if (input) input.value = '';
+      openSmoothModal('newTagPopupModal');
+      setTimeout(() => { if (input) input.focus(); }, 60);
+    }
+
+    function closeNewTagPopup(e) {
+      if (e) e.stopPropagation();
+      closeSmoothModal('newTagPopupModal');
+    }
+
+    function saveNewTagToSystem(e) {
+      if (e) e.stopPropagation();
+      const input = document.getElementById('customNewTagInput');
+      const val = (input ? input.value : '').trim();
+      if (!val) {
+        showToast('แจ้งเตือน', 'กรุณากรอกชื่อหมวดหมู่ก่อนบันทึก', true);
+        return;
       }
-      document.getElementById('customNewTagInput').value = '';
+
+      const existing = customTagsList.find(t => t.toLowerCase() === val.toLowerCase());
+      const tagToUse = existing || val;
+
+      if (!existing) {
+        customTagsList.push(tagToUse);
+        localStorage.setItem('st8_custom_tags', JSON.stringify(customTagsList));
+      }
+
+      if (!activeTags.includes(tagToUse)) {
+        activeTags.push(tagToUse);
+      }
+
+      renderTags();
+      renderCategoryOptions('');
+      renderQuickTagFilterBar();
+      showToast('เพิ่มหมวดหมู่สำเร็จ', `เลือกแท็ก "${tagToUse}" เรียบร้อย`);
+
+      if (input) input.value = '';
       closeNewTagPopup();
     }
+
     function removeTag(tag) {
       activeTags = activeTags.filter(t => t !== tag);
       renderTags();
+      renderCategoryOptions(document.getElementById('categorySearchInput').value.trim().toLowerCase());
     }
+
     function renderTags() {
       const container = document.getElementById('selectedTagsContainer');
       const placeholder = document.getElementById('categoryDropdownPlaceholder');
@@ -1531,7 +1549,7 @@
 
       container.innerHTML = activeTags.map(t => `
         <span class="bg-cyan-500/20 text-cyan-300 border border-cyan-500/35 px-3 py-1 rounded-xl text-xs font-medium flex items-center gap-2 transition">
-          ${t} <button type="button" onclick="removeTag('${t.replace(/'/g, "\\'")}')" class="hover:text-rose-400 text-sm leading-none cursor-pointer">&times;</button>
+          ${escapeHtml(t)} <button type="button" onclick="removeTag('${t.replace(/'/g, "\\'")}')" class="hover:text-rose-400 text-sm leading-none cursor-pointer">&times;</button>
         </span>
       `).join('') || '<span class="text-gray-500 text-xs italic">ยังไม่ได้เลือกหมวดหมู่...</span>';
     }
@@ -1623,6 +1641,10 @@
 
     async function downloadTestCasesZip() {
       if (!formTestCasesData || formTestCasesData.length === 0) return;
+      if (typeof JSZip === 'undefined') {
+        showToast('เกิดข้อผิดพลาด', 'ไม่สามารถโหลด JSZip ได้', true);
+        return;
+      }
       const zip = new JSZip();
       formTestCasesData.forEach((tc, idx) => {
         const num = String(idx + 1).padStart(2, '0');
@@ -1641,32 +1663,71 @@
     async function handleZipUpload(event) {
       const file = event.target.files[0];
       if (!file) return;
+
+      if (typeof JSZip === 'undefined') {
+        showToast('เกิดข้อผิดพลาด', 'ไม่พบไลบรารี JSZip กรุณารีเฟรชหน้าเว็บแล้วลองใหม่', true);
+        event.target.value = '';
+        return;
+      }
+
       const reader = new FileReader();
-      reader.onload = e => { selectedZipDataUrl = e.target.result; document.getElementById('currentZipUrl').value = selectedZipDataUrl; };
+      reader.onload = e => {
+        selectedZipDataUrl = e.target.result;
+        document.getElementById('currentZipUrl').value = selectedZipDataUrl;
+      };
       reader.readAsDataURL(file);
 
-      const zip = new JSZip();
       try {
-        const content = await zip.loadAsync(file);
+        const zip = await JSZip.loadAsync(file);
         const testCasesMap = {};
-        for (let filename of Object.keys(content.files)) {
-          if (content.files[filename].dir) continue;
+
+        for (const filename of Object.keys(zip.files)) {
+          const zipEntry = zip.files[filename];
+          if (zipEntry.dir) continue;
+          if (filename.includes('__MACOSX/') || filename.split('/').pop().startsWith('.')) continue;
+
           const baseName = filename.split('/').pop();
-          const ext = baseName.split('.').pop().toLowerCase();
-          const nameWithoutExt = baseName.substring(0, baseName.lastIndexOf('.'));
-          if (ext === 'in' || ext === 'sol') {
-            if (!testCasesMap[nameWithoutExt]) testCasesMap[nameWithoutExt] = { input: '', output: '' };
-            const textContent = await content.files[filename].async('text');
-            if (ext === 'in') testCasesMap[nameWithoutExt].input = textContent;
-            if (ext === 'sol') testCasesMap[nameWithoutExt].output = textContent;
+          const dotIdx = baseName.lastIndexOf('.');
+          if (dotIdx === -1) continue;
+
+          const ext = baseName.substring(dotIdx + 1).toLowerCase();
+          const nameWithoutExt = baseName.substring(0, dotIdx);
+
+          if (ext === 'in' || ext === 'sol' || ext === 'out') {
+            if (!testCasesMap[nameWithoutExt]) {
+              testCasesMap[nameWithoutExt] = { input: '', output: '' };
+            }
+            const textContent = await zipEntry.async('text');
+            if (ext === 'in') {
+              testCasesMap[nameWithoutExt].input = textContent;
+            } else {
+              testCasesMap[nameWithoutExt].output = textContent;
+            }
           }
         }
-        const keys = Object.keys(testCasesMap).sort();
-        formTestCasesData = keys.map((key, idx) => ({ input: testCasesMap[key].input, output: testCasesMap[key].output, is_sample: idx === 0 }));
+
+        const keys = Object.keys(testCasesMap).sort((a, b) =>
+          a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })
+        );
+
+        if (keys.length === 0) {
+          showToast('ไม่พบไฟล์ Test Case', 'ในไฟล์ ZIP ต้องมีไฟล์นามสกุล .in และ .sol (หรือ .out)', true);
+          event.target.value = '';
+          return;
+        }
+
+        formTestCasesData = keys.map((key, idx) => ({
+          input: testCasesMap[key].input,
+          output: testCasesMap[key].output,
+          is_sample: idx === 0
+        }));
+
         renderTestCaseChips();
-        showToast('อัปโหลด ZIP สำเร็จ', `โหลด Test Cases แล้ว ${formTestCasesData.length} ชุด`);
+        showToast('อัปโหลด ZIP สำเร็จ', `แตกไฟล์และโหลด Test Cases แล้ว ${formTestCasesData.length} ชุด`);
       } catch (err) {
-        showToast('เกิดข้อผิดพลาด', err.message, true);
+        showToast('แตกไฟล์ ZIP ไม่สำเร็จ', err.message, true);
+      } finally {
+        event.target.value = '';
       }
     }
 
@@ -1680,7 +1741,7 @@
         selectedPdfDataUrl = e.target.result;
         document.getElementById('currentPdfUrl').value = selectedPdfDataUrl;
         badge.classList.remove('hidden');
-        badge.innerHTML = `<div class="flex items-center justify-between bg-cyan-500/10 border border-cyan-500/30 rounded-xl px-3.5 py-2 text-xs"><span class="text-cyan-300 truncate"><i class="fa-solid fa-file-pdf text-rose-400 mr-1.5"></i> <b>${file.name}</b></span></div>`;
+        badge.innerHTML = `<div class="flex items-center justify-between bg-cyan-500/10 border border-cyan-500/30 rounded-xl px-3.5 py-2 text-xs"><span class="text-cyan-300 truncate"><i class="fa-solid fa-file-pdf text-rose-400 mr-1.5"></i> <b>${escapeHtml(file.name)}</b></span></div>`;
       };
       reader.readAsDataURL(file);
     }
@@ -1751,7 +1812,7 @@
         document.getElementById('formMode').value = 'create';
         document.getElementById('editProblemId').value = '';
         document.getElementById('admCode').value = 'STU-' + Math.floor(100 + Math.random() * 900);
-        
+
         const defaultAuthor = (currentUserProfile && (currentUserProfile.display_name || currentUserProfile.username)) || session.user.email.split('@')[0];
         document.getElementById('admAuthor').value = defaultAuthor;
 
@@ -1934,7 +1995,6 @@
         myTabBtn.classList.remove('hidden');
         myTabBtn.classList.add('flex');
 
-        // แสดงปุ่มแชตกับ Admin ด้านล่าง
         const chatBannerBtn = document.getElementById('studentChatBannerBtn');
         if (chatBannerBtn) { chatBannerBtn.classList.remove('hidden'); chatBannerBtn.classList.add('flex'); }
       }
@@ -2003,7 +2063,7 @@
       const allBtn = `<button type="button" onclick="toggleQuickTagFilter('')" class="px-2.5 py-1 rounded-lg text-xs font-medium transition cursor-pointer ${selectedQuickTag === '' ? 'bg-cyan-500 text-black font-semibold' : 'bg-white/5 text-gray-300 hover:bg-cyan-500/15'}">ทั้งหมด</button>`;
       const tagBtns = customTagsList.map(tag => {
         const isActive = selectedQuickTag === tag;
-        return `<button type="button" onclick="toggleQuickTagFilter('${tag.replace(/'/g, "\\'")}')" class="px-2.5 py-1 rounded-lg text-xs font-medium transition cursor-pointer ${isActive ? 'bg-cyan-500 text-black font-semibold' : 'bg-white/5 text-gray-300 hover:bg-cyan-500/15'}">${tag}</button>`;
+        return `<button type="button" onclick="toggleQuickTagFilter('${tag.replace(/'/g, "\\'")}')" class="px-2.5 py-1 rounded-lg text-xs font-medium transition cursor-pointer ${isActive ? 'bg-cyan-500 text-black font-semibold' : 'bg-white/5 text-gray-300 hover:bg-cyan-500/15'}">${escapeHtml(tag)}</button>`;
       }).join('');
       container.innerHTML = allBtn + tagBtns;
     }
@@ -2139,7 +2199,7 @@
           : `<span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30">Hard</span>`;
 
         const tagChips = p.tags
-          ? p.tags.split(',').map(t => t.trim()).filter(Boolean).map(t => `<span class="text-[10px] px-2 py-0.5 rounded-md bg-white/5 text-gray-300 border border-white/10">${t}</span>`).join(' ')
+          ? p.tags.split(',').map(t => t.trim()).filter(Boolean).map(t => `<span class="text-[10px] px-2 py-0.5 rounded-md bg-white/5 text-gray-300 border border-white/10">${escapeHtml(t)}</span>`).join(' ')
           : '';
 
         const mode = p.problem_mode || (p.is_function_mode ? (p.show_main ? 'function_show_main' : 'function_hide_main') : 'standard');
@@ -2168,11 +2228,11 @@
           <tr class="hover:bg-cyan-500/5 transition">
             <td class="px-4 py-3.5 text-center">${statusIcon}</td>
             <td class="px-4 py-3.5 whitespace-nowrap">
-              <span class="text-xs font-bold text-cyan-300 bg-cyan-500/10 px-2.5 py-1 rounded-lg border border-cyan-500/30 font-mono">${p.problem_code || 'ST8-P' + p.id}</span>
+              <span class="text-xs font-bold text-cyan-300 bg-cyan-500/10 px-2.5 py-1 rounded-lg border border-cyan-500/30 font-mono">${escapeHtml(p.problem_code || 'ST8-P' + p.id)}</span>
             </td>
             <td class="px-4 py-3.5">
               <div class="flex items-center flex-wrap gap-1.5">
-                <a href="#" onclick="handleSolveClick('${pidStr}'); return false;" class="font-bold text-white text-sm hover:text-cyan-400 transition cursor-pointer">${p.title}</a>
+                <a href="#" onclick="handleSolveClick('${pidStr}'); return false;" class="font-bold text-white text-sm hover:text-cyan-400 transition cursor-pointer">${escapeHtml(p.title)}</a>
                 ${p.statement_pdf_url ? '<i class="fa-solid fa-file-pdf text-rose-400 text-xs" title="มีเอกสาร PDF"></i>' : ''}
                 ${modeBadge}
                 ${verificationBadge}
@@ -2180,7 +2240,7 @@
               ${tagChips ? `<div class="flex flex-wrap gap-1 mt-1">${tagChips}</div>` : ''}
             </td>
             <td class="px-4 py-3.5 whitespace-nowrap text-xs text-gray-300">
-              ${p.author ? `<i class="fa-solid fa-user-pen text-cyan-400/70 mr-1"></i> ${p.author}` : '<span class="text-gray-500">ST8 Team</span>'}
+              ${p.author ? `<i class="fa-solid fa-user-pen text-cyan-400/70 mr-1"></i> ${escapeHtml(p.author)}` : '<span class="text-gray-500">ST8 Team</span>'}
             </td>
             <td class="px-4 py-3.5 text-center whitespace-nowrap">${diffBadge}</td>
             <td class="px-4 py-3.5 text-center whitespace-nowrap text-xs text-gray-300 font-mono">

@@ -70,7 +70,7 @@
   <div class="absolute top-1/3 right-1/4 w-[500px] h-[500px] bg-cyan-500/10 rounded-full blur-[150px] pointer-events-none glow-orb" style="animation-delay: 3s;"></div>
 
   <!-- SYSTEM NOTIFICATION TOAST -->
-  <div id="systemToast" class="fixed top-5 right-5 z-[80] transform translate-x-[120%] transition-all duration-300 ease-out tech-glass px-5 py-3.5 rounded-2xl border border-cyan-500/40 shadow-2xl flex items-center gap-3">
+  <div id="systemToast" class="fixed top-5 right-5 z-[80] transform translate-x-[120%] transition-all duration-300 ease-out tech-glass px-5 py-3.5 rounded-2xl border border-cyan-500/40 shadow-2xl flex items-center gap-3 max-w-md">
     <i id="toastIcon" class="fa-solid fa-circle-check text-cyan-400 text-lg"></i>
     <div>
       <h4 id="toastTitle" class="text-xs font-bold text-white">แจ้งเตือนระบบ</h4>
@@ -120,7 +120,7 @@
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-gradient-to-r from-cyan-950/40 via-blue-950/25 to-purple-950/20 p-5 md:p-6 rounded-3xl border border-cyan-500/20">
       <div>
         <h2 class="text-xl md:text-2xl font-bold text-white mb-1"><i class="fa-solid fa-book-open text-cyan-400 mr-2"></i> คลังโจทย์ประลองอัลกอริทึม</h2>
-        <p class="text-xs text-gray-400">ฝึกฝนโจทย์มาตรฐานจากระบบ หรือสร้างและอัปโหลดโจทย์ของคุณเองพร้อม Test Cases &amp; Function Mode</p>
+        <p class="text-xs text-gray-400">ฝึกฝนโจทย์มาตรฐานจากระบบ หรือสร้างและเผยแพร่โจทย์ของคุณให้ทุกคนทำได้ทันทีพร้อมระบบ Regrade</p>
       </div>
       <button type="button" onclick="openProblemModal('create')" class="bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-95 text-white px-5 py-3 rounded-xl text-xs md:text-sm font-bold shadow-lg shadow-cyan-500/25 transition flex items-center gap-2 cursor-pointer shrink-0">
         <i class="fa-solid fa-cloud-arrow-up"></i> สร้าง / อัปโหลดโจทย์ใหม่
@@ -144,7 +144,7 @@
 
         <button type="button" id="tabBtnMine" onclick="switchProblemTab('mine')" class="hidden flex-1 md:flex-initial px-4 py-2.5 rounded-xl text-xs md:text-sm font-semibold text-gray-300 hover:text-white hover:bg-white/5 transition cursor-pointer items-center justify-center gap-2">
           <i class="fa-solid fa-file-signature text-purple-400"></i>
-          <span>โจทย์ที่ฉันเสนอ</span>
+          <span>โจทย์ที่ฉันสร้าง</span>
           <span id="countMineBadge" class="text-[11px] px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300">0</span>
         </button>
       </div>
@@ -194,7 +194,7 @@
           <tr>
             <th class="px-4 py-3.5 text-center w-16">สถานะ</th>
             <th class="px-4 py-3.5 whitespace-nowrap">รหัสโจทย์</th>
-            <th class="px-4 py-3.5 min-w-[230px]">ชื่อโจทย์ &amp; รูปแบบ</th>
+            <th class="px-4 py-3.5 min-w-[230px]">ชื่อโจทย์ &amp; สถานะตรวจ</th>
             <th class="px-4 py-3.5 whitespace-nowrap">ผู้ออกโจทย์</th>
             <th class="px-4 py-3.5 text-center whitespace-nowrap">ความยาก</th>
             <th class="px-4 py-3.5 text-center whitespace-nowrap">ผ่าน / ส่ง</th>
@@ -296,7 +296,7 @@
 
       <div class="text-center">
         <h3 id="modalTitleText" class="text-xl font-bold text-white mb-1"><i class="fa-solid fa-cloud-arrow-up text-cyan-400 mr-2"></i> สร้าง / อัปโหลดโจทย์ใหม่</h3>
-        <p id="modalDescText" class="text-xs text-gray-400">คุณสามารถบันทึกเป็นแบบร่างเพื่อเทสต์โค้ดส่วนตัว หรือกดส่งเข้าส่วนกลางเพื่อให้ Admin ตรวจสอบ</p>
+        <p id="modalDescText" class="text-xs text-gray-400">เมื่อกด "เผยแพร่ทันที" โจทย์จะแสดงให้ทุกคนเห็นและทำได้ทันที โดยจะมีป้ายกำกับรอ Admin ตรวจสอบความถูกต้อง</p>
       </div>
 
       <form id="problemForm" class="space-y-5">
@@ -436,17 +436,28 @@
           </div>
         </div>
 
-        <!-- TEST CASES CHIPS + POPUP -->
+        <!-- TEST CASES CHIPS + POPUP + REGRADE -->
         <div class="tech-glass rounded-2xl p-4 border border-cyan-500/20 space-y-3">
           <div class="flex flex-wrap gap-2 justify-between items-center">
             <div>
               <label class="text-sm font-bold text-cyan-300 block"><i class="fa-solid fa-box-archive mr-1"></i> ชุดทดสอบ Test Cases (คลิกเพื่อเปิดแก้ไขทีละข้อ)</label>
-              <span class="text-[11px] text-gray-400">ดาวสีเหลือง = Sample I/O &bull; คลิกที่ Test Case เพื่อดูหรือแก้ไขในหน้าต่าง Popup</span>
+              <span class="text-[11px] text-gray-400">ดาวสีเหลือง = Sample I/O &bull; หากแก้ไข Test Cases ระบบจะสั่ง Regrade การส่งเดิมให้อัตโนมัติ</span>
             </div>
-            <div class="flex items-center gap-2">
+            <div class="flex flex-wrap items-center gap-2">
+              <button type="button" id="manualRegradeBtn" onclick="triggerManualRegrade()" class="hidden bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 border border-purple-500/40 px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer">
+                <i class="fa-solid fa-rotate mr-1"></i> Regrade All
+              </button>
               <button type="button" onclick="downloadTestCasesZip()" class="tech-glass px-3 py-1.5 rounded-xl text-xs text-yellow-300 border border-yellow-500/30 hover:bg-yellow-500/10 transition cursor-pointer"><i class="fa-solid fa-download mr-1"></i> โหลด ZIP</button>
               <button type="button" onclick="addNewTestCaseAndOpenPopup()" class="bg-cyan-500/20 hover:bg-cyan-500/30 px-3.5 py-1.5 rounded-xl text-xs font-semibold text-cyan-300 border border-cyan-500/40 transition cursor-pointer"><i class="fa-solid fa-plus mr-1"></i> เพิ่ม Test Case</button>
             </div>
+          </div>
+
+          <div id="regradeWarningBanner" class="hidden bg-purple-500/15 border border-purple-500/35 rounded-xl px-3.5 py-2.5 text-xs text-purple-200 flex items-center justify-between gap-2">
+            <span><i class="fa-solid fa-triangle-exclamation text-amber-400 mr-1.5"></i> ตรวจพบการแก้ไข Test Cases / Limits — เมื่อกดบันทึก ระบบจะสั่ง <b>Regrade</b> การส่งโค้ดทั้งหมดของโจทย์นี้ใหม่</span>
+            <label class="inline-flex items-center gap-1.5 cursor-pointer shrink-0 font-semibold text-white">
+              <input type="checkbox" id="autoRegradeCheckbox" checked class="accent-purple-500 w-3.5 h-3.5">
+              <span>Regrade อัตโนมัติ</span>
+            </label>
           </div>
 
           <div class="bg-black/40 p-3 rounded-xl border border-cyan-500/10 space-y-2">
@@ -492,10 +503,10 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
           <button type="submit" id="btnSubmitDraft" class="bg-white/10 hover:bg-white/15 text-gray-200 font-semibold py-3.5 rounded-xl text-xs transition border border-white/15 cursor-pointer flex items-center justify-center gap-2">
-            <i class="fa-solid fa-file-pen text-amber-300"></i> บันทึกเป็นแบบร่าง (Draft) — เทสต์เองได้
+            <i class="fa-solid fa-file-pen text-amber-300"></i> บันทึกเป็นแบบร่าง (Draft) — เห็นเฉพาะฉัน
           </button>
           <button type="submit" id="submitBtnText" class="bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-95 text-white font-bold py-3.5 rounded-xl text-xs transition shadow-lg shadow-cyan-500/25 cursor-pointer flex items-center justify-center gap-2">
-            <i class="fa-solid fa-paper-plane"></i> ส่งเข้าส่วนกลาง (รอ Admin อนุมัติ)
+            <i class="fa-solid fa-globe"></i> เผยแพร่ทันที (ทุกคนเห็นได้ &bull; รอ Admin ตรวจ)
           </button>
         </div>
       </form>
@@ -594,6 +605,8 @@
     let selectedZipDataUrl = '';
     let currentProblemMode = 'standard';
     let formTestCasesData = [];
+    let originalTestCasesSnapshot = '';
+    let originalLimitsSnapshot = '';
     let currentEditingTcIndex = 0;
     let readAnnouncementIds = JSON.parse(localStorage.getItem('st8_read_announcements')) || [];
     let allAnnouncementsCache = [];
@@ -606,7 +619,7 @@
         ? 'fa-solid fa-circle-exclamation text-rose-400 text-lg'
         : 'fa-solid fa-circle-check text-cyan-400 text-lg';
       toast.classList.remove('translate-x-[120%]');
-      setTimeout(() => toast.classList.add('translate-x-[120%]'), 3200);
+      setTimeout(() => toast.classList.add('translate-x-[120%]'), 3600);
     }
 
     function openSmoothModal(id) {
@@ -702,7 +715,12 @@
         listContainer.innerHTML = subs.map(s => {
           const prob = allProblemsCache.find(p => String(p.id) === String(s.problem_id)) || {};
           const isAc = s.status === 'Accepted' || s.status === 'AC';
-          const badgeClass = isAc ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' : 'bg-rose-500/20 text-rose-300 border-rose-500/40';
+          const isPendingRegrade = s.status === 'Pending Regrade' || s.status === 'Regrading';
+          const badgeClass = isAc
+            ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+            : isPendingRegrade
+            ? 'bg-purple-500/20 text-purple-300 border-purple-500/40'
+            : 'bg-rose-500/20 text-rose-300 border-rose-500/40';
           const timeStr = s.created_at ? new Date(s.created_at).toLocaleString('th-TH') : '-';
 
           return `
@@ -802,6 +820,89 @@
       return 'official';
     }
 
+    function checkTestCaseModificationBanner() {
+      const mode = document.getElementById('formMode').value;
+      const banner = document.getElementById('regradeWarningBanner');
+      if (mode !== 'edit') {
+        banner.classList.add('hidden');
+        return;
+      }
+      const currentTcStr = JSON.stringify(formTestCasesData.map(tc => ({
+        input: (tc.input || '').trim(),
+        output: (tc.output || '').trim()
+      })));
+      const currentLimitsStr = `${document.getElementById('admTimeLimit').value}|${document.getElementById('admMemoryLimit').value}|${document.getElementById('admGraderMainCode').value}`;
+      const isModified = currentTcStr !== originalTestCasesSnapshot || currentLimitsStr !== originalLimitsSnapshot;
+      if (isModified) {
+        banner.classList.remove('hidden');
+      } else {
+        banner.classList.add('hidden');
+      }
+    }
+
+    ['admTimeLimit', 'admMemoryLimit', 'admGraderMainCode'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('input', checkTestCaseModificationBanner);
+    });
+
+    async function regradeProblemSubmissions(problemId, problemObj) {
+      const { data: existingSubs, error: fetchErr } = await supabaseClient
+        .from('submissions')
+        .select('id')
+        .eq('problem_id', problemId);
+
+      if (fetchErr || !existingSubs || existingSubs.length === 0) {
+        return 0;
+      }
+
+      const { error: updErr } = await supabaseClient
+        .from('submissions')
+        .update({
+          status: 'Pending Regrade',
+          score: 0,
+          regraded_at: new Date().toISOString()
+        })
+        .eq('problem_id', problemId);
+
+      if (updErr) {
+        // Fallback หากตาราง submissions ไม่มีคอลัมน์ regraded_at
+        await supabaseClient
+          .from('submissions')
+          .update({ status: 'Pending Regrade', score: 0 })
+          .eq('problem_id', problemId);
+      }
+
+      // ส่ง Broadcast event เผื่อ Worker / หน้า Editor เปิดฟังสถานะ Regrade แบบ Realtime
+      try {
+        const channel = supabaseClient.channel('st8-regrade-queue');
+        await channel.send({
+          type: 'broadcast',
+          event: 'regrade_problem',
+          payload: {
+            problem_id: problemId,
+            problem_code: problemObj?.problem_code || '',
+            count: existingSubs.length,
+            triggered_at: new Date().toISOString()
+          }
+        });
+      } catch (_) {}
+
+      return existingSubs.length;
+    }
+
+    async function triggerManualRegrade() {
+      const id = document.getElementById('editProblemId').value;
+      if (!id) return;
+      const p = allProblemsCache.find(item => String(item.id) === String(id));
+      const count = await regradeProblemSubmissions(id, p);
+      if (count > 0) {
+        showToast('สั่ง Regrade สำเร็จ!', `นำการส่งโค้ดทั้งหมด ${count} รายการเข้าคิวตรวจใหม่แล้ว`);
+        await initProblemBank();
+      } else {
+        showToast('ไม่มีรายการส่งโค้ด', 'โจทย์ข้อนี้ยังไม่มีประวัติการส่งโค้ดให้ Regrade');
+      }
+    }
+
     function setProblemExecutionMode(mode) {
       currentProblemMode = mode;
       const baseCls = 'p-3 rounded-xl border text-left transition cursor-pointer bg-black/50 border-cyan-500/20 text-gray-300 hover:border-cyan-400/50';
@@ -834,6 +935,7 @@
           insertFunctionTemplate(true);
         }
       }
+      checkTestCaseModificationBanner();
     }
 
     function insertFunctionTemplate(silent = false) {
@@ -845,6 +947,7 @@
         document.getElementById('admStarterCode').value = `def solve(a: int, b: int) -> int:\n    # เขียนโค้ดฟังก์ชันของคุณที่นี่\n    return 0`;
         document.getElementById('admGraderMainCode').value = `import sys\n\nif __name__ == "__main__":\n    data = sys.stdin.read().split()\n    if len(data) >= 2:\n        a, b = int(data[0]), int(data[1])\n        print(solve(a, b))`;
       }
+      checkTestCaseModificationBanner();
       if (!silent) showToast('โหลดแม่แบบแล้ว', `ใส่โค้ดตัวอย่างสำหรับ ${lang.toUpperCase()} เรียบร้อย`);
     }
 
@@ -928,6 +1031,7 @@
       const container = document.getElementById('testCaseChipsContainer');
       if (!formTestCasesData || formTestCasesData.length === 0) {
         container.innerHTML = `<span class="text-gray-500 text-xs italic">ยังไม่มี Test Case กดปุ่ม "+ เพิ่ม Test Case"</span>`;
+        checkTestCaseModificationBanner();
         return;
       }
       container.innerHTML = formTestCasesData.map((tc, idx) => {
@@ -941,6 +1045,7 @@
           </button>
         `;
       }).join('');
+      checkTestCaseModificationBanner();
     }
 
     function openSingleTestCaseModal(index) {
@@ -975,6 +1080,7 @@
       if (currentEditingTcIndex >= 0 && currentEditingTcIndex < formTestCasesData.length) {
         formTestCasesData[currentEditingTcIndex].input = document.getElementById('tcPopupInputArea').value;
         formTestCasesData[currentEditingTcIndex].output = document.getElementById('tcPopupOutputArea').value;
+        checkTestCaseModificationBanner();
       }
     }
 
@@ -1118,6 +1224,8 @@
       selectedPdfDataUrl = '';
       selectedPdfFileName = '';
       selectedZipDataUrl = '';
+      originalTestCasesSnapshot = '';
+      originalLimitsSnapshot = '';
       document.getElementById('currentPdfUrl').value = '';
       document.getElementById('currentZipUrl').value = '';
       document.getElementById('admStarterCode').value = '';
@@ -1125,6 +1233,9 @@
       document.getElementById('existingPdfContainer').innerHTML = '';
       document.getElementById('existingZipContainer').innerHTML = '';
       document.getElementById('selectedPdfBadge').classList.add('hidden');
+      document.getElementById('regradeWarningBanner').classList.add('hidden');
+      document.getElementById('manualRegradeBtn').classList.add('hidden');
+      document.getElementById('autoRegradeCheckbox').checked = true;
       switchStatementTab('edit');
 
       if (mode === 'create') {
@@ -1163,6 +1274,15 @@
         formTestCasesData = (p.test_cases && Array.isArray(p.test_cases) && p.test_cases.length > 0)
           ? p.test_cases.map(tc => ({ input: tc.input || '', output: tc.output || '', is_sample: !!tc.is_sample }))
           : [{ input: '', output: '', is_sample: true }];
+
+        // บันทึก Snapshot เดิมเพื่อเช็คว่ามีการแก้ Test Cases หรือไม่
+        originalTestCasesSnapshot = JSON.stringify(formTestCasesData.map(tc => ({
+          input: (tc.input || '').trim(),
+          output: (tc.output || '').trim()
+        })));
+        originalLimitsSnapshot = `${document.getElementById('admTimeLimit').value}|${document.getElementById('admMemoryLimit').value}|${document.getElementById('admGraderMainCode').value}`;
+
+        document.getElementById('manualRegradeBtn').classList.remove('hidden');
         renderTestCaseChips();
 
         if (p.statement_pdf_url) {
@@ -1209,11 +1329,13 @@
 
       const test_cases = (formTestCasesData || []).filter(tc => (tc.input && tc.input.trim() !== '') || (tc.output && tc.output.trim() !== ''));
 
+      const isAdminUser = currentUserProfile && currentUserProfile.role === 'admin';
+
       const problemData = {
         problem_code,
         title,
         difficulty,
-        source: 'community',
+        source: isAdminUser ? 'official' : 'community',
         problem_mode,
         is_function_mode,
         show_main,
@@ -1224,7 +1346,7 @@
         tags,
         max_score,
         author,
-        is_verified: false,
+        is_verified: isAdminUser ? true : false,
         is_draft: isDraftSubmit,
         test_cases,
         time_limit,
@@ -1243,21 +1365,48 @@
         if (error) {
           showToast('เกิดข้อผิดพลาด', error.message, true);
         } else {
-          showToast(isDraftSubmit ? 'บันทึก Draft สำเร็จ!' : 'ส่งเข้าส่วนกลางสำเร็จ!', isDraftSubmit ? 'คุณสามารถทดสอบโค้ดของตัวเองได้ทันทีในแท็บโจทย์ที่ฉันเสนอ' : 'โจทย์ถูกส่งไปรอ Admin ตรวจสอบแล้ว');
+          showToast(
+            isDraftSubmit ? 'บันทึก Draft สำเร็จ!' : 'เผยแพร่โจทย์สำเร็จ!',
+            isDraftSubmit
+              ? 'บันทึกแบบร่างเรียบร้อย คุณสามารถทดสอบได้ในแท็บโจทย์ที่ฉันสร้าง'
+              : 'โจทย์เผยแพร่ให้ทุกคนเห็นและทำได้ทันที (รอ Admin ตรวจสอบความถูกต้อง)'
+          );
           closeProblemModal();
           await initProblemBank();
-          switchProblemTab('mine');
+          switchProblemTab(isDraftSubmit ? 'mine' : (isAdminUser ? 'official' : 'community'));
         }
       } else {
         const id = document.getElementById('editProblemId').value;
+        const currentTcStr = JSON.stringify(formTestCasesData.map(tc => ({
+          input: (tc.input || '').trim(),
+          output: (tc.output || '').trim()
+        })));
+        const currentLimitsStr = `${time_limit}|${memory_limit}|${grader_main_code || ''}`;
+        const testCasesChanged = currentTcStr !== originalTestCasesSnapshot || currentLimitsStr !== originalLimitsSnapshot;
+        const shouldAutoRegrade = testCasesChanged && document.getElementById('autoRegradeCheckbox').checked;
+
+        // คงสถานะ verified เดิมหากไม่ได้แก้เนื้อหาสำคัญ หรือให้รอตรวจใหม่ถ้าแก้เทสเคสโดยไม่ใช่แอดมิน
+        const existingProb = allProblemsCache.find(item => String(item.id) === String(id));
+        if (existingProb && existingProb.is_verified && !testCasesChanged) {
+          problemData.is_verified = true;
+        }
+
         const { error } = await supabaseClient.from('problems').update(problemData).eq('id', id);
         if (error) {
           showToast('เกิดข้อผิดพลาด', error.message, true);
         } else {
-          showToast('อัปเดตสำเร็จ', isDraftSubmit ? 'บันทึกร่างเรียบร้อย' : 'บันทึกการแก้ไขเรียบร้อย');
+          let regradedCount = 0;
+          if (shouldAutoRegrade) {
+            regradedCount = await regradeProblemSubmissions(id, problemData);
+          }
+
+          if (regradedCount > 0) {
+            showToast('อัปเดต & สั่ง Regrade สำเร็จ!', `บันทึกโจทย์และสั่ง Regrade การส่งโค้ดใหม่ ${regradedCount} รายการแล้ว`);
+          } else {
+            showToast('อัปเดตสำเร็จ', isDraftSubmit ? 'บันทึกร่างเรียบร้อย' : 'บันทึกการแก้ไขและเผยแพร่เรียบร้อย');
+          }
           closeProblemModal();
           await initProblemBank();
-          switchProblemTab('mine');
         }
       }
     });
@@ -1285,6 +1434,11 @@
       ]);
 
       allProblemsCache = probsRes.data || [];
+
+      solvedProblemIds.clear();
+      attemptedProblemIds.clear();
+      acCountByProblem = {};
+      totalTriedCountByProblem = {};
 
       const uniqueAcUsersByProb = {};
       const uniqueTriedUsersByProb = {};
@@ -1338,17 +1492,21 @@
       container.innerHTML = allBtn + tagBtns;
     }
 
+    function isProblemPubliclyVisible(p, now) {
+      if (p.is_draft) return false;
+      if (p.open_at && now < new Date(p.open_at).getTime()) return false;
+      if (p.close_at && now > new Date(p.close_at).getTime()) return false;
+      const src = getProblemSource(p);
+      // โจทย์ Official ต้องผ่านการ verify ส่วนโจทย์ Community ให้ทุกคนเห็นได้ทันทีที่เผยแพร่
+      if (src === 'official') return !!p.is_verified;
+      return true;
+    }
+
     function updateTabCounters() {
       const now = Date.now();
-      const isAvailableNow = (p) => {
-        if (!p.is_verified) return false;
-        if (p.open_at && now < new Date(p.open_at).getTime()) return false;
-        if (p.close_at && now > new Date(p.close_at).getTime()) return false;
-        return true;
-      };
 
-      const officialCount = allProblemsCache.filter(p => isAvailableNow(p) && getProblemSource(p) === 'official').length;
-      const communityCount = allProblemsCache.filter(p => isAvailableNow(p) && getProblemSource(p) === 'community').length;
+      const officialCount = allProblemsCache.filter(p => isProblemPubliclyVisible(p, now) && getProblemSource(p) === 'official').length;
+      const communityCount = allProblemsCache.filter(p => isProblemPubliclyVisible(p, now) && getProblemSource(p) === 'community').length;
       const mineCount = currentUser ? allProblemsCache.filter(p => String(p.created_by) === String(currentUser.id)).length : 0;
 
       document.getElementById('countOfficialBadge').textContent = officialCount;
@@ -1374,9 +1532,9 @@
       if (tabName === 'official') {
         hintEl.innerHTML = '<i class="fa-solid fa-shield-halved text-cyan-400 mr-1"></i> แสดงโจทย์มาตรฐานที่จัดทำโดยทีมงาน ST8';
       } else if (tabName === 'community') {
-        hintEl.innerHTML = '<i class="fa-solid fa-users text-amber-400 mr-1"></i> แสดงโจทย์สร้างสรรค์จากนักเรียนและผ่านการรับรองแล้ว';
+        hintEl.innerHTML = '<i class="fa-solid fa-users text-amber-400 mr-1"></i> แสดงโจทย์จากนักเรียนทั้งหมด (ทำได้ทันที &bull; ป้ายบอกสถานะการตรวจจาก Admin)';
       } else {
-        hintEl.innerHTML = '<i class="fa-solid fa-file-signature text-purple-400 mr-1"></i> ติดตามสถานะและแก้ไขโจทย์ที่คุณสร้างขึ้น';
+        hintEl.innerHTML = '<i class="fa-solid fa-file-signature text-purple-400 mr-1"></i> ติดตามสถานะ แก้ไข Test Cases และสั่ง Regrade โจทย์ของคุณ';
       }
 
       renderFilteredProblems();
@@ -1385,19 +1543,18 @@
     function renderActionButtons(p, isOwner, isSolved) {
       let editBtn = '';
       if (isOwner) {
-        editBtn = `<button type="button" onclick="openProblemModal('edit', '${String(p.id).replace(/'/g, "\\'")}')" class="bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/35 px-3 py-2 rounded-xl transition text-xs font-semibold cursor-pointer" title="แก้ไขโจทย์ของคุณ">
+        editBtn = `<button type="button" onclick="openProblemModal('edit', '${String(p.id).replace(/'/g, "\\'")}')" class="bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/35 px-3 py-2 rounded-xl transition text-xs font-semibold cursor-pointer" title="แก้ไขโจทย์ / Test Cases">
                     <i class="fa-solid fa-pen-to-square"></i> แก้ไข
                   </button>`;
       }
 
+      // ทุกคนสามารถกดทำโจทย์ที่เผยแพร่แล้วได้ทันที (ส่วน Draft ทำได้เฉพาะเจ้าของ)
       let solveBtn = '';
-      if (p.is_verified || isOwner) {
+      if (!p.is_draft || isOwner) {
         const btnText = p.is_draft ? 'ทดสอบ (Draft)' : 'ทำโจทย์';
         solveBtn = `<button type="button" onclick="handleSolveClick('${String(p.id).replace(/'/g, "\\'")}')" class="bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-95 text-white px-4 py-2 rounded-xl transition text-xs font-bold shadow-md shadow-cyan-500/15 cursor-pointer">
                     <i class="fa-solid fa-code mr-1"></i> ${btnText}
                   </button>`;
-      } else {
-        solveBtn = `<span class="text-xs text-amber-300/80 italic px-2">รอตรวจสอบ</span>`;
       }
 
       return `<div class="inline-flex items-center gap-2">${editBtn}${solveBtn}</div>`;
@@ -1414,9 +1571,7 @@
         if (currentTab === 'mine') {
           if (!currentUser || String(p.created_by) !== String(currentUser.id)) return false;
         } else {
-          if (!p.is_verified || p.is_draft) return false;
-          if (p.open_at && now < new Date(p.open_at).getTime()) return false;
-          if (p.close_at && now > new Date(p.close_at).getTime()) return false;
+          if (!isProblemPubliclyVisible(p, now)) return false;
           if (getProblemSource(p) !== currentTab) return false;
         }
 
@@ -1443,7 +1598,7 @@
         const emptyMsg = currentTab === 'community'
           ? 'ยังไม่มีโจทย์จากนักเรียนในหมวดนี้ — กดปุ่ม "สร้าง / อัปโหลดโจทย์ใหม่" ด้านบนเพื่อเป็นคนแรก!'
           : currentTab === 'mine'
-          ? 'คุณยังไม่เคยเสนอโจทย์เข้าสู่ระบบ'
+          ? 'คุณยังไม่เคยสร้างโจทย์เข้าสู่ระบบ'
           : 'ไม่พบโจทย์ที่ตรงกับเงื่อนไขการค้นหา';
         tbody.innerHTML = `<tr><td colspan="7" class="p-10 text-center text-gray-400">${emptyMsg}</td></tr>`;
         return;
@@ -1455,20 +1610,12 @@
         const isAttempted = attemptedProblemIds.has(pidStr);
 
         let statusIcon = `<span class="text-gray-600" title="ยังไม่เริ่ม"><i class="fa-regular fa-circle"></i></span>`;
-        if (currentTab === 'mine') {
-          if (p.is_draft) {
-            statusIcon = `<span class="text-gray-400" title="แบบร่าง (Draft)"><i class="fa-solid fa-file-pen"></i></span>`;
-          } else if (!p.is_verified) {
-            statusIcon = `<span class="text-amber-400" title="รอ Admin ตรวจสอบ"><i class="fa-solid fa-hourglass-half"></i></span>`;
-          } else if (isSolved) {
-            statusIcon = `<span class="text-emerald-400 text-base" title="ผ่านแล้ว"><i class="fa-solid fa-circle-check"></i></span>`;
-          }
-        } else {
-          if (isSolved) {
-            statusIcon = `<span class="text-emerald-400 text-base" title="ผ่านแล้ว (Accepted)"><i class="fa-solid fa-circle-check"></i></span>`;
-          } else if (isAttempted) {
-            statusIcon = `<span class="text-amber-400" title="กำลังพยายาม"><i class="fa-solid fa-circle-dot"></i></span>`;
-          }
+        if (p.is_draft) {
+          statusIcon = `<span class="text-gray-400" title="แบบร่าง (Draft)"><i class="fa-solid fa-file-pen"></i></span>`;
+        } else if (isSolved) {
+          statusIcon = `<span class="text-emerald-400 text-base" title="ผ่านแล้ว (Accepted)"><i class="fa-solid fa-circle-check"></i></span>`;
+        } else if (isAttempted) {
+          statusIcon = `<span class="text-amber-400" title="กำลังพยายาม"><i class="fa-solid fa-circle-dot"></i></span>`;
         }
 
         const diffBadge = p.difficulty === 'Easy'
@@ -1488,14 +1635,15 @@
           ? `<span class="text-[10px] px-2 py-0.5 rounded bg-purple-500/15 text-purple-300 border border-purple-500/30">ฟังก์ชัน (ปิด main)</span>`
           : '';
 
-        let approvalStatusBadge = '';
-        if (currentTab === 'mine') {
-          if (p.is_draft) {
-            approvalStatusBadge = `<span class="text-[10px] px-2 py-0.5 rounded-full bg-gray-500/20 text-gray-300 border border-gray-500/35">แบบร่าง (Draft)</span>`;
-          } else if (p.is_verified) {
-            approvalStatusBadge = `<span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/35">อนุมัติแล้ว</span>`;
+        // แสดงสถานะการตรวจสอบจาก Admin ทั้งในแท็บ Community และ Mine
+        let verificationBadge = '';
+        if (p.is_draft) {
+          verificationBadge = `<span class="text-[10px] px-2 py-0.5 rounded-full bg-gray-500/20 text-gray-300 border border-gray-500/35"><i class="fa-solid fa-file-pen mr-1"></i>แบบร่าง (Draft)</span>`;
+        } else if (getProblemSource(p) === 'community' || currentTab === 'mine') {
+          if (p.is_verified) {
+            verificationBadge = `<span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/35" title="ผ่านการตรวจสอบความถูกต้องจาก Admin แล้ว"><i class="fa-solid fa-circle-check mr-1"></i>ตรวจแล้ว</span>`;
           } else {
-            approvalStatusBadge = `<span class="text-[10px] py-0.5 px-2 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/35">รอ Admin อนุมัติ</span>`;
+            verificationBadge = `<span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/35" title="เผยแพร่แล้ว แต่รอ Admin ตรวจสอบความถูกต้อง"><i class="fa-solid fa-hourglass-half mr-1"></i>รอ Admin ตรวจสอบ</span>`;
           }
         }
 
@@ -1514,7 +1662,7 @@
                 <a href="#" onclick="handleSolveClick('${pidStr}'); return false;" class="font-bold text-white text-sm hover:text-cyan-400 transition cursor-pointer">${p.title}</a>
                 ${p.statement_pdf_url ? '<i class="fa-solid fa-file-pdf text-rose-400 text-xs" title="มีเอกสาร PDF"></i>' : ''}
                 ${modeBadge}
-                ${approvalStatusBadge}
+                ${verificationBadge}
               </div>
               ${tagChips ? `<div class="flex flex-wrap gap-1 mt-1">${tagChips}</div>` : ''}
             </td>
@@ -1547,5 +1695,3 @@
   </script>
 </body>
 </html>
-
-

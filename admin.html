@@ -51,7 +51,7 @@
 <body class="min-h-screen flex flex-col relative overflow-x-hidden cyber-grid selection:bg-cyan-500 selection:text-black">
 
   <!-- SYSTEM NOTIFICATION TOAST -->
-  <div id="systemToast" class="fixed top-5 right-5 z-[80] transform translate-x-[120%] transition-all duration-300 ease-out tech-glass px-5 py-3.5 rounded-2xl border border-cyan-500/40 shadow-2xl flex items-center gap-3">
+  <div id="systemToast" class="fixed top-5 right-5 z-[95] transform translate-x-[120%] transition-all duration-300 ease-out tech-glass px-5 py-3.5 rounded-2xl border border-cyan-500/40 shadow-2xl flex items-center gap-3">
     <i id="toastIcon" class="fa-solid fa-circle-check text-cyan-400 text-lg"></i>
     <div>
       <h4 id="toastTitle" class="text-xs font-bold text-white">แจ้งเตือนระบบ</h4>
@@ -72,7 +72,7 @@
       <div class="flex flex-wrap gap-3 justify-between items-center bg-gradient-to-r from-cyan-950/40 to-blue-950/20 p-5 rounded-2xl border border-cyan-500/20">
         <div>
           <h2 class="text-lg md:text-xl font-bold text-white mb-0.5"><i class="fa-solid fa-list-check text-cyan-400 mr-2"></i> คลังโจทย์ทั้งหมดในระบบ</h2>
-          <p class="text-xs text-gray-400">คลิกที่ "ชื่อโจทย์" เพื่อแก้ไขข้อมูล &bull; เลือกกรองหลายแท็กพร้อมกัน, แยกรูปแบบฟังก์ชัน / Standard I/O และเรียงลำดับโจทย์ได้ทันที</p>
+          <p class="text-xs text-gray-400">คลิกที่ "ชื่อโจทย์" เพื่อแก้ไขข้อมูล (หากแก้ Test Cases ระบบจะ Regrade ให้ทันที) หรือกดปุ่ม Regrade รายข้อได้ทันที</p>
         </div>
         <button type="button" onclick="openProblemModal('create')" class="bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-95 text-white px-4 py-2.5 rounded-xl text-xs md:text-sm font-semibold shadow-lg shadow-cyan-500/20 transition flex items-center gap-2 cursor-pointer shrink-0">
           <i class="fa-solid fa-plus-circle"></i> อัปโหลด / สร้างโจทย์ใหม่
@@ -134,7 +134,7 @@
               <th class="px-3.5 py-3.5 whitespace-nowrap">กำหนดเวลา</th>
               <th class="px-3.5 py-3.5 whitespace-nowrap text-center">สถิติ AC</th>
               <th class="px-3.5 py-3.5 whitespace-nowrap text-center">แสดงผล</th>
-              <th class="px-3.5 py-3.5 whitespace-nowrap text-right">จัดการ</th>
+              <th class="px-3.5 py-3.5 whitespace-nowrap text-right">จัดการ / Regrade</th>
             </tr>
           </thead>
           <tbody id="allAdminProblemsTableBody" class="divide-y divide-cyan-500/10 kanit-font">
@@ -154,7 +154,7 @@
 
       <div class="text-center">
         <h3 id="modalTitleText" class="text-xl font-bold text-white mb-1"><i class="fa-solid fa-cloud-arrow-up text-cyan-400 mr-2"></i> สร้าง / อัปโหลดโจทย์ใหม่</h3>
-        <p id="modalDescText" class="text-xs text-gray-400">กรอกรหัสโจทย์, ชื่อโจทย์, รูปแบบฟังก์ชัน และรายละเอียดทั้งหมด</p>
+        <p id="modalDescText" class="text-xs text-gray-400">กรอกรหัสโจทย์, ชื่อโจทย์, รูปแบบฟังก์ชัน และรายละเอียดทั้งหมด (หากมีการแก้ไข Test Cases ระบบจะ Regrade อัตโนมัติ)</p>
       </div>
 
       <form id="problemForm" class="space-y-5">
@@ -326,7 +326,7 @@
           <div class="flex flex-wrap gap-2 justify-between items-center">
             <div>
               <label class="text-sm font-bold text-cyan-300 block"><i class="fa-solid fa-box-archive mr-1"></i> ชุดทดสอบ Test Cases (คลิกเพื่อเปิดแก้ไขทีละข้อ)</label>
-              <span class="text-[11px] text-gray-400">ดาวสีเหลือง = Sample I/O &bull; คลิกที่ Test Case เพื่อดูหรือแก้ไขในหน้าต่าง Popup</span>
+              <span class="text-[11px] text-amber-300/90"><i class="fa-solid fa-bolt mr-1"></i> หากแก้ไขหรืออัปโหลด Test Cases ใหม่ ระบบจะ Regrade โค้ดที่ส่งไว้ทั้งหมดให้อัตโนมัติทันที</span>
             </div>
             <div class="flex items-center gap-2">
               <button type="button" onclick="downloadTestCasesZip()" class="tech-glass px-3 py-1.5 rounded-xl text-xs text-yellow-300 border border-yellow-500/30 hover:bg-yellow-500/10 transition cursor-pointer"><i class="fa-solid fa-download mr-1"></i> โหลด ZIP</button>
@@ -375,9 +375,15 @@
           </div>
         </div>
 
-        <button type="submit" id="submitBtnText" class="w-full bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-95 text-white font-bold py-3.5 rounded-xl text-sm transition shadow-lg shadow-cyan-500/25 cursor-pointer">
-          <i class="fa-solid fa-cloud-arrow-up mr-1.5"></i> บันทึกและเผยแพร่โจทย์เข้าสู่ระบบทันที
-        </button>
+        <!-- SUBMIT & MANUAL REGRADE BUTTONS -->
+        <div class="flex flex-col sm:flex-row gap-3">
+          <button type="submit" id="submitBtnText" class="flex-1 bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-95 text-white font-bold py-3.5 rounded-xl text-sm transition shadow-lg shadow-cyan-500/25 cursor-pointer">
+            <i class="fa-solid fa-cloud-arrow-up mr-1.5"></i> บันทึกและเผยแพร่โจทย์เข้าสู่ระบบทันที
+          </button>
+          <button type="button" id="modalManualRegradeBtn" onclick="triggerManualRegradeFromModal()" class="hidden bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 font-bold px-5 py-3.5 rounded-xl text-sm transition cursor-pointer flex items-center justify-center gap-2 shrink-0">
+            <i class="fa-solid fa-rotate"></i> Regrade ข้อนี้ทันที
+          </button>
+        </div>
       </form>
     </div>
   </div>
@@ -470,6 +476,34 @@
     </div>
   </div>
 
+  <!-- POPUP: LIVE REGRADE PROGRESS MODAL -->
+  <div id="regradeProgressModal" class="modal-backdrop modal-closed fixed inset-0 z-[85] flex items-center justify-center px-4 bg-black/90 backdrop-blur-md opacity-0 pointer-events-none">
+    <div class="modal-box tech-modal rounded-3xl p-6 md:p-8 max-w-md w-full space-y-5 border border-amber-500/40 text-center">
+      <div class="w-14 h-14 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 text-2xl mx-auto">
+        <i id="regradeSpinIcon" class="fa-solid fa-rotate fa-spin"></i>
+      </div>
+      <div>
+        <h3 id="regradeModalTitle" class="text-lg font-bold text-white">กำลังตรวจโค้ดใหม่ทั้งหมด (Regrading)</h3>
+        <p id="regradeModalDesc" class="text-xs text-gray-400 mt-1">กรุณารอสักครู่ อย่าปิดหน้าต่างนี้จนกว่าจะตรวจเสร็จสมบูรณ์...</p>
+      </div>
+      <div class="space-y-2">
+        <div class="w-full h-3 bg-black/70 rounded-full overflow-hidden border border-cyan-500/25 p-0.5">
+          <div id="regradeProgressBar" class="h-full bg-gradient-to-r from-amber-500 to-cyan-400 rounded-full transition-all duration-300" style="width: 0%;"></div>
+        </div>
+        <div class="flex justify-between text-xs font-mono text-gray-300">
+          <span id="regradeProgressCount">0 / 0 Submissions</span>
+          <span id="regradeProgressPct" class="text-amber-300 font-bold">0%</span>
+        </div>
+      </div>
+      <div id="regradeLogSummary" class="text-xs text-gray-300 bg-black/50 p-3 rounded-xl border border-white/10 min-h-[42px] flex items-center justify-center">
+        กำลังเตรียมข้อมูลชุดทดสอบ...
+      </div>
+      <button type="button" id="closeRegradeModalBtn" onclick="closeRegradeProgressModal()" class="hidden w-full bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-bold py-2.5 rounded-xl text-xs transition cursor-pointer">
+        เสร็จสิ้น / ปิดหน้าต่าง
+      </button>
+    </div>
+  </div>
+
   <footer class="tech-glass border-t border-cyan-500/20 py-5 text-center text-xs text-gray-400 mt-auto relative z-10 w-full">
     <p class="text-cyan-400 font-bold tracking-widest uppercase">ST8 CP-Grader &bull; Admin Panel</p>
   </footer>
@@ -490,6 +524,7 @@
 
     let currentProblemMode = 'standard';
     let formTestCasesData = [];
+    let originalTestCasesSnapshot = ''; // เก็บค่า Test Cases เดิมเพื่อเช็กว่ามีการแก้ไขหรือไม่
     let currentEditingTcIndex = 0;
 
     let currentSourceFilter = 'all';
@@ -509,6 +544,226 @@
       el.classList.add('modal-closed', 'opacity-0', 'pointer-events-none');
     }
 
+    // ==================== GRADER ENGINE FOR REGRADING ====================
+    function b64Encode(str) { return btoa(unescape(encodeURIComponent(str || ''))); }
+    function b64Decode(str) {
+      if (!str) return '';
+      try { return decodeURIComponent(escape(atob(str))); } catch { return str; }
+    }
+    function normalizeOutput(str) {
+      return (str || '').replace(/\r\n/g, '\n').split('\n').map(line => line.trimEnd()).join('\n').trim();
+    }
+
+    function buildRunnableCodeForProblem(problem, userCode) {
+      if (!problem || !problem.is_function_mode || !problem.grader_main_code) {
+        return userCode;
+      }
+      return `${userCode}\n\n// --- GRADER HARNESS ---\n${problem.grader_main_code}`;
+    }
+
+    async function executeCppSingleCall(code, lang, stdin, timeLimitSec = 1.0) {
+      const startTime = performance.now();
+      const wandboxPromise = fetch('https://wandbox.org/api/compile.json', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          compiler: lang === 'c' ? 'gcc-head-c' : 'gcc-head',
+          code,
+          stdin: stdin || '',
+          options: lang === 'cpp' ? 'gnu++17' : 'gnu11',
+          'compiler-option-raw': '-O2'
+        })
+      }).then(async r => {
+        if (!r.ok) throw new Error('Wandbox failed');
+        const wb = await r.json();
+        const elapsed = parseFloat(((performance.now() - startTime) / 1000).toFixed(2));
+        if (wb.compiler_error) return { status: 'CE', stdout: '', stderr: '', compilerError: wb.compiler_error, elapsed };
+        if (wb.status !== '0') return { status: 'RE', stdout: wb.program_output || '', stderr: wb.program_error || '', compilerError: '', elapsed };
+        return { status: 'OK', stdout: wb.program_output || '', stderr: wb.program_error || '', compilerError: '', elapsed };
+      });
+
+      const judge0Promise = fetch('https://ce.judge0.com/submissions/?base64_encoded=true&wait=true', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          source_code: b64Encode(code),
+          language_id: lang === 'c' ? 50 : 54,
+          stdin: b64Encode(stdin || ''),
+          cpu_time_limit: Math.min(5, Math.max(1, parseFloat(timeLimitSec) || 1.0))
+        })
+      }).then(async r => {
+        if (!r.ok) throw new Error('Judge0 failed');
+        const data = await r.json();
+        const elapsed = parseFloat(data.time) || parseFloat(((performance.now() - startTime) / 1000).toFixed(2));
+        const sid = data.status?.id;
+        if (sid === 6) return { status: 'CE', stdout: '', stderr: '', compilerError: b64Decode(data.compile_output), elapsed };
+        if (sid === 5) return { status: 'TLE', stdout: b64Decode(data.stdout), stderr: 'Time Limit Exceeded', compilerError: '', elapsed };
+        if (sid >= 7 && sid <= 12) return { status: 'RE', stdout: b64Decode(data.stdout), stderr: b64Decode(data.stderr), compilerError: '', elapsed };
+        return { status: 'OK', stdout: b64Decode(data.stdout), stderr: b64Decode(data.stderr), compilerError: '', elapsed };
+      });
+
+      return await Promise.any([wandboxPromise, judge0Promise]);
+    }
+
+    async function regradeProblemSubmissions(problemId, reasonText = 'สั่ง Regrade โจทย์') {
+      const { data: problem, error: probErr } = await supabaseClient.from('problems').select('*').eq('id', problemId).single();
+      if (probErr || !problem) {
+        showToast('Regrade ไม่สำเร็จ', 'ไม่พบข้อมูลโจทย์ในฐานข้อมูล', true);
+        return;
+      }
+
+      const { data: subs, error: subErr } = await supabaseClient
+        .from('submissions')
+        .select('*')
+        .eq('problem_id', problemId)
+        .order('created_at', { ascending: true });
+
+      if (subErr) {
+        showToast('Regrade ไม่สำเร็จ', subErr.message, true);
+        return;
+      }
+
+      if (!subs || subs.length === 0) {
+        showToast('ไม่มีรายการส่งโค้ด', `โจทย์ ${problem.problem_code || '#' + problemId} ยังไม่มีผู้ส่งโค้ดให้ Regrade`);
+        return;
+      }
+
+      // เปิด Progress Modal
+      const bar = document.getElementById('regradeProgressBar');
+      const countText = document.getElementById('regradeProgressCount');
+      const pctText = document.getElementById('regradeProgressPct');
+      const logSummary = document.getElementById('regradeLogSummary');
+      const closeBtn = document.getElementById('closeRegradeModalBtn');
+      const spinIcon = document.getElementById('regradeSpinIcon');
+
+      bar.style.width = '0%';
+      countText.textContent = `0 / ${subs.length} Submissions`;
+      pctText.textContent = '0%';
+      logSummary.textContent = `กำลังเริ่ม Regrade โจทย์ ${problem.problem_code || '#' + problemId} (${reasonText})...`;
+      closeBtn.classList.add('hidden');
+      spinIcon.className = 'fa-solid fa-rotate fa-spin';
+      openSmoothModal('regradeProgressModal');
+
+      const testCases = problem.test_cases || [];
+      const effectiveCases = testCases.length > 0 ? testCases : [{ input: '', output: '' }];
+      const timeLimitSec = parseFloat(problem.time_limit) || 1.0;
+      const maxScore = problem.max_score || 100;
+
+      // เช็กว่าผู้ใช้คนไหนเคยผ่านข้อนี้ไปแล้วบ้าง เพื่อป้องกันการบวก XP ซ้ำ
+      const alreadySolvedUserIds = new Set(
+        subs.filter(s => s.status === 'Accepted' || s.status === 'AC').map(s => s.user_id)
+      );
+
+      let completed = 0;
+      let changedCount = 0;
+
+      for (const sub of subs) {
+        const lang = sub.language || 'cpp';
+        const fullCode = buildRunnableCodeForProblem(problem, sub.source_code || '');
+
+        let finalStatus = 'Accepted';
+        let passedCount = 0;
+        let maxExecTime = 0;
+        let caseResults = [];
+
+        try {
+          const rawResponses = await Promise.all(
+            effectiveCases.map(tc => executeCppSingleCall(fullCode, lang, tc.input || '', timeLimitSec))
+          );
+
+          if (rawResponses[0] && rawResponses[0].status === 'CE') {
+            finalStatus = 'Compilation Error';
+            caseResults.push({ index: 1, verdict: 'CE', detail: rawResponses[0].compilerError, time: 0, memory: '0 MB' });
+          } else {
+            rawResponses.forEach((res, idx) => {
+              maxExecTime = Math.max(maxExecTime, res.elapsed || 0);
+              const mockMem = (1.5 + Math.random() * 1.2).toFixed(1) + ' MB';
+              if (res.status === 'TLE' || (res.elapsed && res.elapsed > timeLimitSec)) {
+                if (finalStatus === 'Accepted') finalStatus = 'Time Limit Exceeded';
+                caseResults.push({ index: idx + 1, verdict: 'TLE', time: res.elapsed, memory: mockMem });
+              } else if (res.status !== 'OK') {
+                if (finalStatus === 'Accepted') finalStatus = 'Runtime Error';
+                caseResults.push({ index: idx + 1, verdict: 'RE', time: res.elapsed, memory: mockMem, stderr: res.stderr });
+              } else if (testCases.length === 0) {
+                passedCount++;
+                caseResults.push({ index: 1, verdict: 'AC', time: res.elapsed, memory: mockMem });
+              } else {
+                const actual = normalizeOutput(res.stdout);
+                const expected = normalizeOutput(testCases[idx].output);
+                if (actual === expected) {
+                  passedCount++;
+                  caseResults.push({ index: idx + 1, verdict: 'AC', time: res.elapsed, memory: mockMem });
+                } else {
+                  if (finalStatus === 'Accepted') finalStatus = 'Wrong Answer';
+                  caseResults.push({ index: idx + 1, verdict: 'WA', time: res.elapsed, memory: mockMem });
+                }
+              }
+            });
+          }
+
+          const totalCases = Math.max(testCases.length, 1);
+          const newScore = finalStatus === 'Accepted' ? maxScore : Math.round((passedCount / totalCases) * maxScore);
+
+          if (sub.status !== finalStatus || Number(sub.score) !== newScore) {
+            changedCount++;
+          }
+
+          // อัปเดตผลลงตาราง submissions
+          await supabaseClient
+            .from('submissions')
+            .update({
+              status: finalStatus,
+              score: newScore,
+              execution_time: maxExecTime,
+              test_results: caseResults
+            })
+            .eq('id', sub.id);
+
+          // หากเพิ่งเปลี่ยนเป็น Accepted ครั้งแรก ให้บวก XP ใน profiles
+          if (finalStatus === 'Accepted' && sub.user_id && !alreadySolvedUserIds.has(sub.user_id)) {
+            alreadySolvedUserIds.add(sub.user_id);
+            const { data: prof } = await supabaseClient.from('profiles').select('xp').eq('id', sub.user_id).maybeSingle();
+            if (prof) {
+              const xpToAdd = problem.xp_reward || maxScore;
+              await supabaseClient.from('profiles').update({ xp: (prof.xp || 0) + xpToAdd }).eq('id', sub.user_id);
+            }
+          }
+        } catch (err) {
+          console.error('Regrade error on sub:', sub.id, err);
+        }
+
+        completed++;
+        const pct = Math.round((completed / subs.length) * 100);
+        bar.style.width = `${pct}%`;
+        countText.textContent = `${completed} / ${subs.length} Submissions`;
+        pctText.textContent = `${pct}%`;
+        logSummary.innerHTML = `ตรวจ Submission <b>#${String(sub.id).slice(0, 8)}</b> &rarr; <span class="${finalStatus === 'Accepted' ? 'text-emerald-400' : 'text-rose-400'} font-bold">${finalStatus}</span>`;
+      }
+
+      spinIcon.className = 'fa-solid fa-circle-check text-emerald-400';
+      document.getElementById('regradeModalTitle').textContent = 'Regrade เสร็จสมบูรณ์!';
+      document.getElementById('regradeModalDesc').textContent = 'อัปเดตคะแนนและผลตรวจรายเทสเคสทั้งหมดเรียบร้อยแล้ว';
+      logSummary.innerHTML = `ตรวจทั้งหมด <b>${subs.length}</b> รายการ &bull; เปลี่ยนแปลงผลลัพธ์ <b>${changedCount}</b> รายการ`;
+      closeBtn.classList.remove('hidden');
+
+      await fetchAllAdminProblems();
+      showToast('Regrade เสร็จสิ้น!', `ตรวจใหม่ครบ ${subs.length} รายการ (เปลี่ยนแปลง ${changedCount} รายการ)`);
+    }
+
+    function closeRegradeProgressModal() {
+      closeSmoothModal('regradeProgressModal');
+      document.getElementById('regradeModalTitle').textContent = 'กำลังตรวจโค้ดใหม่ทั้งหมด (Regrading)';
+      document.getElementById('regradeModalDesc').textContent = 'กรุณารอสักครู่ อย่าปิดหน้าต่างนี้จนกว่าจะตรวจเสร็จสมบูรณ์...';
+    }
+
+    function triggerManualRegradeFromModal() {
+      const id = document.getElementById('editProblemId').value;
+      if (!id) return;
+      closeProblemModal();
+      regradeProblemSubmissions(id, 'กดปุ่ม Regrade ด้วยตนเอง');
+    }
+
+    // ==================== PROBLEM MODE & FORM LOGIC ====================
     function setProblemExecutionMode(mode) {
       currentProblemMode = mode;
       const baseCls = 'p-3 rounded-xl border text-left transition cursor-pointer bg-black/50 border-cyan-500/20 text-gray-300 hover:border-cyan-400/50';
@@ -857,16 +1112,19 @@
         document.getElementById('formMode').value = 'create';
         document.getElementById('editProblemId').value = '';
         document.getElementById('admSource').value = 'admin';
+        document.getElementById('modalManualRegradeBtn').classList.add('hidden');
         setProblemExecutionMode('standard');
         document.getElementById('modalTitleText').innerHTML = '<i class="fa-solid fa-cloud-arrow-up text-cyan-400 mr-2"></i> สร้าง / อัปโหลดโจทย์ใหม่';
         document.getElementById('submitBtnText').innerHTML = '<i class="fa-solid fa-cloud-arrow-up mr-1.5"></i> บันทึกและเผยแพร่โจทย์เข้าสู่ระบบทันที';
         formTestCasesData = [{ input: '', output: '', is_sample: true }];
+        originalTestCasesSnapshot = JSON.stringify(formTestCasesData);
         renderTestCaseChips();
       } else {
         const p = allLoadedProblems.find(item => String(item.id) === String(problemId));
         if (!p) return;
         document.getElementById('formMode').value = 'edit';
         document.getElementById('editProblemId').value = p.id;
+        document.getElementById('modalManualRegradeBtn').classList.remove('hidden');
         document.getElementById('admCode').value = p.problem_code || '';
         document.getElementById('admTitle').value = p.title || '';
         document.getElementById('admDifficulty').value = p.difficulty || 'Medium';
@@ -889,6 +1147,11 @@
         formTestCasesData = (p.test_cases && Array.isArray(p.test_cases) && p.test_cases.length > 0)
           ? p.test_cases.map(tc => ({ input: tc.input || '', output: tc.output || '', is_sample: !!tc.is_sample }))
           : [{ input: '', output: '', is_sample: true }];
+
+        // บันทึก Snapshot ของ Test Cases เดิมเพื่อตรวจสอบว่ามีการแก้หรือไม่ตอนกด Submit
+        const cleanedOriginal = formTestCasesData.filter(tc => (tc.input && tc.input.trim() !== '') || (tc.output && tc.output.trim() !== ''));
+        originalTestCasesSnapshot = JSON.stringify(cleanedOriginal.map(tc => ({ input: tc.input || '', output: tc.output || '' })));
+
         renderTestCaseChips();
 
         if (p.statement_pdf_url) {
@@ -1051,7 +1314,12 @@
               </label>
             </td>
             <td class="px-3.5 py-3 text-right whitespace-nowrap">
-              <button type="button" onclick="openDeleteConfirmModal('${p.id}')" class="bg-rose-600/20 text-rose-400 hover:bg-rose-600 hover:text-white px-2.5 py-1.5 rounded-lg transition text-xs font-semibold cursor-pointer"><i class="fa-solid fa-trash"></i></button>
+              <div class="inline-flex items-center gap-1.5">
+                <button type="button" onclick="regradeProblemSubmissions('${p.id}', 'สั่ง Regrade จากตารางหลัก')" title="Regrade โค้ดที่ส่งในข้อนี้ใหม่ทั้งหมด" class="bg-amber-500/20 text-amber-300 hover:bg-amber-500 hover:text-black border border-amber-500/35 px-2.5 py-1.5 rounded-lg transition text-xs font-semibold cursor-pointer inline-flex items-center gap-1">
+                  <i class="fa-solid fa-rotate"></i> <span class="hidden xl:inline">Regrade</span>
+                </button>
+                <button type="button" onclick="openDeleteConfirmModal('${p.id}')" title="ลบโจทย์" class="bg-rose-600/20 text-rose-400 hover:bg-rose-600 hover:text-white px-2.5 py-1.5 rounded-lg transition text-xs font-semibold cursor-pointer"><i class="fa-solid fa-trash"></i></button>
+              </div>
             </td>
           </tr>
         `;
@@ -1076,6 +1344,8 @@
 
     document.getElementById('problemForm').addEventListener('submit', async (e) => {
       e.preventDefault();
+      syncCurrentPopupTestCase();
+
       const mode = document.getElementById('formMode').value;
       const problem_code = document.getElementById('admCode').value.trim().toUpperCase();
       const title = document.getElementById('admTitle').value.trim();
@@ -1119,9 +1389,22 @@
         else { showToast('สำเร็จ!', 'สร้างโจทย์ใหม่เรียบร้อย'); closeProblemModal(); fetchAllAdminProblems(); }
       } else {
         const id = document.getElementById('editProblemId').value;
+        const newTestCasesSnapshot = JSON.stringify(test_cases.map(tc => ({ input: tc.input || '', output: tc.output || '' })));
+        const hasTestCasesChanged = (newTestCasesSnapshot !== originalTestCasesSnapshot) || Boolean(selectedZipDataUrl);
+
         const { error } = await supabaseClient.from('problems').update(problemData).eq('id', id);
-        if (error) showToast('เกิดข้อผิดพลาด', error.message, true);
-        else { showToast('อัปเดตสำเร็จ', 'บันทึกการแก้ไขเรียบร้อย'); closeProblemModal(); fetchAllAdminProblems(); }
+        if (error) {
+          showToast('เกิดข้อผิดพลาด', error.message, true);
+        } else {
+          closeProblemModal();
+          await fetchAllAdminProblems();
+          if (hasTestCasesChanged) {
+            showToast('บันทึกสำเร็จ — กำลังเริ่ม Regrade อัตโนมัติ', 'ตรวจพบการแก้ไข Test Cases ระบบกำลังตรวจใหม่ทันที...');
+            await regradeProblemSubmissions(id, 'ตรวจพบการแก้ไข Test Cases');
+          } else {
+            showToast('อัปเดตสำเร็จ', 'บันทึกการแก้ไขเรียบร้อย');
+          }
+        }
       }
     });
 
@@ -1150,4 +1433,3 @@
   </script>
 </body>
 </html>
-

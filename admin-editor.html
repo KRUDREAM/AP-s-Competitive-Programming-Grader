@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="th" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Sandbox IDE | ST8 CP-Grader</title>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js"></script>
+  <style>
+    body { font-family: 'Kanit', sans-serif; background-color: #030712; color: #f3f4f6; overflow: hidden; }
+    .font-code { font-family: 'JetBrains Mono', monospace; }
+    @keyframes fadeInScale {
+      from { opacity: 0; transform: scale(0.97) translateY(6px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    @keyframes pulseGlow {
+      0%, 100% { box-shadow: 0 0 15px rgba(56, 189, 248, 0.2); }
+      50% { box-shadow: 0 0 30px rgba(56, 189, 248, 0.45); }
+    }
+    .animate-fade-in { animation: fadeInScale 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    .animate-glow { animation: pulseGlow 3s infinite ease-in-out; }
+    .tech-glass {
+      background: rgba(10, 15, 30, 0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(56, 189, 248, 0.16);
+      transition: all 0.2s ease;
+    }
+    .tech-glass:hover { border-color: rgba(56, 189, 248, 0.35); }
+    .tech-modal {
+      background: rgba(6, 11, 25, 0.97);
+      backdrop-filter: blur(28px);
+      border: 1px solid rgba(56, 189, 248, 0.28);
+      box-shadow: 0 20px 70px rgba(14, 165, 233, 0.25);
+    }
+    .markdown-preview { line-height: 1.75; color: #e5e7eb; font-size: 0.92rem; }
+    .markdown-preview h1 { font-size: 1.35rem; font-weight: 700; color: #38bdf8; margin-top: 1rem; margin-bottom: 0.5rem; border-bottom: 1px solid rgba(56, 189, 248, 0.2); padding-bottom: 0.25rem; }
+    .markdown-preview h2 { font-size: 1.15rem; font-weight: 700; color: #7dd3fc; margin-top: 0.85rem; margin-bottom: 0.4rem; }
+    .markdown-preview h3 { font-size: 1.02rem; font-weight: 600; color: #bae6fd; margin-top: 0.7rem; margin-bottom: 0.3rem; }
+    .markdown-preview p { margin-bottom: 0.65rem; }
+    .markdown-preview ul { list-style: disc; padding-left: 1.4rem; margin-bottom: 0.65rem; }
+    .markdown-preview ol { list-style: decimal; padding-left: 1.4rem; margin-bottom: 0.65rem; }
+    .markdown-preview code { background: rgba(56, 189, 248, 0.15); color: #67e8f9; padding: 0.12rem 0.38rem; border-radius: 0.35rem; font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; }
+    .markdown-preview pre { background: #020617; border: 1px solid rgba(56, 189, 248, 0.25); padding: 0.85rem; border-radius: 0.75rem; overflow-x: auto; margin-bottom: 0.75rem; }
+    .a4-pdf-frame { width: 100%; aspect-ratio: 1 / 1.414; min-height: 540px; }
+    .split-resizer { width: 6px; cursor: col-resize; background: rgba(56, 189, 248, 0.12); transition: background 0.15s ease; position: relative; z-index: 20; }
+    .split-resizer:hover, .split-resizer.dragging { background: rgba(56, 189, 248, 0.65); }
+    .split-resizer::after { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 2px; height: 28px; border-radius: 999px; background: rgba(186, 230, 253, 0.7); }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: rgba(3, 7, 18, 0.6); }
+    ::-webkit-scrollbar-thumb { background: rgba(56, 189, 248, 0.25); border-radius: 9999px; transition: background 0.2s; }
+  </style>
+</head>
+<body class="h-screen w-screen flex flex-col overflow-hidden selection:bg-cyan-500 selection:text-black">
+
+  <!-- TOAST -->
+  <div id="systemToast" class="fixed top-4 right-4 z-[90] transform translate-x-[130%] transition-all duration-300 tech-glass px-4 py-3 rounded-2xl border border-cyan-500/40 shadow-2xl flex items-center gap-3">
+    <i id="toastIcon" class="fa-solid fa-circle-check text-cyan-400 text-base"></i>
+    <div>
+      <h4 id="toastTitle" class="text-xs font-bold text-white">แจ้งเตือน</h4>
+      <p id="toastDesc" class="text-[11px] text-gray-300"></p>
+    </div>
+  </div>
+
+  <!-- TOP IDE NAVBAR -->
+  <header class="h-14 shrink-0 tech-glass border-b border-cyan-500/20 px-4 flex items-center justify-between gap-3 z-30 animate-glow">
+    <div class="flex items-center gap-3 min-w-0">
+      <a href="admin-playground.html" class="bg-white/5 hover:bg-cyan-500/15 text-cyan-300 border border-cyan-500/25 px-3 py-1.5 rounded-xl text-xs font-semibold transition active:scale-95 flex items-center gap-1.5 shrink-0">
+        <i class="fa-solid fa-arrow-left"></i> <span>กลับคลังโจทย์ Admin</span>
+      </a>
+      <div class="h-5 w-[1px] bg-cyan-500/20 hidden sm:block"></div>
+      <div class="flex items-center gap-2 min-w-0">
+        <span id="navProbCode" class="text-xs font-bold text-cyan-300 bg-cyan-500/15 px-2.5 py-0.5 rounded-lg border border-cyan-500/30 font-code shrink-0">LOADING</span>
+        <h1 id="navProbTitle" class="text-sm md:text-base font-bold text-white truncate">กำลังโหลดโจทย์...</h1>
+        <span id="navProbDiff" class="hidden sm:inline-block text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 shrink-0">Easy</span>
+
+        <span id="navProbScoreBadge" class="hidden sm:inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-cyan-500/10 text-cyan-200 border border-cyan-500/30 shrink-0 transition-all duration-300">
+          <i class="fa-solid fa-flask text-amber-400"></i> <span id="navScoreText">0 / 100</span>
+        </span>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-2 shrink-0">
+      <span class="inline-flex items-center gap-1.5 text-[11px] font-bold px-3 py-1 rounded-xl bg-amber-500/15 text-amber-300 border border-amber-500/35" title="ข้อมูลการรันทั้งหมดจะเก็บไว้ในฝั่ง Admin เท่านั้น ไม่บันทึกลงฐานข้อมูลนักเรียน">
+        <i class="fa-solid fa-user-shield"></i> Admin Private Sandbox (ไม่ขึ้นฝั่ง นร.)
+      </span>
+      <span id="navUserBadge" class="text-xs font-semibold text-cyan-300 bg-cyan-950/70 border border-cyan-500/30 px-3 py-1.5 rounded-xl hidden md:inline-flex items-center gap-1.5"></span>
+    </div>
+  </header>
+
+  <!-- MAIN WORKSPACE -->
+  <div id="workspaceContainer" class="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden">
+
+    <!-- LEFT PANE -->
+    <section id="leftPane" style="width: 48%;" class="w-full lg:w-[48%] h-[45vh] lg:h-full flex flex-col bg-[#070c1b] border-b lg:border-b-0 border-cyan-500/20 min-w-0 shrink-0 overflow-hidden">
+      <div class="h-12 shrink-0 px-3 bg-[#090f22] border-b border-cyan-500/20 flex items-center justify-between gap-1.5 overflow-x-auto">
+        <div class="flex items-center gap-1.5">
+          <button type="button" id="leftTabBtnStmt" onclick="switchLeftTab('stmt')" class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow transition active:scale-95 cursor-pointer flex items-center gap-1.5 shrink-0">
+            <i class="fa-solid fa-book-open"></i> โจทย์
+          </button>
+          <button type="button" id="leftTabBtnSubs" onclick="switchLeftTab('subs')" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-gray-300 hover:bg-white/5 transition active:scale-95 cursor-pointer flex items-center gap-1.5 shrink-0">
+            <i class="fa-solid fa-clock-rotate-left text-amber-400"></i> ประวัติทดสอบ Admin
+            <span id="mySubsCountBadge" class="text-[10px] px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-300">0</span>
+          </button>
+        </div>
+
+        <button type="button" onclick="toggleCollapseLeftPane()" id="collapseLeftBtn" class="hidden lg:flex items-center justify-center w-7 h-7 rounded-lg bg-white/5 hover:bg-cyan-500/20 text-gray-300 hover:text-cyan-300 transition cursor-pointer shrink-0">
+          <i class="fa-solid fa-angles-left text-xs"></i>
+        </button>
+      </div>
+
+      <!-- STATEMENT -->
+      <div id="leftPaneStmt" class="flex-1 overflow-y-auto p-5 space-y-5 animate-fade-in">
+        <div class="border-b border-cyan-500/15 pb-3.5 space-y-2">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <h2 id="stmtFullTitle" class="text-xl font-bold text-white">กำลังโหลด...</h2>
+            <span id="stmtModeChip" class="text-[11px] px-2.5 py-0.5 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">Standard I/O</span>
+          </div>
+          <div class="flex flex-wrap items-center gap-3 text-xs text-gray-400">
+            <span id="stmtAuthor"><i class="fa-solid fa-user-pen text-cyan-400 mr-1"></i> ผู้ออกโจทย์: -</span>
+            <span>&bull;</span>
+            <span>Time: <b id="stmtTime" class="text-gray-200">1.0</b>s</span>
+            <span>&bull;</span>
+            <span>Memory: <b id="stmtMem" class="text-gray-200">256</b>MB</span>
+            <span>&bull;</span>
+            <span>Test Cases: <b id="stmtTcCount" class="text-cyan-300">0</b> เคส</span>
+          </div>
+          <div id="stmtTagsRow" class="flex flex-wrap gap-1.5 pt-1"></div>
+        </div>
+
+        <div id="stmtPdfSection" class="hidden space-y-2.5">
+          <div class="flex items-center justify-between bg-rose-500/10 border border-rose-500/30 px-3.5 py-2 rounded-xl">
+            <span class="text-xs font-semibold text-rose-300"><i class="fa-solid fa-file-pdf mr-1.5"></i> เอกสารโจทย์ (A4)</span>
+            <button type="button" onclick="openProblemPdfNewTab()" class="text-xs bg-rose-500/20 hover:bg-rose-500/30 text-rose-200 px-3 py-1 rounded-lg transition active:scale-95 cursor-pointer">เปิดเต็มจอ</button>
+          </div>
+          <div class="w-full bg-white rounded-2xl overflow-hidden border border-cyan-500/30 shadow-xl">
+            <iframe id="stmtPdfFrame" class="a4-pdf-frame block border-0"></iframe>
+          </div>
+        </div>
+
+        <div id="stmtMarkdownBody" class="markdown-preview"></div>
+
+        <div id="stmtSamplesSection" class="space-y-3 pt-2 border-t border-cyan-500/15">
+          <h3 class="text-sm font-bold text-cyan-300"><i class="fa-solid fa-flask mr-1.5"></i> ตัวอย่างข้อมูล (Sample I/O)</h3>
+          <div id="stmtSamplesList" class="space-y-3"></div>
+        </div>
+      </div>
+
+      <!-- ADMIN LOCAL SUBMISSIONS -->
+      <div id="leftPaneSubs" class="hidden flex-1 overflow-y-auto p-5 space-y-4 animate-fade-in">
+        <div class="flex items-center justify-between gap-2">
+          <div>
+            <h3 class="text-base font-bold text-white">ประวัติทดสอบฝั่ง Admin</h3>
+            <p class="text-xs text-amber-300/90"><i class="fa-solid fa-lock mr-1"></i> บันทึกเฉพาะในฝั่ง Admin ไม่แสดงในหน้าของนักเรียน</p>
+          </div>
+          <button type="button" onclick="clearProblemAdminHistory()" class="text-xs bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 px-3 py-1.5 rounded-xl border border-rose-500/30 transition active:scale-95 cursor-pointer">
+            <i class="fa-solid fa-trash-can mr-1"></i> ล้างประวัติข้อนี้
+          </button>
+        </div>
+        <div id="mySubmissionsList" class="space-y-3">
+          <p class="text-xs text-gray-400 text-center py-8">กำลังโหลดประวัติ...</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- RESIZER -->
+    <div id="splitResizer" class="hidden lg:block split-resizer shrink-0"></div>
+
+    <!-- RIGHT PANE (EDITOR & CONSOLE) -->
+    <section id="rightPane" class="flex-1 h-[55vh] lg:h-full flex flex-col bg-[#050914] min-w-0 overflow-hidden">
+      <div class="h-12 shrink-0 px-3 bg-[#080d1e] border-b border-cyan-500/15 flex items-center justify-between gap-2 overflow-x-auto">
+        <div class="flex items-center gap-2 min-w-0">
+          <select id="langSelect" onchange="handleLanguageChange()" class="bg-black/70 border border-cyan-500/30 focus:border-cyan-400 focus:outline-none rounded-xl px-2.5 py-1 text-xs font-semibold text-white cursor-pointer shrink-0">
+            <option value="cpp">C++ 17</option>
+            <option value="c">C</option>
+          </select>
+          <label class="bg-white/5 hover:bg-cyan-500/15 text-gray-200 hover:text-cyan-300 border border-white/15 px-2.5 py-1 rounded-xl text-xs font-medium transition active:scale-95 cursor-pointer flex items-center gap-1 shrink-0">
+            <i class="fa-solid fa-upload text-cyan-400"></i> <span class="hidden sm:inline">อัปโหลด</span>
+            <input type="file" id="codeFileInput" accept=".cpp,.cc,.cxx,.c,.txt" onchange="handleCodeFileUpload(event)" class="hidden">
+          </label>
+          <button type="button" onclick="resetEditorTemplate()" class="bg-white/5 hover:bg-white/10 text-gray-300 px-2 py-1 rounded-xl text-xs transition active:scale-95 cursor-pointer shrink-0" title="รีเซ็ตโค้ด">
+            <i class="fa-solid fa-rotate-left"></i>
+          </button>
+        </div>
+
+        <span class="text-[11px] text-gray-400 hidden sm:inline">
+          <i class="fa-solid fa-shield-halved text-cyan-400 mr-1"></i> โหมดทดสอบ Test Cases (Admin Local Save)
+        </span>
+      </div>
+
+      <!-- MONACO EDITOR -->
+      <div id="monacoContainer" class="flex-1 min-h-0 w-full relative"></div>
+
+      <!-- BOTTOM CONSOLE -->
+      <div class="h-52 shrink-0 bg-[#060a17] border-t border-cyan-500/25 flex flex-col">
+        <div class="h-9 px-3 bg-black/60 border-b border-cyan-500/15 flex items-center justify-between gap-2 overflow-x-auto">
+          <div class="flex items-center gap-1.5 shrink-0">
+            <button type="button" id="consoleTabTest" onclick="switchConsoleTab('test')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 cursor-pointer transition">
+              <i class="fa-solid fa-terminal mr-1"></i> ทดสอบรัน
+            </button>
+            <button type="button" id="consoleTabVerdict" onclick="switchConsoleTab('verdict')" class="px-2.5 py-1 rounded-lg text-xs font-semibold text-gray-400 hover:text-white cursor-pointer transition">
+              <i class="fa-solid fa-gavel mr-1"></i> ผลตรวจทดสอบ (Admin Verdict)
+            </button>
+          </div>
+
+          <div class="flex items-center gap-1.5 shrink-0">
+            <button type="button" onclick="loadSampleIntoCustomInput()" class="text-[11px] text-amber-300 hover:text-amber-200 cursor-pointer mr-1 hidden sm:inline-block transition">
+              <i class="fa-solid fa-flask"></i> Sample
+            </button>
+            <button type="button" id="runSampleBtn" onclick="runCustomTest()" class="bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 px-2.5 py-1 rounded-lg text-xs font-bold transition active:scale-95 cursor-pointer flex items-center gap-1">
+              <i class="fa-solid fa-play"></i> รัน
+            </button>
+            <button type="button" id="submitCodeBtn" onclick="submitAdminTestSolution()" class="bg-gradient-to-r from-amber-500 to-orange-500 hover:opacity-95 text-black px-3 py-1 rounded-lg text-xs font-bold shadow-lg shadow-amber-500/20 transition active:scale-95 cursor-pointer flex items-center gap-1">
+              <i class="fa-solid fa-flask-vial"></i> ทดสอบส่งตรวจ (เฉพาะ Admin)
+            </button>
+          </div>
+        </div>
+
+        <div id="consoleAreaTest" class="flex-1 grid grid-cols-2 divide-x divide-cyan-500/15 min-h-0 animate-fade-in">
+          <div class="flex flex-col p-2 min-h-0">
+            <span class="text-[10px] font-bold text-gray-400 uppercase mb-1">Standard Input (stdin)</span>
+            <textarea id="customInputBox" placeholder="ใส่ Input..." class="flex-1 w-full bg-black/60 border border-white/10 focus:border-cyan-400 focus:outline-none rounded-xl p-2 text-xs text-white font-code resize-none"></textarea>
+          </div>
+          <div class="flex flex-col p-2 min-h-0">
+            <div class="flex justify-between items-center mb-1">
+              <span class="text-[10px] font-bold text-emerald-400 uppercase">Program Output (stdout)</span>
+              <span id="runExecStats" class="text-[10px] text-gray-400 font-code"></span>
+            </div>
+            <pre id="customOutputBox" class="flex-1 w-full bg-black/70 border border-white/10 rounded-xl p-2 text-xs text-gray-200 font-code overflow-auto whitespace-pre-wrap">กดปุ่ม "รัน" เพื่อทดสอบ...</pre>
+          </div>
+        </div>
+
+        <div id="consoleAreaVerdict" class="hidden flex-1 p-3 overflow-y-auto animate-fade-in">
+          <div id="verdictResultContainer" class="text-xs text-gray-400 flex items-center justify-center h-full">
+            ยังไม่มีผลการทดสอบ — กดปุ่ม "ทดสอบส่งตรวจ (เฉพาะ Admin)" เพื่อรันทุก Test Cases
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- SUBMISSION DETAIL POP-UP MODAL -->
+  <div id="submissionDetailModal" onclick="if(event.target === this) closeSubmissionModal()" class="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/85 backdrop-blur-md opacity-0 pointer-events-none transition-all duration-200">
+    <div class="tech-modal rounded-3xl p-6 max-w-2xl w-full space-y-4 border border-cyan-500/35 max-h-[90vh] flex flex-col animate-fade-in">
+      <div class="flex justify-between items-center border-b border-cyan-500/20 pb-3 shrink-0">
+        <div class="flex items-center gap-2">
+          <span id="modalSubTitle" class="text-sm font-bold text-cyan-300 font-code">Admin Test Detail</span>
+          <span id="modalSubStatus" class="text-[10px] px-2.5 py-0.5 rounded-full font-bold"></span>
+        </div>
+        <button type="button" onclick="closeSubmissionModal()" class="text-gray-400 hover:text-white cursor-pointer"><i class="fa-solid fa-xmark text-base"></i></button>
+      </div>
+
+      <div class="flex-1 overflow-y-auto space-y-4 min-h-0 pr-1">
+        <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-gray-300 bg-black/40 p-3 rounded-2xl border border-white/10">
+          <span>ภาษา: <b id="modalSubLang" class="text-cyan-300 uppercase">CPP</b></span>
+          <span>เวลาประมวลผลสูงสุด: <b id="modalSubTime" class="text-emerald-400 font-code">0s</b></span>
+          <span>คะแนนทดสอบ: <b id="modalSubScore" class="text-amber-300 font-code">0 / 100</b></span>
+        </div>
+        <div class="space-y-1.5">
+          <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">ผลตรวจราย Test Case</div>
+          <div id="modalSubTestCasesList" class="space-y-1.5"></div>
+        </div>
+        <div class="space-y-1.5 flex-1 flex flex-col min-h-0">
+          <div class="text-[10px] font-bold text-gray-400 uppercase">ซอร์สโค้ดที่ทดสอบ</div>
+          <pre id="modalSubCodeBox" class="bg-black/85 border border-white/10 rounded-2xl p-3.5 text-xs text-cyan-100 font-code overflow-auto max-h-56 whitespace-pre-wrap"></pre>
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-2 pt-2 border-t border-cyan-500/20 shrink-0">
+        <button type="button" id="modalCopyCodeBtn" class="bg-white/5 hover:bg-white/10 text-gray-200 px-4 py-2 rounded-xl text-xs font-semibold cursor-pointer transition active:scale-95">คัดลอกโค้ด</button>
+        <button type="button" id="modalLoadEditorBtn" class="bg-gradient-to-r from-blue-600 to-cyan-500 text-white px-4 py-2 rounded-xl text-xs font-bold cursor-pointer transition active:scale-95 shadow">โหลดลง Editor</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://hqnmfkafwwnjiqpdhzoh.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhxbm1ma2Fmd3duamlxcGRoem9oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQyMTc0NzEsImV4cCI6MjEwOTc5MzQ3MX0.m6dHtNnXuQ108DvafyKWeFvAg_oySuQH3LRg0Jzaops';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    if (typeof marked !== 'undefined') marked.setOptions({ breaks: true, gfm: true });
+
+    // คีย์สำหรับบันทึกเฉพาะฝั่ง Admin (ไม่เขียนลงฐานข้อมูลนักเรียน)
+    const ADMIN_SANDBOX_STORAGE_KEY = 'st8_admin_private_submissions_v1';
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const problemId = urlParams.get('id');
+
+    let editorInstance = null;
+    let currentUser = null;
+    let currentUserProfile = null;
+    let currentProblem = null;
+    let adminSubmissionsCache = [];
+
+    let leftPaneWidthPct = parseFloat(localStorage.getItem('st8_split_left_pct')) || 48;
+    let isLeftCollapsed = false;
+
+    const DEFAULT_TEMPLATES = {
+      cpp: `#include <bits/stdc++.h>\nusing namespace std;\n\nint main() {\n    ios::sync_with_stdio(false);\n    cin.tie(nullptr);\n    \n    // เขียนโค้ดทดสอบของ Admin ที่นี่\n    \n    return 0;\n}`,
+      c: `#include <stdio.h>\n\nint main() {\n    // เขียนโค้ดทดสอบของ Admin ที่นี่\n    \n    return 0;\n}`
+    };
+
+    function showToast(title, desc, isError = false) {
+      const toast = document.getElementById('systemToast');
+      document.getElementById('toastTitle').textContent = title;
+      document.getElementById('toastDesc').textContent = desc;
+      document.getElementById('toastIcon').className = isError
+        ? 'fa-solid fa-circle-exclamation text-rose-400 text-base animate-bounce'
+        : 'fa-solid fa-circle-check text-cyan-400 text-base';
+      toast.classList.remove('translate-x-[130%]');
+      setTimeout(() => toast.classList.add('translate-x-[130%]'), 3200);
+    }
+
+    function getAdminSandboxStore() {
+      try {
+        return JSON.parse(localStorage.getItem(ADMIN_SANDBOX_STORAGE_KEY)) || {};
+      } catch (_) {
+        return {};
+      }
+    }
+
+    function saveAdminSandboxRecord(probId, newSubObj) {
+      const store = getAdminSandboxStore();
+      const key = String(probId);
+      if (!Array.isArray(store[key])) store[key] = [];
+      store[key].push(newSubObj);
+      localStorage.setItem(ADMIN_SANDBOX_STORAGE_KEY, JSON.stringify(store));
+    }
+
+    function clearProblemAdminHistory() {
+      if (!problemId) return;
+      if (!confirm('ต้องการล้างประวัติการทดสอบของ Admin สำหรับโจทย์ข้อนี้หรือไม่?')) return;
+      const store = getAdminSandboxStore();
+      delete store[String(problemId)];
+      localStorage.setItem(ADMIN_SANDBOX_STORAGE_KEY, JSON.stringify(store));
+      loadAdminLocalSubmissions();
+      showToast('ล้างประวัติแล้ว', 'ลบประวัติการทดสอบข้อนี้ในฝั่ง Admin เรียบร้อย');
+    }
+
+    function toggleCollapseLeftPane() {
+      if (window.innerWidth < 1024) return;
+      const leftEl = document.getElementById('leftPane');
+      const btn = document.getElementById('collapseLeftBtn');
+      isLeftCollapsed = !isLeftCollapsed;
+      if (isLeftCollapsed) {
+        leftEl.style.width = '24%';
+        btn.innerHTML = '<i class="fa-solid fa-angles-right text-xs"></i>';
+      } else {
+        leftEl.style.width = leftPaneWidthPct + '%';
+        btn.innerHTML = '<i class="fa-solid fa-angles-left text-xs"></i>';
+      }
+      if (editorInstance) editorInstance.layout();
+    }
+
+    function initSplitResizer() {
+      const resizer = document.getElementById('splitResizer');
+      const container = document.getElementById('workspaceContainer');
+      const leftEl = document.getElementById('leftPane');
+      if (!resizer || !container || !leftEl) return;
+      if (window.innerWidth >= 1024) leftEl.style.width = leftPaneWidthPct + '%';
+
+      let isDragging = false;
+      resizer.addEventListener('mousedown', () => {
+        if (window.innerWidth < 1024) return;
+        isDragging = true;
+        resizer.classList.add('dragging');
+        document.body.style.cursor = 'col-resize';
+        document.body.style.userSelect = 'none';
+      });
+
+      window.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        const rect = container.getBoundingClientRect();
+        const newPct = ((e.clientX - rect.left) / rect.width) * 100;
+        if (newPct >= 20 && newPct <= 75) {
+          leftPaneWidthPct = newPct;
+          leftEl.style.width = newPct + '%';
+          if (editorInstance) editorInstance.layout();
+        }
+      });
+
+      window.addEventListener('mouseup', () => {
+        if (!isDragging) return;
+        isDragging = false;
+        resizer.classList.remove('dragging');
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+        localStorage.setItem('st8_split_left_pct', leftPaneWidthPct.toFixed(1));
+      });
+    }
+
+    function initMonacoEditor() {
+      return new Promise((resolve) => {
+        require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs' } });
+        require(['vs/editor/editor.main'], function () {
+          editorInstance = monaco.editor.create(document.getElementById('monacoContainer'), {
+            value: DEFAULT_TEMPLATES.cpp,
+            language: 'cpp',
+            theme: 'vs-dark',
+            fontSize: 14,
+            fontFamily: "'JetBrains Mono', monospace",
+            minimap: { enabled: false },
+            automaticLayout: true,
+            scrollBeyondLastLine: false,
+            padding: { top: 14, bottom: 14 },
+            roundedSelection: true
+          });
+          resolve();
+        });
+      });
+    }
+
+    function getStarterCodeForLang(lang) {
+      if (currentProblem && currentProblem.is_function_mode && currentProblem.starter_code) {
+        return currentProblem.starter_code;
+      }
+      return DEFAULT_TEMPLATES[lang] || DEFAULT_TEMPLATES.cpp;
+    }
+
+    function handleLanguageChange() {
+      const lang = document.getElementById('langSelect').value;
+      if (!editorInstance) return;
+      monaco.editor.setModelLanguage(editorInstance.getModel(), lang === 'c' ? 'c' : 'cpp');
+      const savedDraft = localStorage.getItem(`st8_admin_draft_${problemId}_${lang}`);
+      editorInstance.setValue(savedDraft || getStarterCodeForLang(lang));
+    }
+
+    function resetEditorTemplate() {
+      const lang = document.getElementById('langSelect').value;
+      if (editorInstance) {
+        editorInstance.setValue(getStarterCodeForLang(lang));
+        showToast('รีเซ็ตโค้ดแล้ว', 'โหลดโค้ดเริ่มต้นเรียบร้อย');
+      }
+    }
+
+    function handleCodeFileUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const ext = file.name.split('.').pop().toLowerCase();
+      if (ext === 'c') document.getElementById('langSelect').value = 'c';
+      else if (['cpp', 'cc', 'cxx'].includes(ext)) document.getElementById('langSelect').value = 'cpp';
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const lang = document.getElementById('langSelect').value;
+        monaco.editor.setModelLanguage(editorInstance.getModel(), lang === 'c' ? 'c' : 'cpp');
+        editorInstance.setValue(e.target.result);
+        showToast('อัปโหลดไฟล์สำเร็จ', `นำเข้าโค้ดจาก ${file.name} แล้ว`);
+      };
+      reader.readAsText(file);
+      event.target.value = '';
+    }
+
+    function switchConsoleTab(tab) {
+      const isTest = tab === 'test';
+      document.getElementById('consoleAreaTest').classList.toggle('hidden', !isTest);
+      document.getElementById('consoleAreaVerdict').classList.toggle('hidden', isTest);
+      document.getElementById('consoleTabTest').className = isTest
+        ? 'px-2.5 py-1 rounded-lg text-xs font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 cursor-pointer transition'
+        : 'px-2.5 py-1 rounded-lg text-xs font-semibold text-gray-400 hover:text-white cursor-pointer transition';
+      document.getElementById('consoleTabVerdict').className = !isTest
+        ? 'px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/35 cursor-pointer transition'
+        : 'px-2.5 py-1 rounded-lg text-xs font-semibold text-gray-400 hover:text-white cursor-pointer transition';
+    }
+
+    function switchLeftTab(tab) {
+      const activeCls = 'px-3.5 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow transition active:scale-95 cursor-pointer flex items-center gap-1.5 shrink-0';
+      const inactiveCls = 'px-3.5 py-1.5 rounded-xl text-xs font-semibold text-gray-300 hover:bg-white/5 transition active:scale-95 cursor-pointer flex items-center gap-1.5 shrink-0';
+
+      document.getElementById('leftTabBtnStmt').className = tab === 'stmt' ? activeCls : inactiveCls;
+      document.getElementById('leftTabBtnSubs').className = tab === 'subs' ? activeCls : inactiveCls;
+
+      document.getElementById('leftPaneStmt').classList.toggle('hidden', tab !== 'stmt');
+      document.getElementById('leftPaneSubs').classList.toggle('hidden', tab !== 'subs');
+    }
+
+    function updateMaxScoreBadge(submissionsList) {
+      const maxScoreBadge = document.getElementById('navProbScoreBadge');
+      const scoreTextEl = document.getElementById('navScoreText');
+      if (!currentProblem || !maxScoreBadge || !scoreTextEl) return;
+
+      const maxPossibleScore = currentProblem.max_score || 100;
+      let highestScore = 0;
+
+      if (submissionsList && submissionsList.length > 0) {
+        highestScore = Math.max(...submissionsList.map(s => Number(s.score) || 0));
+      }
+
+      scoreTextEl.textContent = `${highestScore} / ${maxPossibleScore}`;
+
+      if (highestScore >= maxPossibleScore) {
+        maxScoreBadge.className = 'hidden sm:inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shrink-0 transition-all duration-300';
+      } else if (highestScore > 0) {
+        maxScoreBadge.className = 'hidden sm:inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 shrink-0 transition-all duration-300';
+      } else {
+        maxScoreBadge.className = 'hidden sm:inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-cyan-500/10 text-cyan-200 border border-cyan-500/30 shrink-0 transition-all duration-300';
+      }
+    }
+
+    function loadAdminLocalSubmissions() {
+      if (!problemId) return;
+      const store = getAdminSandboxStore();
+      const rawList = Array.isArray(store[String(problemId)]) ? store[String(problemId)] : [];
+
+      adminSubmissionsCache = rawList.slice().reverse();
+      document.getElementById('mySubsCountBadge').textContent = rawList.length;
+
+      updateMaxScoreBadge(rawList);
+
+      const listEl = document.getElementById('mySubmissionsList');
+      if (rawList.length === 0) {
+        listEl.innerHTML = `<div class="text-center py-8 text-xs text-gray-400 border border-dashed border-cyan-500/20 rounded-2xl">ยังไม่มีประวัติการทดสอบในฝั่ง Admin</div>`;
+        return;
+      }
+
+      const maxScore = currentProblem?.max_score || 100;
+
+      listEl.innerHTML = adminSubmissionsCache.map((s) => {
+        const submissionNumber = rawList.indexOf(s) + 1;
+        const isAc = s.status === 'Accepted' || s.status === 'AC';
+        const statusCls = isAc ? 'text-emerald-300 bg-emerald-500/15 border-emerald-500/35' : 'text-rose-300 bg-rose-500/15 border-rose-500/35';
+        const timeStr = s.created_at ? new Date(s.created_at).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'medium' }) : '-';
+
+        return `
+          <div onclick="openSubmissionModal('${s.id}')" class="tech-glass p-3.5 rounded-2xl border border-cyan-500/20 hover:border-cyan-400/50 cursor-pointer transition hover:scale-[1.01] active:scale-[0.99] flex items-center justify-between gap-3 group">
+            <div class="flex items-center gap-3 min-w-0">
+              <span class="text-[10px] font-bold px-2.5 py-1 rounded-full border ${statusCls} shrink-0">${s.status}</span>
+              <div class="min-w-0">
+                <div class="text-xs font-code text-cyan-300 font-bold group-hover:underline">Admin Test #${submissionNumber}</div>
+                <div class="text-[10px] text-gray-400">${timeStr}</div>
+              </div>
+            </div>
+            <div class="text-right shrink-0">
+              <div class="text-xs font-bold text-gray-100">${s.score ?? 0} / ${maxScore} <span class="text-[10px] text-gray-400 font-normal">คะแนน</span></div>
+              <div class="text-[10px] text-cyan-400 font-code">คลิกดูโค้ด &rarr;</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function openSubmissionModal(subId) {
+      const sub = adminSubmissionsCache.find(s => String(s.id) === String(subId));
+      if (!sub) return;
+
+      const modal = document.getElementById('submissionDetailModal');
+      const maxScore = currentProblem?.max_score || 100;
+
+      document.getElementById('modalSubTitle').textContent = `Admin Test Detail (${sub.id})`;
+      const statusBadge = document.getElementById('modalSubStatus');
+      const isAc = sub.status === 'Accepted' || sub.status === 'AC';
+      statusBadge.textContent = sub.status;
+      statusBadge.className = isAc
+        ? 'text-[10px] px-2.5 py-0.5 rounded-full font-bold text-emerald-300 bg-emerald-500/20 border border-emerald-500/40'
+        : 'text-[10px] px-2.5 py-0.5 rounded-full font-bold text-rose-300 bg-rose-500/20 border border-rose-500/40';
+
+      document.getElementById('modalSubLang').textContent = (sub.language || 'cpp').toUpperCase();
+      document.getElementById('modalSubTime').textContent = `${sub.execution_time || 0}s`;
+      document.getElementById('modalSubScore').textContent = `${sub.score ?? 0} / ${maxScore}`;
+      document.getElementById('modalSubCodeBox').textContent = sub.source_code || '';
+
+      const testResults = sub.test_results || [];
+      const testListEl = document.getElementById('modalSubTestCasesList');
+      testListEl.innerHTML = testResults.map(tc => {
+        let badgeColor = 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40';
+        let vText = 'Passed (AC)';
+        if (tc.verdict === 'WA') { badgeColor = 'bg-rose-500/20 text-rose-300 border-rose-500/40'; vText = 'Wrong Answer (WA)'; }
+        else if (tc.verdict === 'TLE') { badgeColor = 'bg-amber-500/20 text-amber-300 border-amber-500/40'; vText = 'Time Limit Exceeded (TLE)'; }
+        else if (tc.verdict === 'RE') { badgeColor = 'bg-orange-500/20 text-orange-300 border-orange-500/40'; vText = 'Runtime Error (RE)'; }
+        else if (tc.verdict === 'CE') { badgeColor = 'bg-rose-500/20 text-rose-300 border-rose-500/40'; vText = 'Compilation Error (CE)'; }
+
+        return `
+          <div class="bg-black/70 border border-white/10 rounded-xl p-2.5 flex items-center justify-between gap-2 text-xs transition hover:border-cyan-500/30">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="font-bold text-cyan-300 shrink-0">Test Case #${tc.index}</span>
+              <span class="px-2.5 py-0.5 rounded border text-[10px] font-bold ${badgeColor} truncate">${vText}</span>
+            </div>
+            <div class="text-[11px] text-gray-400 font-code shrink-0 flex items-center gap-2">
+              <span>Time: ${tc.time || 0}s</span>
+              <span>&bull;</span>
+              <span>Mem: ${tc.memory || '1.8 MB'}</span>
+            </div>
+          </div>
+        `;
+      }).join('') || '<p class="text-xs text-gray-400 italic">ไม่มีรายละเอียดรายเคส</p>';
+
+      document.getElementById('modalCopyCodeBtn').onclick = () => {
+        if (sub.source_code) {
+          navigator.clipboard.writeText(sub.source_code);
+          showToast('คัดลอกแล้ว', 'คัดลอกซอร์สโค้ดเรียบร้อย');
+        }
+      };
+
+      document.getElementById('modalLoadEditorBtn').onclick = () => {
+        if (sub.source_code && editorInstance) {
+          const lang = sub.language || 'cpp';
+          document.getElementById('langSelect').value = lang;
+          monaco.editor.setModelLanguage(editorInstance.getModel(), lang === 'c' ? 'c' : 'cpp');
+          editorInstance.setValue(sub.source_code);
+          closeSubmissionModal();
+          showToast('โหลดสำเร็จ', 'นำโค้ดใส่ Editor แล้ว');
+        }
+      };
+
+      modal.classList.remove('opacity-0', 'pointer-events-none');
+    }
+
+    function closeSubmissionModal() {
+      document.getElementById('submissionDetailModal').classList.add('opacity-0', 'pointer-events-none');
+    }
+
+    function openProblemPdfNewTab() {
+      if (!currentProblem || !currentProblem.statement_pdf_url) return;
+      const win = window.open();
+      if (win) win.document.write(`<iframe src="${currentProblem.statement_pdf_url}" frameborder="0" style="width:100%;height:100%;"></iframe>`);
+    }
+
+    function copySampleInput(sampleIndex) {
+      const samples = (currentProblem?.test_cases || []).filter(tc => tc.is_sample);
+      if (samples[sampleIndex]) {
+        document.getElementById('customInputBox').value = samples[sampleIndex].input || '';
+        switchConsoleTab('test');
+        showToast('คัดลอกแล้ว', `นำ Sample Input #${sampleIndex + 1} ใส่ช่องทดสอบแล้ว`);
+      }
+    }
+
+    function loadSampleIntoCustomInput() { copySampleInput(0); }
+
+    function buildFullRunnableCode(userCode) {
+      if (!currentProblem || !currentProblem.is_function_mode || !currentProblem.grader_main_code) {
+        return userCode;
+      }
+      return `${userCode}\n\n// --- GRADER HARNESS ---\n${currentProblem.grader_main_code}`;
+    }
+
+    function b64Encode(str) { return btoa(unescape(encodeURIComponent(str || ''))); }
+    function b64Decode(str) {
+      if (!str) return '';
+      try { return decodeURIComponent(escape(atob(str))); } catch { return str; }
+    }
+
+    async function executeCppSingleCall(code, lang, stdin) {
+      const startTime = performance.now();
+      const wandboxPromise = fetch('https://wandbox.org/api/compile.json', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          compiler: lang === 'c' ? 'gcc-head-c' : 'gcc-head',
+          code,
+          stdin: stdin || '',
+          options: lang === 'cpp' ? 'gnu++17' : 'gnu11',
+          'compiler-option-raw': '-O2'
+        })
+      }).then(async r => {
+        if (!r.ok) throw new Error('Wandbox failed');
+        const wb = await r.json();
+        const elapsed = parseFloat(((performance.now() - startTime) / 1000).toFixed(2));
+        if (wb.compiler_error) return { status: 'CE', stdout: '', stderr: '', compilerError: wb.compiler_error, elapsed };
+        if (wb.status !== '0') return { status: 'RE', stdout: wb.program_output || '', stderr: wb.program_error || '', compilerError: '', elapsed };
+        return { status: 'OK', stdout: wb.program_output || '', stderr: wb.program_error || '', compilerError: '', elapsed };
+      });
+
+      const judge0Promise = fetch('https://ce.judge0.com/submissions/?base64_encoded=true&wait=true', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          source_code: b64Encode(code),
+          language_id: lang === 'c' ? 50 : 54,
+          stdin: b64Encode(stdin || ''),
+          cpu_time_limit: Math.min(5, Math.max(1, parseFloat(currentProblem?.time_limit) || 1.0))
+        })
+      }).then(async r => {
+        if (!r.ok) throw new Error('Judge0 failed');
+        const data = await r.json();
+        const elapsed = parseFloat(data.time) || parseFloat(((performance.now() - startTime) / 1000).toFixed(2));
+        const sid = data.status?.id;
+        if (sid === 6) return { status: 'CE', stdout: '', stderr: '', compilerError: b64Decode(data.compile_output), elapsed };
+        if (sid === 5) return { status: 'TLE', stdout: b64Decode(data.stdout), stderr: 'Time Limit Exceeded', compilerError: '', elapsed };
+        if (sid >= 7 && sid <= 12) return { status: 'RE', stdout: b64Decode(data.stdout), stderr: b64Decode(data.stderr), compilerError: '', elapsed };
+        return { status: 'OK', stdout: b64Decode(data.stdout), stderr: b64Decode(data.stderr), compilerError: '', elapsed };
+      });
+
+      return await Promise.any([wandboxPromise, judge0Promise]);
+    }
+
+    async function runBatchTestCases(fullCode, lang, testCases) {
+      const promises = testCases.map(tc => executeCppSingleCall(fullCode, lang, tc.input || ''));
+      return await Promise.all(promises);
+    }
+
+    async function runCustomTest() {
+      const btn = document.getElementById('runSampleBtn');
+      const outBox = document.getElementById('customOutputBox');
+      const statsEl = document.getElementById('runExecStats');
+      const lang = document.getElementById('langSelect').value;
+      const stdin = document.getElementById('customInputBox').value;
+      const fullCode = buildFullRunnableCode(editorInstance.getValue());
+
+      switchConsoleTab('test');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-bolt fa-spin"></i> รัน...';
+      outBox.textContent = 'กำลังคอมไพล์และรัน...';
+      statsEl.textContent = '';
+
+      try {
+        const result = await executeCppSingleCall(fullCode, lang, stdin);
+        statsEl.textContent = `Time: ${result.elapsed}s`;
+
+        if (result.status === 'CE') {
+          outBox.textContent = `[Compilation Error]\n${result.compilerError}`;
+        } else if (result.status === 'TLE') {
+          outBox.textContent = `[Time Limit Exceeded]`;
+        } else if (result.status === 'RE') {
+          outBox.textContent = `[Runtime Error]\n${result.stderr}\n${result.stdout}`;
+        } else {
+          outBox.textContent = result.stdout || '(ไม่มี Output)';
+        }
+      } catch (err) {
+        outBox.textContent = `Error: ${err.message}`;
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-play"></i> รัน';
+      }
+    }
+
+    function normalizeOutput(str) {
+      return (str || '').replace(/\r\n/g, '\n').split('\n').map(line => line.trimEnd()).join('\n').trim();
+    }
+
+    // รันตรวจทุก Test Case และบันทึกเฉพาะในฝั่ง Admin (ไม่เขียนลง Supabase submissions)
+    async function submitAdminTestSolution() {
+      if (!currentProblem || !currentUser) return;
+      const btn = document.getElementById('submitCodeBtn');
+      const verdictBox = document.getElementById('verdictResultContainer');
+      const lang = document.getElementById('langSelect').value;
+      const userCode = editorInstance.getValue();
+      const fullCode = buildFullRunnableCode(userCode);
+      const testCases = currentProblem.test_cases || [];
+      const timeLimitSec = parseFloat(currentProblem.time_limit) || 1.0;
+
+      switchConsoleTab('verdict');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-bolt fa-spin"></i> ตรวจ...';
+      verdictBox.innerHTML = `
+        <div class="text-center space-y-2 py-6 animate-fade-in">
+          <i class="fa-solid fa-flask-vial text-3xl text-amber-400 animate-bounce"></i>
+          <p class="text-xs font-bold text-amber-300">กำลังรันทดสอบ ${testCases.length} Test Cases (โหมดส่วนตัว Admin)...</p>
+        </div>
+      `;
+
+      try {
+        let finalStatus = 'Accepted';
+        let passedCount = 0;
+        let maxExecTime = 0;
+        let caseResults = [];
+
+        const effectiveCases = testCases.length > 0 ? testCases : [{ input: '', output: '' }];
+        const rawResponses = await runBatchTestCases(fullCode, lang, effectiveCases);
+
+        if (rawResponses[0] && rawResponses[0].status === 'CE') {
+          finalStatus = 'Compilation Error';
+          caseResults.push({ index: 1, verdict: 'CE', detail: rawResponses[0].compilerError, time: 0, memory: '0 MB' });
+        } else {
+          rawResponses.forEach((res, idx) => {
+            maxExecTime = Math.max(maxExecTime, res.elapsed || 0);
+            const mockMem = (1.5 + Math.random() * 1.2).toFixed(1) + ' MB';
+            if (res.status === 'TLE' || (res.elapsed && res.elapsed > timeLimitSec)) {
+              if (finalStatus === 'Accepted') finalStatus = 'Time Limit Exceeded';
+              caseResults.push({ index: idx + 1, verdict: 'TLE', time: res.elapsed, memory: mockMem });
+            } else if (res.status !== 'OK') {
+              if (finalStatus === 'Accepted') finalStatus = 'Runtime Error';
+              caseResults.push({ index: idx + 1, verdict: 'RE', time: res.elapsed, memory: mockMem, stderr: res.stderr });
+            } else if (testCases.length === 0) {
+              passedCount++;
+              caseResults.push({ index: 1, verdict: 'AC', time: res.elapsed, memory: mockMem });
+            } else {
+              const actual = normalizeOutput(res.stdout);
+              const expected = normalizeOutput(testCases[idx].output);
+              if (actual === expected) {
+                passedCount++;
+                caseResults.push({ index: idx + 1, verdict: 'AC', time: res.elapsed, memory: mockMem });
+              } else {
+                if (finalStatus === 'Accepted') finalStatus = 'Wrong Answer';
+                caseResults.push({ index: idx + 1, verdict: 'WA', time: res.elapsed, memory: mockMem });
+              }
+            }
+          });
+        }
+
+        const totalCases = Math.max(testCases.length, 1);
+        const maxScore = currentProblem.max_score || 100;
+        const score = finalStatus === 'Accepted' ? maxScore : Math.round((passedCount / totalCases) * maxScore);
+
+        // บันทึกลง Local Storage ของ Admin เท่านั้น (ไม่บันทึกลง Supabase submissions ของนักเรียน)
+        saveAdminSandboxRecord(problemId, {
+          id: 'ADM-' + Date.now().toString(36).toUpperCase(),
+          problem_id: problemId,
+          source_code: userCode,
+          language: lang,
+          status: finalStatus,
+          score: score,
+          execution_time: maxExecTime,
+          test_results: caseResults,
+          created_at: new Date().toISOString()
+        });
+
+        loadAdminLocalSubmissions();
+
+        const isAc = finalStatus === 'Accepted';
+        const badgeColor = isAc ? 'text-emerald-300 bg-emerald-500/15 border-emerald-500/40' : 'text-rose-300 bg-rose-500/15 border-rose-500/40';
+
+        const testCardsHtml = caseResults.map((tc, idx) => {
+          let tBadge = 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40';
+          let vText = 'Passed (AC)';
+          if (tc.verdict === 'WA') { tBadge = 'bg-rose-500/20 text-rose-300 border-rose-500/40'; vText = 'Wrong Answer (WA)'; }
+          else if (tc.verdict === 'TLE') { tBadge = 'bg-amber-500/20 text-amber-300 border-amber-500/40'; vText = 'Time Limit Exceeded (TLE)'; }
+          else if (tc.verdict === 'RE') { tBadge = 'bg-orange-500/20 text-orange-300 border-orange-500/40'; vText = 'Runtime Error (RE)'; }
+          else if (tc.verdict === 'CE') { tBadge = 'bg-rose-500/20 text-rose-300 border-rose-500/40'; vText = 'Compilation Error (CE)'; }
+
+          return `
+            <div class="bg-black/70 border border-white/10 rounded-xl p-2.5 flex items-center justify-between gap-2 text-xs transition hover:border-cyan-500/40 animate-fade-in" style="animation-delay: ${idx * 40}ms;">
+              <div class="flex items-center gap-2 min-w-0">
+                <span class="font-bold text-cyan-300 shrink-0">Test Case #${tc.index}</span>
+                <span class="px-2.5 py-0.5 rounded border text-[10px] font-bold ${tBadge} truncate">${vText}</span>
+              </div>
+              <div class="text-[11px] text-gray-400 font-code shrink-0 flex items-center gap-2">
+                <span>Time: ${tc.time || 0}s</span>
+                <span>&bull;</span>
+                <span>Mem: ${tc.memory || '1.8 MB'}</span>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        verdictBox.innerHTML = `
+          <div class="w-full space-y-2.5 animate-fade-in">
+            <div class="flex items-center justify-between p-3 rounded-xl border ${badgeColor} shadow-lg">
+              <div>
+                <div class="font-bold text-xs">${finalStatus} <span class="text-[10px] font-normal opacity-80">(บันทึกเฉพาะฝั่ง Admin)</span></div>
+                <div class="text-[10px] opacity-85">ผ่าน ${passedCount}/${totalCases} เคส &bull; ได้ ${score}/${maxScore} คะแนน</div>
+              </div>
+              <span class="text-[10px] font-code font-semibold">Max Time: ${maxExecTime}s</span>
+            </div>
+            <div class="space-y-1.5">
+              <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">ผลตรวจราย Test Case</div>
+              <div class="space-y-1.5">${testCardsHtml}</div>
+            </div>
+          </div>
+        `;
+        showToast(isAc ? 'Accepted! (Admin Test)' : `ผลทดสอบ: ${finalStatus}`, `บันทึกเฉพาะฝั่ง Admin แล้ว (${score}/${maxScore} คะแนน)`, !isAc);
+      } catch (err) {
+        verdictBox.innerHTML = `<p class="text-xs text-rose-400">เกิดข้อผิดพลาด: ${err.message}</p>`;
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-flask-vial"></i> ทดสอบส่งตรวจ (เฉพาะ Admin)';
+      }
+    }
+
+    function escapeHtml(str) {
+      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function renderProblemStatement(p) {
+      document.title = `[Admin Test] ${p.problem_code || 'P' + p.id} : ${p.title} | ST8 CP-Grader`;
+      document.getElementById('navProbCode').textContent = p.problem_code || 'ST8-P' + p.id;
+      document.getElementById('navProbTitle').textContent = p.title;
+
+      const diffEl = document.getElementById('navProbDiff');
+      diffEl.textContent = p.difficulty || 'Medium';
+
+      document.getElementById('stmtFullTitle').textContent = `${p.problem_code || 'ST8-P' + p.id} : ${p.title}`;
+      document.getElementById('stmtAuthor').innerHTML = `<i class="fa-solid fa-user-pen text-cyan-400 mr-1"></i> ผู้ออกโจทย์: <b class="text-gray-200">${p.author || 'ST8 Team'}</b>`;
+      document.getElementById('stmtTime').textContent = p.time_limit || 1.0;
+      document.getElementById('stmtMem').textContent = p.memory_limit || 256;
+      document.getElementById('stmtTcCount').textContent = Array.isArray(p.test_cases) ? p.test_cases.length : 0;
+
+      const isFunc = p.is_function_mode || (p.problem_mode && p.problem_mode !== 'standard');
+      document.getElementById('stmtModeChip').textContent = isFunc ? 'Function Mode' : 'Standard I/O';
+
+      if (p.tags) {
+        document.getElementById('stmtTagsRow').innerHTML = p.tags.split(',').map(t => t.trim()).filter(Boolean)
+          .map(t => `<span class="text-[10px] px-2 py-0.5 rounded-md bg-white/5 text-gray-300 border border-white/10">${t}</span>`).join('');
+      }
+
+      const activeLang = document.getElementById('langSelect').value;
+      monaco.editor.setModelLanguage(editorInstance.getModel(), activeLang === 'c' ? 'c' : 'cpp');
+      const draft = localStorage.getItem(`st8_admin_draft_${problemId}_${activeLang}`);
+      editorInstance.setValue(draft || getStarterCodeForLang(activeLang));
+
+      if (p.statement_pdf_url) {
+        document.getElementById('stmtPdfSection').classList.remove('hidden');
+        document.getElementById('stmtPdfFrame').src = p.statement_pdf_url.includes('#') ? p.statement_pdf_url : `${p.statement_pdf_url}#view=FitH&navpanes=0`;
+      }
+
+      const mdOutput = document.getElementById('stmtMarkdownBody');
+      mdOutput.innerHTML = p.statement ? (typeof marked !== 'undefined' ? marked.parse(p.statement) : p.statement) : '<p class="text-gray-400 italic">ดูรายละเอียดใน PDF</p>';
+
+      const samples = (p.test_cases || []).filter(tc => tc.is_sample);
+      const sampleListEl = document.getElementById('stmtSamplesList');
+      if (samples.length === 0) {
+        sampleListEl.innerHTML = '<p class="text-xs text-gray-500 italic">ไม่มี Sample Test Case</p>';
+      } else {
+        document.getElementById('customInputBox').value = samples[0].input || '';
+        sampleListEl.innerHTML = samples.map((tc, i) => `
+          <div class="bg-black/50 border border-cyan-500/20 rounded-2xl p-3.5 space-y-2.5 transition hover:border-cyan-500/40">
+            <div class="flex justify-between items-center">
+              <span class="text-xs font-bold text-amber-300">ตัวอย่างที่ ${i + 1}</span>
+              <button type="button" onclick="copySampleInput(${i})" class="text-[11px] text-cyan-300 hover:underline cursor-pointer transition"><i class="fa-solid fa-arrow-turn-down mr-1"></i> ใส่ลงช่องทดสอบ</button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+              <div>
+                <div class="text-[10px] text-gray-400 font-bold mb-1">INPUT</div>
+                <pre class="bg-black/80 border border-white/10 rounded-xl p-2.5 text-xs text-white font-code overflow-x-auto">${escapeHtml(tc.input || '')}</pre>
+              </div>
+              <div>
+                <div class="text-[10px] text-emerald-400 font-bold mb-1">OUTPUT</div>
+                <pre class="bg-black/80 border border-white/10 rounded-xl p-2.5 text-xs text-emerald-200 font-code overflow-x-auto">${escapeHtml(tc.output || '')}</pre>
+              </div>
+            </div>
+          </div>
+        `).join('');
+      }
+    }
+
+    async function initAdminEditorPage() {
+      if (!problemId) {
+        window.location.href = 'admin-playground.html';
+        return;
+      }
+
+      initSplitResizer();
+      await initMonacoEditor();
+
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      if (!session) {
+        window.location.href = 'index.html';
+        return;
+      }
+      currentUser = session.user;
+
+      const { data: prof } = await supabaseClient.from('profiles').select('*').eq('id', currentUser.id).maybeSingle();
+      if (!prof || prof.role !== 'admin') {
+        alert('เฉพาะผู้ดูแลระบบ (Admin) เท่านั้น');
+        window.location.href = 'index.html';
+        return;
+      }
+      currentUserProfile = prof;
+
+      const displayName = prof.display_name || prof.username || currentUser.email;
+      const badge = document.getElementById('navUserBadge');
+      badge.innerHTML = `<i class="fa-solid fa-user-shield text-rose-400"></i> ${displayName}`;
+      badge.classList.remove('hidden');
+
+      editorInstance.onDidChangeModelContent(() => {
+        const lang = document.getElementById('langSelect').value;
+        localStorage.setItem(`st8_admin_draft_${problemId}_${lang}`, editorInstance.getValue());
+      });
+
+      const { data: prob, error } = await supabaseClient.from('problems').select('*').eq('id', problemId).single();
+      if (error || !prob) {
+        showToast('ไม่พบโจทย์', 'ไม่พบข้อมูลโจทย์ข้อนี้ในระบบ', true);
+        return;
+      }
+      currentProblem = prob;
+      renderProblemStatement(prob);
+      loadAdminLocalSubmissions();
+    }
+
+    initAdminEditorPage();
+  </script>
+</body>
+</html>

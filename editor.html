@@ -89,7 +89,7 @@
         <i class="fa-solid fa-spinner fa-spin"></i> กำลังตรวจคำตอบ...
       </button>
       <span id="engineStatusPill" class="hidden md:inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-xl bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
-        <i class="fa-solid fa-bolt text-amber-400 animate-pulse"></i> Turbo Judge v3
+        <i class="fa-solid fa-bolt text-amber-400 animate-pulse"></i> Turbo Judge v3.1
       </span>
       <span id="navUserBadge" class="text-xs font-semibold text-cyan-300 bg-cyan-950/70 border border-cyan-500/30 px-3 py-1.5 rounded-xl hidden md:inline-flex items-center gap-1.5"></span>
     </div>
@@ -286,7 +286,7 @@
           </div>
           <div class="min-w-0 flex-1">
             <div class="text-xs font-bold text-cyan-200" id="modalJudgingHeading">กำลังคอมไพล์และตรวจ Test Cases...</div>
-            <div class="text-[11px] text-gray-300 mt-0.5" id="modalJudgingSubtext">Turbo Judge v3 &bull; หากรีเฟรชหน้าเว็บระบบจะตรวจต่อให้อัตโนมัติ</div>
+            <div class="text-[11px] text-gray-300 mt-0.5" id="modalJudgingSubtext">Turbo Judge v3.1 &bull; หากรีเฟรชหน้าเว็บระบบจะตรวจต่อให้อัตโนมัติ</div>
           </div>
         </div>
 
@@ -360,7 +360,7 @@
         ? 'fa-solid fa-circle-exclamation text-rose-400 text-base animate-bounce'
         : 'fa-solid fa-circle-check text-cyan-400 text-base';
       toast.classList.remove('translate-x-[130%]');
-      setTimeout(() => toast.classList.add('translate-x-[130%]'), 3200);
+      setTimeout(() => toast.classList.add('translate-x-[130%]'), 3600);
     }
 
     function resolveBackNavigation() {
@@ -622,7 +622,7 @@
 
       const idLabel = sub.id && !String(sub.id).startsWith('pending_')
         ? `Submission Detail (ID: ${String(sub.id).substring(0, 8)}...)`
-        : 'Submission Verdict (Turbo Judge v3)';
+        : 'Submission Verdict (Turbo Judge v3.1)';
       document.getElementById('modalSubTitle').textContent = idLabel;
 
       const statusBadge = document.getElementById('modalSubStatus');
@@ -640,7 +640,7 @@
       if (isJudging) {
         judgingBanner.classList.remove('hidden');
         const tcCount = (currentProblem?.test_cases || []).length;
-        document.getElementById('modalJudgingHeading').textContent = `กำลังคอมไพล์แบบความเร็วสูงและตรวจ ${tcCount || 1} Test Cases...`;
+        document.getElementById('modalJudgingHeading').textContent = `กำลังคอมไพล์และตรวจ ${tcCount || 1} Test Cases...`;
       } else {
         judgingBanner.classList.add('hidden');
       }
@@ -806,43 +806,53 @@
       try { return decodeURIComponent(escape(atob(str))); } catch { return str; }
     }
 
-    // --- TURBO ENGINE v3: ABORTABLE RACE EXECUTOR (เร็วทั้งปุ่ม "รัน" และ "ส่งตรวจ") ---
-    function callWandboxWithSignal(code, lang, stdin, signal, optFlag = '-O0') {
+    const sleepMs = (ms) => new Promise(r => setTimeout(r, ms));
+
+    // --- TURBO ENGINE v3.1: RESILIENT RACE + RETRY EXECUTOR ---
+    async function callWandboxSingle(code, lang, stdin, optFlag = '-O0', timeoutMs = 18000) {
       const startTime = performance.now();
-      return fetch('https://wandbox.org/api/compile.json', {
-        method: 'POST',
-        signal,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          compiler: lang === 'c' ? 'gcc-head-c' : 'gcc-head',
-          code,
-          stdin: stdin || '',
-          options: lang === 'cpp' ? 'gnu++17' : 'gnu11',
-          'compiler-option-raw': optFlag
-        })
-      }).then(async r => {
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+      try {
+        const r = await fetch('https://wandbox.org/api/compile.json', {
+          method: 'POST',
+          signal: ctrl.signal,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            compiler: lang === 'c' ? 'gcc-head-c' : 'gcc-head',
+            code,
+            stdin: stdin || '',
+            options: lang === 'cpp' ? 'gnu++17' : 'gnu11',
+            'compiler-option-raw': optFlag
+          })
+        });
         if (!r.ok) throw new Error(`Wandbox HTTP ${r.status}`);
         const wb = await r.json();
         const elapsed = parseFloat(((performance.now() - startTime) / 1000).toFixed(2));
         if (wb.compiler_error) return { status: 'CE', stdout: '', stderr: '', compilerError: wb.compiler_error, elapsed, engine: 'Wandbox' };
         if (wb.status !== '0') return { status: 'RE', stdout: wb.program_output || '', stderr: wb.program_error || '', compilerError: '', elapsed, engine: 'Wandbox' };
         return { status: 'OK', stdout: wb.program_output || '', stderr: wb.program_error || '', compilerError: '', elapsed, engine: 'Wandbox' };
-      });
+      } finally {
+        clearTimeout(timer);
+      }
     }
 
-    function callJudge0WithSignal(code, lang, stdin, signal) {
+    async function callJudge0Single(code, lang, stdin, timeoutMs = 18000) {
       const startTime = performance.now();
-      return fetch('https://ce.judge0.com/submissions/?base64_encoded=true&wait=true', {
-        method: 'POST',
-        signal,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          source_code: b64Encode(code),
-          language_id: lang === 'c' ? 50 : 54,
-          stdin: b64Encode(stdin || ''),
-          cpu_time_limit: Math.min(5, Math.max(1, parseFloat(currentProblem?.time_limit) || 1.0))
-        })
-      }).then(async r => {
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+      try {
+        const r = await fetch('https://ce.judge0.com/submissions/?base64_encoded=true&wait=true', {
+          method: 'POST',
+          signal: ctrl.signal,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            source_code: b64Encode(code),
+            language_id: lang === 'c' ? 50 : 54,
+            stdin: b64Encode(stdin || ''),
+            cpu_time_limit: Math.min(5, Math.max(1, parseFloat(currentProblem?.time_limit) || 1.0))
+          })
+        });
         if (!r.ok) throw new Error(`Judge0 HTTP ${r.status}`);
         const data = await r.json();
         const elapsed = parseFloat(data.time) || parseFloat(((performance.now() - startTime) / 1000).toFixed(2));
@@ -851,34 +861,32 @@
         if (sid === 5) return { status: 'TLE', stdout: b64Decode(data.stdout), stderr: 'Time Limit Exceeded', compilerError: '', elapsed, engine: 'Judge0' };
         if (sid >= 7 && sid <= 12) return { status: 'RE', stdout: b64Decode(data.stdout), stderr: b64Decode(data.stderr), compilerError: '', elapsed, engine: 'Judge0' };
         return { status: 'OK', stdout: b64Decode(data.stdout), stderr: b64Decode(data.stderr), compilerError: '', elapsed, engine: 'Judge0' };
-      });
-    }
-
-    // ยิงแข่ง 2 APIs แล้วสั่ง Abort ตัวที่ช้ากว่าทันทีที่ตัวแรกตอบกลับ!
-    async function executeCppFastRace(code, lang, stdin, optFlag = '-O0', timeoutMs = 9000) {
-      const ctrlWb = new AbortController();
-      const ctrlJ0 = new AbortController();
-      const timer = setTimeout(() => {
-        ctrlWb.abort();
-        ctrlJ0.abort();
-      }, timeoutMs);
-
-      try {
-        const pWb = callWandboxWithSignal(code, lang, stdin, ctrlWb.signal, optFlag).then(res => {
-          ctrlJ0.abort();
-          return res;
-        });
-        const pJ0 = callJudge0WithSignal(code, lang, stdin, ctrlJ0.signal).then(res => {
-          ctrlWb.abort();
-          return res;
-        });
-        return await Promise.any([pWb, pJ0]);
       } finally {
         clearTimeout(timer);
       }
     }
 
-    // --- LIGHTWEIGHT IN-PROCESS BATCH HARNESS (ไม่ใช้ fork/sys/wait คอมไพล์เร็วเท่าโค้ดปกติ!) ---
+    // แข่ง 2 APIs โดยไม่สั่ง Abort ตัวที่เหลือทิ้งก่อนเวลาอันควร + มี Retry 2 รอบเมื่อติด Rate Limit
+    async function executeCppResilient(code, lang, stdin, optFlag = '-O0') {
+      let lastErrMsg = 'Compiler Server ไม่ตอบสนอง';
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          return await Promise.any([
+            callWandboxSingle(code, lang, stdin, optFlag, 18000),
+            callJudge0Single(code, lang, stdin, 18000)
+          ]);
+        } catch (aggErr) {
+          const reasons = (aggErr && aggErr.errors) ? aggErr.errors.map(e => e?.message || String(e)).join(' | ') : (aggErr?.message || 'Timeout');
+          lastErrMsg = reasons;
+          if (attempt < 2) {
+            await sleepMs(450 * (attempt + 1));
+          }
+        }
+      }
+      throw new Error(`เซิร์ฟเวอร์ตรวจโค้ดกำลังหนาแน่น (${lastErrMsg})`);
+    }
+
+    // --- LIGHTWEIGHT IN-PROCESS BATCH HARNESS ---
     function escapeCppRawString(str) {
       const s = String(str || '');
       let delim = 'ST8D';
@@ -891,7 +899,6 @@
     }
 
     function buildLightweightBatchHarness(fullCode, testCases, timeLimitSec) {
-      // เปลี่ยนชื่อ main() ของผู้ใช้เป็น __st8_u_main()
       const renamed = fullCode.replace(
         /\b(?:int|signed|void)\s+main\s*\(([^)]*)\)/,
         (_, args) => `int __st8_u_main(${args})`
@@ -987,7 +994,21 @@ int main() {
 `;
     }
 
-    // แบ่งตรวจเป็นชุดย่อย (Chunk ละ 5 เคส) แล้วยิงขนานกัน -> คอมไพล์น้อยครั้ง + ไม่ติด TLE กลางทาง
+    // ตัวจัดการคิว Concurrency Limit สูงสุด 3 งานพร้อมกัน (กัน Rate Limit 429)
+    async function runWithConcurrencyLimit(tasks, limit = 3) {
+      const results = new Array(tasks.length);
+      let nextIdx = 0;
+      const workers = Array.from({ length: Math.min(limit, tasks.length) }, async () => {
+        while (nextIdx < tasks.length) {
+          const idx = nextIdx++;
+          results[idx] = await tasks[idx]();
+        }
+      });
+      await Promise.all(workers);
+      return results;
+    }
+
+    // แบ่งตรวจเป็นชุดย่อย (Chunk ละ 5 เคส) แล้วยิงแบบจำกัดคิวสูงสุด 3 Chunks พร้อมกัน
     async function runChunkedFastEval(fullCode, lang, testCases, timeLimitSec) {
       const CHUNK_SIZE = 5;
       const chunks = [];
@@ -995,13 +1016,13 @@ int main() {
         chunks.push({ startIdx: i, items: testCases.slice(i, i + CHUNK_SIZE) });
       }
 
-      const chunkResults = await Promise.all(chunks.map(async (chunk) => {
+      const chunkTasks = chunks.map((chunk) => async () => {
         const chunkBytes = chunk.items.reduce((s, tc) => s + (tc.input?.length || 0) + (tc.output?.length || 0), 0);
         if (lang === 'cpp' && chunkBytes < 180 * 1024) {
           const harness = buildLightweightBatchHarness(fullCode, chunk.items, timeLimitSec);
           if (harness) {
             try {
-              const res = await executeCppFastRace(harness, 'cpp', '', '-O1', 8500);
+              const res = await executeCppResilient(harness, 'cpp', '', '-O1');
               if (res.status === 'CE') return { isCE: true, compilerError: res.compilerError };
               if (res.status === 'OK' && res.stdout) {
                 const lines = res.stdout.trim().split('\n').filter(l => l.startsWith('__ST8__|'));
@@ -1021,14 +1042,14 @@ int main() {
                 }
               }
             } catch {
-              // หาก Chunk ไหนเกิด Segfault/TLE ให้ตกไปรันทีละเคสใน Chunk นั้นแทน
+              // หาก Chunk ไหนเกิด Segfault/TLE หรือ Harness รันไม่ได้ ให้ตกไปตรวจรายเคสใน Chunk นั้น
             }
           }
         }
 
-        // Fallback รายเคสแบบยิงขนานสำหรับ Chunk ที่เกิด RE/TLE หรือภาษา C
-        const singleItems = await Promise.all(chunk.items.map(async (tc, offset) => {
-          const r = await executeCppFastRace(fullCode, lang, tc.input || '', '-O1', 8000);
+        // Fallback รายเคสสำหรับ Chunk นี้ (จำกัดคิว 3 เคสพร้อมกัน)
+        const singleTasks = chunk.items.map((tc, offset) => async () => {
+          const r = await executeCppResilient(fullCode, lang, tc.input || '', '-O1');
           if (r.status === 'CE') return { isCE: true, compilerError: r.compilerError };
           const mockMem = (1.5 + Math.random() * 1.2).toFixed(1) + ' MB';
           if (r.status === 'TLE' || (r.elapsed && r.elapsed > timeLimitSec)) {
@@ -1045,16 +1066,19 @@ int main() {
             time: r.elapsed,
             memory: mockMem
           };
-        }));
+        });
 
+        const singleItems = await runWithConcurrencyLimit(singleTasks, 3);
         const ceHit = singleItems.find(x => x.isCE);
         if (ceHit) return { isCE: true, compilerError: ceHit.compilerError };
         return { isCE: false, cases: singleItems };
-      }));
+      });
+
+      const chunkResults = await runWithConcurrencyLimit(chunkTasks, 3);
 
       const firstCE = chunkResults.find(c => c.isCE);
       if (firstCE) {
-        const cleanCe = await executeCppFastRace(fullCode, lang, '', '-O0', 6000).catch(() => null);
+        const cleanCe = await executeCppResilient(fullCode, lang, '', '-O0').catch(() => null);
         return {
           finalStatus: 'Compilation Error',
           passedCount: 0,
@@ -1103,8 +1127,7 @@ int main() {
 
       const tStart = performance.now();
       try {
-        // ใช้ -O0 เพื่อให้คอมไพล์เร็วที่สุดสำหรับปุ่มทดสอบรัน
-        const result = await executeCppFastRace(fullCode, lang, stdin, '-O0', 8000);
+        const result = await executeCppResilient(fullCode, lang, stdin, '-O0');
         const wallSec = ((performance.now() - tStart) / 1000).toFixed(2);
         statsEl.textContent = `Exec: ${result.elapsed}s (รวม ${wallSec}s • ${result.engine || 'Turbo'})`;
 
@@ -1118,7 +1141,7 @@ int main() {
           outBox.textContent = result.stdout || '(ไม่มี Output)';
         }
       } catch (err) {
-        outBox.textContent = `Error: ${err.message}`;
+        outBox.textContent = `เกิดข้อผิดพลาด: ${err.message}`;
       } finally {
         btn.disabled = false;
         btn.innerHTML = '<i class="fa-solid fa-play"></i> รัน';

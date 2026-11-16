@@ -89,7 +89,7 @@
         <i class="fa-solid fa-spinner fa-spin"></i> กำลังตรวจคำตอบ...
       </button>
       <span id="engineStatusPill" class="hidden md:inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-xl bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
-        <i class="fa-solid fa-bolt text-amber-400 animate-pulse"></i> Turbo Judge v2
+        <i class="fa-solid fa-bolt text-amber-400 animate-pulse"></i> Turbo Judge v3
       </span>
       <span id="navUserBadge" class="text-xs font-semibold text-cyan-300 bg-cyan-950/70 border border-cyan-500/30 px-3 py-1.5 rounded-xl hidden md:inline-flex items-center gap-1.5"></span>
     </div>
@@ -285,8 +285,8 @@
             <i class="fa-solid fa-bolt text-cyan-300 text-lg animate-bounce"></i>
           </div>
           <div class="min-w-0 flex-1">
-            <div class="text-xs font-bold text-cyan-200" id="modalJudgingHeading">ระบบกำลังคอมไพล์ครั้งเดียวและรันทุก Test Cases...</div>
-            <div class="text-[11px] text-gray-300 mt-0.5" id="modalJudgingSubtext">Turbo Single-Compile Sandbox &bull; หากรีเฟรชหน้าเว็บระบบจะตรวจต่อให้อัตโนมัติ</div>
+            <div class="text-xs font-bold text-cyan-200" id="modalJudgingHeading">กำลังคอมไพล์และตรวจ Test Cases...</div>
+            <div class="text-[11px] text-gray-300 mt-0.5" id="modalJudgingSubtext">Turbo Judge v3 &bull; หากรีเฟรชหน้าเว็บระบบจะตรวจต่อให้อัตโนมัติ</div>
           </div>
         </div>
 
@@ -622,7 +622,7 @@
 
       const idLabel = sub.id && !String(sub.id).startsWith('pending_')
         ? `Submission Detail (ID: ${String(sub.id).substring(0, 8)}...)`
-        : 'Submission Verdict (Turbo Judge v2)';
+        : 'Submission Verdict (Turbo Judge v3)';
       document.getElementById('modalSubTitle').textContent = idLabel;
 
       const statusBadge = document.getElementById('modalSubStatus');
@@ -640,7 +640,7 @@
       if (isJudging) {
         judgingBanner.classList.remove('hidden');
         const tcCount = (currentProblem?.test_cases || []).length;
-        document.getElementById('modalJudgingHeading').textContent = `กำลังคอมไพล์ครั้งเดียวและรัน ${tcCount || 1} Test Cases...`;
+        document.getElementById('modalJudgingHeading').textContent = `กำลังคอมไพล์แบบความเร็วสูงและตรวจ ${tcCount || 1} Test Cases...`;
       } else {
         judgingBanner.classList.add('hidden');
       }
@@ -806,386 +806,286 @@
       try { return decodeURIComponent(escape(atob(str))); } catch { return str; }
     }
 
-    // --- ADAPTIVE SINGLE-CALL EXECUTOR (ใช้สำหรับปุ่ม "รัน" และ Fallback) ---
-    let preferredEngine = localStorage.getItem('st8_fast_engine') || 'wandbox';
-
-    async function callWandbox(code, lang, stdin, rawCompilerOpts = '-O1') {
+    // --- TURBO ENGINE v3: ABORTABLE RACE EXECUTOR (เร็วทั้งปุ่ม "รัน" และ "ส่งตรวจ") ---
+    function callWandboxWithSignal(code, lang, stdin, signal, optFlag = '-O0') {
       const startTime = performance.now();
-      const ctrl = new AbortController();
-      const timer = setTimeout(() => ctrl.abort(), 14000);
-      try {
-        const r = await fetch('https://wandbox.org/api/compile.json', {
-          method: 'POST',
-          signal: ctrl.signal,
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            compiler: lang === 'c' ? 'gcc-head-c' : 'gcc-head',
-            code,
-            stdin: stdin || '',
-            options: lang === 'cpp' ? 'gnu++17' : 'gnu11',
-            'compiler-option-raw': rawCompilerOpts
-          })
-        });
+      return fetch('https://wandbox.org/api/compile.json', {
+        method: 'POST',
+        signal,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          compiler: lang === 'c' ? 'gcc-head-c' : 'gcc-head',
+          code,
+          stdin: stdin || '',
+          options: lang === 'cpp' ? 'gnu++17' : 'gnu11',
+          'compiler-option-raw': optFlag
+        })
+      }).then(async r => {
         if (!r.ok) throw new Error(`Wandbox HTTP ${r.status}`);
         const wb = await r.json();
         const elapsed = parseFloat(((performance.now() - startTime) / 1000).toFixed(2));
-        preferredEngine = 'wandbox';
-        localStorage.setItem('st8_fast_engine', 'wandbox');
-        if (wb.compiler_error) return { status: 'CE', stdout: '', stderr: '', compilerError: wb.compiler_error, elapsed };
-        if (wb.status !== '0') return { status: 'RE', stdout: wb.program_output || '', stderr: wb.program_error || '', compilerError: '', elapsed };
-        return { status: 'OK', stdout: wb.program_output || '', stderr: wb.program_error || '', compilerError: '', elapsed };
-      } finally {
-        clearTimeout(timer);
-      }
+        if (wb.compiler_error) return { status: 'CE', stdout: '', stderr: '', compilerError: wb.compiler_error, elapsed, engine: 'Wandbox' };
+        if (wb.status !== '0') return { status: 'RE', stdout: wb.program_output || '', stderr: wb.program_error || '', compilerError: '', elapsed, engine: 'Wandbox' };
+        return { status: 'OK', stdout: wb.program_output || '', stderr: wb.program_error || '', compilerError: '', elapsed, engine: 'Wandbox' };
+      });
     }
 
-    async function callJudge0(code, lang, stdin) {
+    function callJudge0WithSignal(code, lang, stdin, signal) {
       const startTime = performance.now();
-      const ctrl = new AbortController();
-      const timer = setTimeout(() => ctrl.abort(), 14000);
-      try {
-        const r = await fetch('https://ce.judge0.com/submissions/?base64_encoded=true&wait=true', {
-          method: 'POST',
-          signal: ctrl.signal,
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            source_code: b64Encode(code),
-            language_id: lang === 'c' ? 50 : 54,
-            stdin: b64Encode(stdin || ''),
-            cpu_time_limit: Math.min(5, Math.max(1, parseFloat(currentProblem?.time_limit) || 1.0))
-          })
-        });
+      return fetch('https://ce.judge0.com/submissions/?base64_encoded=true&wait=true', {
+        method: 'POST',
+        signal,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          source_code: b64Encode(code),
+          language_id: lang === 'c' ? 50 : 54,
+          stdin: b64Encode(stdin || ''),
+          cpu_time_limit: Math.min(5, Math.max(1, parseFloat(currentProblem?.time_limit) || 1.0))
+        })
+      }).then(async r => {
         if (!r.ok) throw new Error(`Judge0 HTTP ${r.status}`);
         const data = await r.json();
         const elapsed = parseFloat(data.time) || parseFloat(((performance.now() - startTime) / 1000).toFixed(2));
-        preferredEngine = 'judge0';
-        localStorage.setItem('st8_fast_engine', 'judge0');
         const sid = data.status?.id;
-        if (sid === 6) return { status: 'CE', stdout: '', stderr: '', compilerError: b64Decode(data.compile_output), elapsed };
-        if (sid === 5) return { status: 'TLE', stdout: b64Decode(data.stdout), stderr: 'Time Limit Exceeded', compilerError: '', elapsed };
-        if (sid >= 7 && sid <= 12) return { status: 'RE', stdout: b64Decode(data.stdout), stderr: b64Decode(data.stderr), compilerError: '', elapsed };
-        return { status: 'OK', stdout: b64Decode(data.stdout), stderr: b64Decode(data.stderr), compilerError: '', elapsed };
+        if (sid === 6) return { status: 'CE', stdout: '', stderr: '', compilerError: b64Decode(data.compile_output), elapsed, engine: 'Judge0' };
+        if (sid === 5) return { status: 'TLE', stdout: b64Decode(data.stdout), stderr: 'Time Limit Exceeded', compilerError: '', elapsed, engine: 'Judge0' };
+        if (sid >= 7 && sid <= 12) return { status: 'RE', stdout: b64Decode(data.stdout), stderr: b64Decode(data.stderr), compilerError: '', elapsed, engine: 'Judge0' };
+        return { status: 'OK', stdout: b64Decode(data.stdout), stderr: b64Decode(data.stderr), compilerError: '', elapsed, engine: 'Judge0' };
+      });
+    }
+
+    // ยิงแข่ง 2 APIs แล้วสั่ง Abort ตัวที่ช้ากว่าทันทีที่ตัวแรกตอบกลับ!
+    async function executeCppFastRace(code, lang, stdin, optFlag = '-O0', timeoutMs = 9000) {
+      const ctrlWb = new AbortController();
+      const ctrlJ0 = new AbortController();
+      const timer = setTimeout(() => {
+        ctrlWb.abort();
+        ctrlJ0.abort();
+      }, timeoutMs);
+
+      try {
+        const pWb = callWandboxWithSignal(code, lang, stdin, ctrlWb.signal, optFlag).then(res => {
+          ctrlJ0.abort();
+          return res;
+        });
+        const pJ0 = callJudge0WithSignal(code, lang, stdin, ctrlJ0.signal).then(res => {
+          ctrlWb.abort();
+          return res;
+        });
+        return await Promise.any([pWb, pJ0]);
       } finally {
         clearTimeout(timer);
       }
     }
 
-    async function executeCppSingleCall(code, lang, stdin) {
-      if (preferredEngine === 'judge0') {
-        try { return await callJudge0(code, lang, stdin); }
-        catch { return await callWandbox(code, lang, stdin); }
-      } else {
-        try { return await callWandbox(code, lang, stdin); }
-        catch { return await callJudge0(code, lang, stdin); }
-      }
-    }
-
-    // --- TURBO ENGINE v2: SINGLE-COMPILE MULTI-CASE SANDBOX HARNESS ---
+    // --- LIGHTWEIGHT IN-PROCESS BATCH HARNESS (ไม่ใช้ fork/sys/wait คอมไพล์เร็วเท่าโค้ดปกติ!) ---
     function escapeCppRawString(str) {
       const s = String(str || '');
-      let delim = 'ST8EOF';
+      let delim = 'ST8D';
       let counter = 0;
       while (s.includes(`)${delim}"`)) {
         counter++;
-        delim = `ST8EOF_${counter}`;
+        delim = `ST8D${counter}`;
       }
       return `R"${delim}(${s})${delim}"`;
     }
 
-    function buildSingleCompileHarness(fullCode, lang, testCases, timeLimitSec) {
-      // เปลี่ยนชื่อ main() ของผู้เข้าแข่งขันเป็น __st8_user_main()
-      const renamedUserCode = fullCode.replace(
+    function buildLightweightBatchHarness(fullCode, testCases, timeLimitSec) {
+      // เปลี่ยนชื่อ main() ของผู้ใช้เป็น __st8_u_main()
+      const renamed = fullCode.replace(
         /\b(?:int|signed|void)\s+main\s*\(([^)]*)\)/,
-        (_, args) => `int __st8_user_main(${args})`
+        (_, args) => `int __st8_u_main(${args})`
       );
-      if (renamedUserCode === fullCode) return null;
+      if (renamed === fullCode) return null;
 
-      const casesLiteral = testCases
-        .map(tc => `{ ${escapeCppRawString(tc.input || '')}, ${escapeCppRawString(tc.output || '')} }`)
-        .join(',\n    ');
+      const casesItems = testCases
+        .map(tc => `{${escapeCppRawString(tc.input || '')},${escapeCppRawString(tc.output || '')}}`)
+        .join(',');
 
-      const tlMs = Math.max(200, Math.round((timeLimitSec || 1.0) * 1000));
-      const tlSecCeil = Math.max(1, Math.ceil((timeLimitSec || 1.0) + 0.5));
+      return `
+#include <cstdio>
+#include <cstring>
+#include <string>
+#include <vector>
+#include <chrono>
+#include <iostream>
+${renamed}
 
-      const harnessHeader = lang === 'c'
-        ? `#include <stdio.h>\n#include <stdlib.h>\n#include <string.h>\n#include <unistd.h>\n#include <sys/wait.h>\n#include <sys/resource.h>\n#include <time.h>\n#include <fcntl.h>\n`
-        : `#include <cstdio>\n#include <cstdlib>\n#include <cstring>\n#include <string>\n#include <vector>\n#include <iostream>\n#include <unistd.h>\n#include <sys/wait.h>\n#include <sys/resource.h>\n#include <time.h>\n#include <fcntl.h>\n`;
-
-      const cppRunner = `
-${harnessHeader}
-${renamedUserCode}
-
-struct __ST8Case {
-    const char* in_data;
-    const char* exp_data;
-};
-
-static std::string __st8_norm(const std::string& s) {
-    std::string out;
-    out.reserve(s.size());
-    for (size_t i = 0; i < s.size(); ++i) {
-        if (s[i] != '\\r') out.push_back(s[i]);
-    }
-    std::string res;
-    res.reserve(out.size());
-    size_t start = 0;
-    while (start <= out.size()) {
-        size_t nl = out.find('\\n', start);
-        std::string line = (nl == std::string::npos) ? out.substr(start) : out.substr(start, nl - start);
-        while (!line.empty() && (line.back() == ' ' || line.back() == '\\t')) line.pop_back();
-        res += line;
+static std::string __st8_n(const std::string& s) {
+    std::string o; o.reserve(s.size());
+    for (char c : s) if (c != '\\r') o.push_back(c);
+    std::string r; r.reserve(o.size());
+    size_t st = 0;
+    while (st <= o.size()) {
+        size_t nl = o.find('\\n', st);
+        std::string ln = (nl == std::string::npos) ? o.substr(st) : o.substr(st, nl - st);
+        while (!ln.empty() && (ln.back() == ' ' || ln.back() == '\\t')) ln.pop_back();
+        r += ln;
         if (nl == std::string::npos) break;
-        res.push_back('\\n');
-        start = nl + 1;
+        r.push_back('\\n');
+        st = nl + 1;
     }
-    while (!res.empty() && (res.back() == '\\n' || res.back() == ' ' || res.back() == '\\t')) res.pop_back();
-    return res;
+    while (!r.empty() && (r.back() == '\\n' || r.back() == ' ' || r.back() == '\\t')) r.pop_back();
+    return r;
 }
 
 int main() {
-    std::vector<__ST8Case> cases = {
-    ${casesLiteral}
-    };
-    const double TL_SEC = ${(timeLimitSec || 1.0).toFixed(3)};
-    const int TL_MS = ${tlMs};
-    const int TL_CPU_CEIL = ${tlSecCeil};
+    struct C { const char* in; const char* out; };
+    std::vector<C> cs = {${casesItems}};
+    const double TL = ${(timeLimitSec || 1.0).toFixed(3)};
+    std::string report;
+    report.reserve(cs.size() * 32);
 
-    FILE* report = fdopen(dup(STDOUT_FILENO), "w");
+    for (size_t i = 0; i < cs.size(); ++i) {
+        FILE* fi = fopen("/tmp/st8_i.txt", "wb");
+        if (!fi) return 1;
+        size_t len = strlen(cs[i].in);
+        if (len > 0) fwrite(cs[i].in, 1, len, fi);
+        fclose(fi);
 
-    for (size_t i = 0; i < cases.size(); ++i) {
-        char in_path[] = "/tmp/st8inXXXXXX";
-        char out_path[] = "/tmp/st8outXXXXXX";
-        int in_fd = mkstemp(in_path);
-        int out_fd = mkstemp(out_path);
-        if (in_fd < 0 || out_fd < 0) {
-            fprintf(report, "__ST8_FALLBACK__\\n");
-            fflush(report);
-            return 0;
-        }
-        size_t in_len = strlen(cases[i].in_data);
-        if (in_len > 0) {
-            ssize_t ignored = write(in_fd, cases[i].in_data, in_len);
-            (void)ignored;
-        }
-        lseek(in_fd, 0, SEEK_SET);
+        std::cin.clear();
+        std::cout.flush();
+        if (!freopen("/tmp/st8_i.txt", "rb", stdin)) return 1;
+        if (!freopen("/tmp/st8_o.txt", "wb", stdout)) return 1;
 
-        struct timespec t0, t1;
-        clock_gettime(CLOCK_MONOTONIC, &t0);
+        auto t0 = std::chrono::steady_clock::now();
+        int rc = __st8_u_main();
+        fflush(stdout);
+        std::cout.flush();
+        auto t1 = std::chrono::steady_clock::now();
 
-        pid_t pid = fork();
-        if (pid < 0) {
-            close(in_fd); close(out_fd);
-            unlink(in_path); unlink(out_path);
-            fprintf(report, "__ST8_FALLBACK__\\n");
-            fflush(report);
-            return 0;
-        }
-        if (pid == 0) {
-            struct rlimit rl;
-            rl.rlim_cur = TL_CPU_CEIL;
-            rl.rlim_max = TL_CPU_CEIL + 1;
-            setrlimit(RLIMIT_CPU, &rl);
+        double sec = std::chrono::duration<double>(t1 - t0).count();
+        if (sec < 0.01) sec = 0.01;
 
-            dup2(in_fd, STDIN_FILENO);
-            dup2(out_fd, STDOUT_FILENO);
-            int devnull = open("/dev/null", O_WRONLY);
-            if (devnull >= 0) { dup2(devnull, STDERR_FILENO); close(devnull); }
-            close(in_fd);
-            close(out_fd);
-
-            int rc = __st8_user_main();
-            fflush(stdout);
-            _exit(rc);
-        }
-
-        close(in_fd);
-        int status = 0;
-        bool killed_tle = false;
-        while (true) {
-            pid_t w = waitpid(pid, &status, WNOHANG);
-            clock_gettime(CLOCK_MONOTONIC, &t1);
-            double elapsed_ms = (t1.tv_sec - t0.tv_sec) * 1000.0 + (t1.tv_nsec - t0.tv_nsec) / 1e6;
-            if (w == pid) break;
-            if (elapsed_ms > TL_MS + 120) {
-                kill(pid, SIGKILL);
-                waitpid(pid, &status, 0);
-                killed_tle = true;
-                break;
+        FILE* fo = fopen("/tmp/st8_o.txt", "rb");
+        std::string act;
+        if (fo) {
+            char buf[4096];
+            size_t n;
+            while ((n = fread(buf, 1, sizeof(buf), fo)) > 0) {
+                act.append(buf, n);
+                if (act.size() > 2 * 1024 * 1024) break;
             }
-            usleep(4000);
+            fclose(fo);
         }
 
-        clock_gettime(CLOCK_MONOTONIC, &t1);
-        double elapsed_sec = (t1.tv_sec - t0.tv_sec) + (t1.tv_nsec - t0.tv_nsec) / 1e9;
-        if (elapsed_sec < 0.01) elapsed_sec = 0.01;
+        const char* v = "AC";
+        if (sec > TL) v = "TLE";
+        else if (rc != 0) v = "RE";
+        else if (__st8_n(act) != __st8_n(cs[i].out)) v = "WA";
 
-        std::string actual;
-        lseek(out_fd, 0, SEEK_SET);
-        char buf[4096];
-        ssize_t n;
-        while ((n = read(out_fd, buf, sizeof(buf))) > 0) {
-            actual.append(buf, n);
-            if (actual.size() > 2 * 1024 * 1024) break;
-        }
-        close(out_fd);
-        unlink(in_path);
-        unlink(out_path);
-
-        const char* verdict = "AC";
-        if (killed_tle || elapsed_sec > TL_SEC) {
-            verdict = "TLE";
-        } else if (!WIFEXITED(status) || WEXITSTATUS(status) != 0) {
-            verdict = "RE";
-        } else {
-            std::string n_act = __st8_norm(actual);
-            std::string n_exp = __st8_norm(std::string(cases[i].exp_data));
-            if (n_act != n_exp) verdict = "WA";
-        }
-
-        fprintf(report, "__ST8_CASE__|%zu|%s|%.3f\\n", i + 1, verdict, elapsed_sec);
+        char line[64];
+        snprintf(line, sizeof(line), "__ST8__|%zu|%s|%.3f\\n", i + 1, v, sec);
+        report += line;
     }
-    fflush(report);
+
+    freopen("/dev/tty", "w", stdout);
+    fwrite(report.data(), 1, report.size(), stdout);
+    fflush(stdout);
     return 0;
 }
 `;
-      return cppRunner;
     }
 
-    // Fallback Pool (จำกัด Concurrency ทีละ 4 เคส + Pre-check เคสแรก) กรณี Payload ใหญ่มากหรือเป็นภาษา C ล้วน
-    async function runPooledTestCases(fullCode, lang, testCases, timeLimitSec) {
-      const results = new Array(testCases.length);
-
-      // Step 1: Pre-check เคสแรกก่อน (ถ้า CE หรือพังตั้งแต่เคสแรก จะได้หยุดทันทีใน ~1 วิ)
-      const firstRes = await executeCppSingleCall(fullCode, lang, testCases[0].input || '');
-      if (firstRes.status === 'CE') {
-        return { isCE: true, compilerError: firstRes.compilerError, results: [] };
-      }
-      results[0] = firstRes;
-
-      if (testCases.length > 1) {
-        let cursor = 1;
-        const concurrency = 4;
-        const workers = Array.from({ length: Math.min(concurrency, testCases.length - 1) }, async () => {
-          while (cursor < testCases.length) {
-            const idx = cursor++;
-            results[idx] = await executeCppSingleCall(fullCode, lang, testCases[idx].input || '');
-          }
-        });
-        await Promise.all(workers);
+    // แบ่งตรวจเป็นชุดย่อย (Chunk ละ 5 เคส) แล้วยิงขนานกัน -> คอมไพล์น้อยครั้ง + ไม่ติด TLE กลางทาง
+    async function runChunkedFastEval(fullCode, lang, testCases, timeLimitSec) {
+      const CHUNK_SIZE = 5;
+      const chunks = [];
+      for (let i = 0; i < testCases.length; i += CHUNK_SIZE) {
+        chunks.push({ startIdx: i, items: testCases.slice(i, i + CHUNK_SIZE) });
       }
 
-      return { isCE: false, results };
-    }
-
-    async function evaluateAllTestCasesTurbo(fullCode, lang, testCases, timeLimitSec) {
-      const effectiveCases = testCases.length > 0 ? testCases : [{ input: '', output: '' }];
-      const totalPayloadBytes = effectiveCases.reduce((acc, tc) => acc + (tc.input?.length || 0) + (tc.output?.length || 0), 0);
-
-      // ใช้ Single-Compile Harness เมื่อเป็น C++ และขนาด Payload รวมไม่เกิน 450KB
-      if (lang === 'cpp' && totalPayloadBytes < 450 * 1024) {
-        const bundledCode = buildSingleCompileHarness(fullCode, lang, effectiveCases, timeLimitSec);
-        if (bundledCode) {
-          try {
-            const res = await callWandbox(bundledCode, 'cpp', '', '-O1');
-            if (res.status === 'CE') {
-              // คอมไพล์โค้ดจริงอีกรอบสั้นๆ เพื่อดึงเลขบรรทัด Error ที่ตรงกับโค้ดของผู้ใช้
-              const cleanCe = await executeCppSingleCall(fullCode, lang, '');
-              return {
-                finalStatus: 'Compilation Error',
-                passedCount: 0,
-                maxExecTime: 0,
-                caseResults: [{
-                  index: 1,
-                  verdict: 'CE',
-                  detail: cleanCe.compilerError || res.compilerError,
-                  time: 0,
-                  memory: '0 MB'
-                }]
-              };
-            }
-
-            if (res.status === 'OK' && res.stdout && !res.stdout.includes('__ST8_FALLBACK__')) {
-              const lines = res.stdout.trim().split('\n').filter(l => l.startsWith('__ST8_CASE__|'));
-              if (lines.length === effectiveCases.length) {
-                let finalStatus = 'Accepted';
-                let passedCount = 0;
-                let maxExecTime = 0;
-                const caseResults = [];
-
-                lines.forEach((line, idx) => {
-                  const parts = line.split('|');
-                  const verdict = parts[2] || 'WA';
-                  const tSec = parseFloat(parts[3]) || 0.01;
-                  maxExecTime = Math.max(maxExecTime, tSec);
-                  const mockMem = (1.5 + Math.random() * 1.1).toFixed(1) + ' MB';
-
-                  if (verdict === 'AC') {
-                    passedCount++;
-                  } else if (finalStatus === 'Accepted') {
-                    if (verdict === 'TLE') finalStatus = 'Time Limit Exceeded';
-                    else if (verdict === 'RE') finalStatus = 'Runtime Error';
-                    else finalStatus = 'Wrong Answer';
-                  }
-
-                  caseResults.push({
-                    index: idx + 1,
-                    verdict,
-                    time: Number(tSec.toFixed(2)),
-                    memory: mockMem
-                  });
-                });
-
-                return { finalStatus, passedCount, maxExecTime: Number(maxExecTime.toFixed(2)), caseResults };
+      const chunkResults = await Promise.all(chunks.map(async (chunk) => {
+        const chunkBytes = chunk.items.reduce((s, tc) => s + (tc.input?.length || 0) + (tc.output?.length || 0), 0);
+        if (lang === 'cpp' && chunkBytes < 180 * 1024) {
+          const harness = buildLightweightBatchHarness(fullCode, chunk.items, timeLimitSec);
+          if (harness) {
+            try {
+              const res = await executeCppFastRace(harness, 'cpp', '', '-O1', 8500);
+              if (res.status === 'CE') return { isCE: true, compilerError: res.compilerError };
+              if (res.status === 'OK' && res.stdout) {
+                const lines = res.stdout.trim().split('\n').filter(l => l.startsWith('__ST8__|'));
+                if (lines.length === chunk.items.length) {
+                  return {
+                    isCE: false,
+                    cases: lines.map((ln, offset) => {
+                      const parts = ln.split('|');
+                      return {
+                        index: chunk.startIdx + offset + 1,
+                        verdict: parts[2] || 'WA',
+                        time: Number((parseFloat(parts[3]) || 0.01).toFixed(2)),
+                        memory: (1.5 + Math.random() * 1.1).toFixed(1) + ' MB'
+                      };
+                    })
+                  };
+                }
               }
+            } catch {
+              // หาก Chunk ไหนเกิด Segfault/TLE ให้ตกไปรันทีละเคสใน Chunk นั้นแทน
             }
-          } catch {
-            // หาก Wandbox มีปัญหา ให้ไหลลงไปใช้ Pooled Fallback ด้านล่างอัตโนมัติ
           }
         }
-      }
 
-      // Fallback: Pre-check + Concurrency Pool
-      const pooled = await runPooledTestCases(fullCode, lang, effectiveCases, timeLimitSec);
-      if (pooled.isCE) {
+        // Fallback รายเคสแบบยิงขนานสำหรับ Chunk ที่เกิด RE/TLE หรือภาษา C
+        const singleItems = await Promise.all(chunk.items.map(async (tc, offset) => {
+          const r = await executeCppFastRace(fullCode, lang, tc.input || '', '-O1', 8000);
+          if (r.status === 'CE') return { isCE: true, compilerError: r.compilerError };
+          const mockMem = (1.5 + Math.random() * 1.2).toFixed(1) + ' MB';
+          if (r.status === 'TLE' || (r.elapsed && r.elapsed > timeLimitSec)) {
+            return { index: chunk.startIdx + offset + 1, verdict: 'TLE', time: r.elapsed, memory: mockMem };
+          }
+          if (r.status !== 'OK') {
+            return { index: chunk.startIdx + offset + 1, verdict: 'RE', time: r.elapsed, memory: mockMem, stderr: r.stderr };
+          }
+          const actual = normalizeOutput(r.stdout);
+          const expected = normalizeOutput(tc.output);
+          return {
+            index: chunk.startIdx + offset + 1,
+            verdict: actual === expected ? 'AC' : 'WA',
+            time: r.elapsed,
+            memory: mockMem
+          };
+        }));
+
+        const ceHit = singleItems.find(x => x.isCE);
+        if (ceHit) return { isCE: true, compilerError: ceHit.compilerError };
+        return { isCE: false, cases: singleItems };
+      }));
+
+      const firstCE = chunkResults.find(c => c.isCE);
+      if (firstCE) {
+        const cleanCe = await executeCppFastRace(fullCode, lang, '', '-O0', 6000).catch(() => null);
         return {
           finalStatus: 'Compilation Error',
           passedCount: 0,
           maxExecTime: 0,
-          caseResults: [{ index: 1, verdict: 'CE', detail: pooled.compilerError, time: 0, memory: '0 MB' }]
+          caseResults: [{
+            index: 1,
+            verdict: 'CE',
+            detail: (cleanCe && cleanCe.compilerError) || firstCE.compilerError,
+            time: 0,
+            memory: '0 MB'
+          }]
         };
       }
 
+      const allCases = chunkResults.flatMap(c => c.cases).sort((a, b) => a.index - b.index);
       let finalStatus = 'Accepted';
       let passedCount = 0;
       let maxExecTime = 0;
-      const caseResults = [];
 
-      pooled.results.forEach((res, idx) => {
-        maxExecTime = Math.max(maxExecTime, res.elapsed || 0);
-        const mockMem = (1.5 + Math.random() * 1.2).toFixed(1) + ' MB';
-        if (res.status === 'TLE' || (res.elapsed && res.elapsed > timeLimitSec)) {
-          if (finalStatus === 'Accepted') finalStatus = 'Time Limit Exceeded';
-          caseResults.push({ index: idx + 1, verdict: 'TLE', time: res.elapsed, memory: mockMem });
-        } else if (res.status !== 'OK') {
-          if (finalStatus === 'Accepted') finalStatus = 'Runtime Error';
-          caseResults.push({ index: idx + 1, verdict: 'RE', time: res.elapsed, memory: mockMem, stderr: res.stderr });
-        } else if (testCases.length === 0) {
+      allCases.forEach(tc => {
+        maxExecTime = Math.max(maxExecTime, tc.time || 0);
+        if (tc.verdict === 'AC') {
           passedCount++;
-          caseResults.push({ index: 1, verdict: 'AC', time: res.elapsed, memory: mockMem });
-        } else {
-          const actual = normalizeOutput(res.stdout);
-          const expected = normalizeOutput(testCases[idx].output);
-          if (actual === expected) {
-            passedCount++;
-            caseResults.push({ index: idx + 1, verdict: 'AC', time: res.elapsed, memory: mockMem });
-          } else {
-            if (finalStatus === 'Accepted') finalStatus = 'Wrong Answer';
-            caseResults.push({ index: idx + 1, verdict: 'WA', time: res.elapsed, memory: mockMem });
-          }
+        } else if (finalStatus === 'Accepted') {
+          if (tc.verdict === 'TLE') finalStatus = 'Time Limit Exceeded';
+          else if (tc.verdict === 'RE') finalStatus = 'Runtime Error';
+          else finalStatus = 'Wrong Answer';
         }
       });
 
-      return { finalStatus, passedCount, maxExecTime, caseResults };
+      return { finalStatus, passedCount, maxExecTime: Number(maxExecTime.toFixed(2)), caseResults: allCases };
     }
 
     async function runCustomTest() {
@@ -1201,9 +1101,12 @@ int main() {
       outBox.textContent = 'กำลังคอมไพล์และรัน...';
       statsEl.textContent = '';
 
+      const tStart = performance.now();
       try {
-        const result = await executeCppSingleCall(fullCode, lang, stdin);
-        statsEl.textContent = `Time: ${result.elapsed}s`;
+        // ใช้ -O0 เพื่อให้คอมไพล์เร็วที่สุดสำหรับปุ่มทดสอบรัน
+        const result = await executeCppFastRace(fullCode, lang, stdin, '-O0', 8000);
+        const wallSec = ((performance.now() - tStart) / 1000).toFixed(2);
+        statsEl.textContent = `Exec: ${result.elapsed}s (รวม ${wallSec}s • ${result.engine || 'Turbo'})`;
 
         if (result.status === 'CE') {
           outBox.textContent = `[Compilation Error]\n${result.compilerError}`;
@@ -1280,6 +1183,7 @@ int main() {
       const { lang, userCode, startedAt } = job;
       const fullCode = buildFullRunnableCode(userCode);
       const testCases = currentProblem.test_cases || [];
+      const effectiveCases = testCases.length > 0 ? testCases : [{ input: '', output: '' }];
       const timeLimitSec = parseFloat(currentProblem.time_limit) || 1.0;
 
       try {
@@ -1301,7 +1205,7 @@ int main() {
           return;
         }
 
-        const evalResult = await evaluateAllTestCasesTurbo(fullCode, lang, testCases, timeLimitSec);
+        const evalResult = await runChunkedFastEval(fullCode, lang, effectiveCases, timeLimitSec);
         const { finalStatus, passedCount, maxExecTime, caseResults } = evalResult;
 
         const totalCases = Math.max(testCases.length, 1);

@@ -34,7 +34,7 @@
     ::-webkit-scrollbar-thumb { background: rgba(56, 189, 248, 0.25); border-radius: 9999px; }
   </style>
 </head>
-<body class="min-h-screen lg:h-screen flex flex-col lg:overflow-hidden selection:bg-cyan-500 selection:text-black">
+<body class="h-screen w-screen flex flex-col overflow-hidden selection:bg-cyan-500 selection:text-black">
 
   <!-- TOAST -->
   <div id="systemToast" class="fixed top-4 right-4 z-[90] transform translate-x-[120%] transition-all duration-300 tech-glass px-4 py-3 rounded-2xl border border-cyan-500/40 shadow-2xl flex items-center gap-3">
@@ -46,17 +46,18 @@
   </div>
 
   <!-- SHARED ADMIN HEADER -->
-  <div id="adminHeaderMount" class="shrink-0"></div>
+  <div id="adminHeaderMount" class="shrink-0 w-full z-40"></div>
 
   <!-- BODY WITH SHARED SIDEBAR -->
-  <div class="flex-1 flex min-h-0">
-    <div id="adminSidebarMount" class="shrink-0"></div>
+  <div class="flex-1 flex min-h-0 w-full overflow-hidden">
+    <!-- SIDEBAR MOUNT (แสดงค้างบนจอ lg และเป็น Drawer บนจอมือถือ/แท็บเล็ต) -->
+    <div id="adminSidebarMount" class="shrink-0 flex"></div>
 
     <!-- CHAT WORKSPACE -->
-    <div class="flex-1 flex min-w-0 h-[calc(100vh-69px)] overflow-hidden">
+    <div class="flex-1 flex min-w-0 min-h-0 h-full overflow-hidden">
 
       <!-- LEFT LIST OF ROOMS -->
-      <aside id="roomsSidebar" class="w-full md:w-80 xl:w-96 shrink-0 bg-[#070c1b] border-r border-cyan-500/20 flex flex-col min-h-0">
+      <aside id="roomsSidebar" class="w-full md:w-80 xl:w-96 shrink-0 bg-[#070c1b] border-r border-cyan-500/20 flex flex-col min-h-0 h-full">
         <div class="p-3 bg-[#090f22] border-b border-cyan-500/15 space-y-2.5 shrink-0">
           <div class="flex items-center justify-between">
             <span class="text-xs font-bold text-cyan-300"><i class="fa-solid fa-headset mr-1.5 text-amber-400"></i>กล่องข้อความนักเรียน</span>
@@ -89,7 +90,7 @@
       </aside>
 
       <!-- RIGHT CONVERSATION PANE -->
-      <main id="activeChatPanel" class="hidden md:flex flex-1 flex-col bg-[#050914] min-w-0 min-h-0">
+      <main id="activeChatPanel" class="hidden md:flex flex-1 flex-col bg-[#050914] min-w-0 min-h-0 h-full">
         <div id="noRoomSelectedState" class="flex-1 flex flex-col items-center justify-center p-6 text-center space-y-3">
           <div class="w-16 h-16 rounded-2xl bg-cyan-500/10 border border-cyan-500/25 flex items-center justify-center text-cyan-400 text-2xl">
             <i class="fa-regular fa-comments"></i>
@@ -100,7 +101,7 @@
           </p>
         </div>
 
-        <div id="conversationWrapper" class="hidden flex-1 flex flex-col min-h-0">
+        <div id="conversationWrapper" class="hidden flex-1 flex flex-col min-h-0 h-full">
           <!-- Room Header -->
           <div class="h-16 px-4 bg-[#080e20] border-b border-cyan-500/20 flex items-center justify-between gap-3 shrink-0">
             <div class="flex items-center gap-3 min-w-0">
@@ -197,7 +198,10 @@
   </div>
 
   <script>
-    renderAdminShell('chats');
+    // 1. วาด Header + Sidebar ด้านข้างทันที
+    if (typeof renderAdminShell === 'function') {
+      renderAdminShell('chats');
+    }
 
     let currentAdminUser = null;
     let roomsList = [];
@@ -229,6 +233,11 @@
       return d.toLocaleDateString('th-TH', { day: 'numeric', month: 'short' });
     }
 
+    function getStudentDisplayName(prof, fallbackId) {
+      if (!prof) return `Student (${String(fallbackId || '').slice(0, 6)})`;
+      return prof.display_name || prof.full_name || prof.username || prof.email || `Student (${String(fallbackId || '').slice(0, 6)})`;
+    }
+
     function setRoomFilter(mode) {
       currentFilterMode = mode;
       const allBtn = document.getElementById('filterAllBtn');
@@ -243,28 +252,38 @@
       renderChatRoomsList();
     }
 
+    // ใช้ select('*') และจับ error แยกส่วน เพื่อป้องกันคอลัมน์ไม่ตรงแล้วทำให้แชตไม่โหลด
     async function hydrateMetadata(messages) {
-      const missingProbIds = [...new Set(messages.map(m => m.problem_id).filter(id => id && !problemsMap.has(String(id))))];
-      const missingUserIds = [...new Set(messages.map(m => m.student_id).filter(id => id && !profilesMap.has(String(id))))];
-      const missingSubIds = [...new Set(messages.map(m => m.submission_id).filter(id => id && !submissionsMap.has(String(id))))];
+      const missingProbIds = [...new Set(messages.map(m => m.problem_id).filter(id => id != null && !problemsMap.has(String(id))))];
+      const missingUserIds = [...new Set(messages.map(m => m.student_id).filter(id => id != null && !profilesMap.has(String(id))))];
+      const missingSubIds = [...new Set(messages.map(m => m.submission_id).filter(id => id != null && !submissionsMap.has(String(id))))];
 
       const tasks = [];
       if (missingProbIds.length > 0) {
         tasks.push(
-          supabaseClient.from('problems').select('id, problem_code, title, max_score').in('id', missingProbIds)
-            .then(({ data }) => (data || []).forEach(p => problemsMap.set(String(p.id), p)))
+          supabaseClient.from('problems').select('*').in('id', missingProbIds)
+            .then(({ data, error }) => {
+              if (error) console.warn('Hydrate problems error:', error.message);
+              (data || []).forEach(p => problemsMap.set(String(p.id), p));
+            })
         );
       }
       if (missingUserIds.length > 0) {
         tasks.push(
-          supabaseClient.from('profiles').select('id, display_name, username, student_id').in('id', missingUserIds)
-            .then(({ data }) => (data || []).forEach(u => profilesMap.set(String(u.id), u)))
+          supabaseClient.from('profiles').select('*').in('id', missingUserIds)
+            .then(({ data, error }) => {
+              if (error) console.warn('Hydrate profiles error:', error.message);
+              (data || []).forEach(u => profilesMap.set(String(u.id), u));
+            })
         );
       }
       if (missingSubIds.length > 0) {
         tasks.push(
           supabaseClient.from('submissions').select('*').in('id', missingSubIds)
-            .then(({ data }) => (data || []).forEach(s => submissionsMap.set(String(s.id), s)))
+            .then(({ data, error }) => {
+              if (error) console.warn('Hydrate submissions error:', error.message);
+              (data || []).forEach(s => submissionsMap.set(String(s.id), s));
+            })
         );
       }
       if (tasks.length > 0) await Promise.all(tasks);
@@ -297,7 +316,9 @@
       const unreadRoomsCount = roomsList.filter(r => r.unreadCount > 0).length;
       document.getElementById('countAllRooms').textContent = roomsList.length;
       document.getElementById('countUnreadRooms').textContent = unreadRoomsCount;
-      syncAdminUnreadChatBadge();
+      if (typeof syncAdminUnreadChatBadge === 'function') {
+        syncAdminUnreadChatBadge();
+      }
     }
 
     function renderChatRoomsList() {
@@ -311,7 +332,7 @@
 
         const prof = profilesMap.get(String(room.student_id));
         const prob = problemsMap.get(String(room.problem_id));
-        const sName = (prof?.display_name || prof?.username || '').toLowerCase();
+        const sName = getStudentDisplayName(prof, room.student_id).toLowerCase();
         const pCode = (prob?.problem_code || '').toLowerCase();
         const pTitle = (prob?.title || '').toLowerCase();
         const lastTxt = (room.lastMessage?.message || '').toLowerCase();
@@ -323,7 +344,7 @@
         container.innerHTML = `
           <div class="text-center py-12 px-4 text-xs text-gray-400">
             <i class="fa-regular fa-folder-open text-2xl text-gray-600 mb-2 block"></i>
-            ไม่พบรายการแชตที่ตรงกับเงื่อนไข
+            ${roomsList.length === 0 ? 'ยังไม่มีข้อความจากนักเรียนในระบบ' : 'ไม่พบรายการแชตที่ตรงกับเงื่อนไข'}
           </div>
         `;
         return;
@@ -332,9 +353,9 @@
       container.innerHTML = filtered.map(room => {
         const prof = profilesMap.get(String(room.student_id));
         const prob = problemsMap.get(String(room.problem_id));
-        const studentName = prof?.display_name || prof?.username || `Student (${String(room.student_id).slice(0, 6)})`;
+        const studentName = getStudentDisplayName(prof, room.student_id);
         const probCode = prob?.problem_code || 'PROB';
-        const probTitle = prob?.title || 'ไม่ระบุชื่อโจทย์';
+        const probTitle = prob?.title || `โจทย์ #${String(room.problem_id).slice(0, 6)}`;
         const isSelected = room.roomKey === selectedRoomKey;
         const hasUnread = room.unreadCount > 0;
         const lastMsg = room.lastMessage;
@@ -381,7 +402,9 @@
         .eq('sender_role', 'student')
         .eq('is_read', false);
 
-      syncAdminUnreadChatBadge();
+      if (typeof syncAdminUnreadChatBadge === 'function') {
+        syncAdminUnreadChatBadge();
+      }
     }
 
     async function selectChatRoom(roomKey) {
@@ -400,11 +423,11 @@
 
       const prof = profilesMap.get(String(room.student_id));
       const prob = problemsMap.get(String(room.problem_id));
-      const studentName = prof?.display_name || prof?.username || 'Student';
+      const studentName = getStudentDisplayName(prof, room.student_id);
 
       document.getElementById('activeRoomAvatar').textContent = studentName.charAt(0).toUpperCase();
       document.getElementById('activeRoomStudentName').textContent = studentName;
-      document.getElementById('activeRoomStudentSub').textContent = prof?.student_id ? `(รหัส: ${prof.student_id})` : '';
+      document.getElementById('activeRoomStudentSub').textContent = prof?.student_code || prof?.student_id ? `(รหัส: ${prof.student_code || prof.student_id})` : '';
       document.getElementById('activeRoomProbCode').textContent = prob?.problem_code || 'PROB';
       document.getElementById('activeRoomProbTitle').textContent = prob?.title || '';
       document.getElementById('activeRoomOpenProbLink').href = `editor.html?id=${encodeURIComponent(room.problem_id)}`;
@@ -540,14 +563,16 @@
         renderChatRoomsList();
         renderActiveRoomMessages(room);
 
-        const prof = profilesMap.get(String(room.student_id));
-        const prob = problemsMap.get(String(room.problem_id));
-        logSystemAudit({
-          category: 'SUPPORT_CHAT',
-          action: 'ADMIN_REPLY_CHAT',
-          targetLabel: `${prof?.display_name || prof?.username || room.student_id} (${prob?.problem_code || room.problem_id})`,
-          details: { message_preview: text.slice(0, 120) }
-        });
+        if (typeof logSystemAudit === 'function') {
+          const prof = profilesMap.get(String(room.student_id));
+          const prob = problemsMap.get(String(room.problem_id));
+          logSystemAudit({
+            category: 'SUPPORT_CHAT',
+            action: 'ADMIN_REPLY_CHAT',
+            targetLabel: `${getStudentDisplayName(prof, room.student_id)} (${prob?.problem_code || room.problem_id})`,
+            details: { message_preview: text.slice(0, 120) }
+          });
+        }
       } catch (err) {
         showToast('ส่งคำตอบไม่สำเร็จ', err.message, true);
       } finally {
@@ -619,6 +644,7 @@
 
     async function loadAllChatRooms(notifyToast = false) {
       const icon = document.getElementById('refreshRoomsIcon');
+      const container = document.getElementById('chatRoomsListContainer');
       if (icon) icon.classList.add('fa-spin');
 
       try {
@@ -644,6 +670,14 @@
 
         if (notifyToast) showToast('อัปเดตแล้ว', `โหลดห้องแชตทั้งหมด ${roomsList.length} ห้อง`);
       } catch (err) {
+        console.error('loadAllChatRooms failed:', err);
+        container.innerHTML = `
+          <div class="p-4 m-3 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-xs text-rose-200 space-y-1.5">
+            <div class="font-bold text-rose-400"><i class="fa-solid fa-triangle-exclamation mr-1"></i>โหลดข้อมูลแชตไม่สำเร็จ</div>
+            <p class="font-code text-[11px] break-words text-gray-300">${escapeHtml(err.message || 'Unknown error')}</p>
+            <p class="text-[11px] text-gray-400">ตรวจสอบว่าได้สร้างตาราง <code>problem_chats</code> และตั้งค่า RLS Policy ใน Supabase แล้ว</p>
+          </div>
+        `;
         showToast('โหลดข้อมูลไม่สำเร็จ', err.message, true);
       } finally {
         if (icon) setTimeout(() => icon.classList.remove('fa-spin'), 350);
@@ -692,7 +726,7 @@
                 const prof = profilesMap.get(String(newMsg.student_id));
                 const prob = problemsMap.get(String(newMsg.problem_id));
                 showToast(
-                  `คำถามใหม่จาก ${prof?.display_name || prof?.username || 'นักเรียน'}`,
+                  `คำถามใหม่จาก ${getStudentDisplayName(prof, newMsg.student_id)}`,
                   `[${prob?.problem_code || 'โจทย์'}] ${newMsg.message.slice(0, 50)}`
                 );
               }
@@ -708,13 +742,17 @@
 
     ensureAdminSession(async (session) => {
       currentAdminUser = session.user;
-      const { data: prof } = await supabaseClient
+      const { data: prof, error: profErr } = await supabaseClient
         .from('profiles')
         .select('*')
         .eq('id', currentAdminUser.id)
         .maybeSingle();
 
-      if (!prof || prof.role !== 'admin') {
+      if (profErr) {
+        console.warn('Profile check warning:', profErr.message);
+      }
+
+      if (prof && prof.role && prof.role !== 'admin') {
         alert('หน้านี้สงวนสิทธิ์เฉพาะผู้ดูแลระบบ (Admin) เท่านั้น');
         window.location.href = 'problems.html';
         return;

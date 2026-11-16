@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="th" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ห้องทดลองรันโค้ด | Admin ST8 CP-Grader</title>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body {
+      font-family: 'Kanit', sans-serif;
+      background-color: #030712;
+      color: #f3f4f6;
+    }
+    .code-font { font-family: 'JetBrains Mono', monospace; }
+    .tech-glass {
+      background: rgba(10, 15, 30, 0.78);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(56, 189, 248, 0.16);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.55);
+    }
+    .cyber-grid {
+      background-image: linear-gradient(to right, rgba(56, 189, 248, 0.03) 1px, transparent 1px),
+                        linear-gradient(to bottom, rgba(56, 189, 248, 0.03) 1px, transparent 1px);
+      background-size: 32px 32px;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col cyber-grid selection:bg-cyan-500 selection:text-black">
+
+  <!-- TOP HEADER & ADMIN NAV TABS -->
+  <header class="sticky top-0 z-50 tech-glass border-b border-cyan-500/20 px-4 md:px-8 py-3.5">
+    <div class="max-w-7xl mx-auto flex flex-col gap-3">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3 cursor-pointer" onclick="window.location.href='admin.html'">
+          <div class="bg-gradient-to-tr from-rose-600 to-amber-500 p-2 rounded-xl text-white font-bold w-9 h-9 flex items-center justify-center shadow-lg shadow-rose-500/20">
+            <i class="fa-solid fa-user-shield"></i>
+          </div>
+          <div>
+            <h1 class="font-bold text-sm tracking-widest text-rose-400 uppercase">ST8 Admin Console</h1>
+            <p class="text-[10px] text-gray-400">ADMIN CODE SANDBOX & TESTBENCH</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <a href="problems.html" class="text-xs bg-white/5 hover:bg-white/10 text-gray-300 px-3 py-1.5 rounded-xl border border-white/10 transition">
+            <i class="fa-solid fa-arrow-up-right-from-square mr-1"></i> กลับหน้าคลังโจทย์
+          </a>
+        </div>
+      </div>
+
+      <!-- ADMIN TAB MENU -->
+      <nav id="adminTabNav" class="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs font-medium">
+        <a href="admin.html" class="px-3.5 py-2 rounded-xl text-gray-300 hover:bg-white/5 hover:text-white whitespace-nowrap transition">
+          <i class="fa-solid fa-list-check mr-1 text-cyan-400"></i> จัดการโจทย์
+        </a>
+        <a href="admin-verify.html" class="px-3.5 py-2 rounded-xl text-gray-300 hover:bg-white/5 hover:text-white whitespace-nowrap transition">
+          <i class="fa-solid fa-circle-check mr-1 text-emerald-400"></i> ตรวจอนุมัติโจทย์
+        </a>
+        <a href="admin-playground.html" class="px-3.5 py-2 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-bold shadow-md whitespace-nowrap transition">
+          <i class="fa-solid fa-flask-vial mr-1"></i> ห้องทดลองรันโค้ด
+        </a>
+        <a href="admin-contests.html" class="px-3.5 py-2 rounded-xl text-gray-300 hover:bg-white/5 hover:text-white whitespace-nowrap transition">
+          <i class="fa-solid fa-trophy mr-1 text-amber-400"></i> จัดการ Contest
+        </a>
+        <a href="admin-users.html" class="px-3.5 py-2 rounded-xl text-gray-300 hover:bg-white/5 hover:text-white whitespace-nowrap transition">
+          <i class="fa-solid fa-users-gear mr-1 text-purple-400"></i> ผู้ใช้งาน
+        </a>
+        <a href="admin-scoreboard.html" class="px-3.5 py-2 rounded-xl text-gray-300 hover:bg-white/5 hover:text-white whitespace-nowrap transition">
+          <i class="fa-solid fa-ranking-star mr-1 text-cyan-400"></i> Scoreboard
+        </a>
+        <a href="admin-stats.html" class="px-3.5 py-2 rounded-xl text-gray-300 hover:bg-white/5 hover:text-white whitespace-nowrap transition">
+          <i class="fa-solid fa-chart-line mr-1 text-emerald-400"></i> สถิติระบบ
+        </a>
+        <a href="admin-audit.html" class="px-3.5 py-2 rounded-xl text-gray-300 hover:bg-white/5 hover:text-white whitespace-nowrap transition">
+          <i class="fa-solid fa-shield-cat mr-1 text-rose-400"></i> Audit Logs
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- MAIN SANDBOX AREA -->
+  <main class="flex-1 max-w-7xl mx-auto w-full px-4 md:px-8 py-6 space-y-5">
+
+    <!-- TOOLBAR -->
+    <div class="tech-glass rounded-2xl p-4 border border-cyan-500/20 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex flex-wrap items-center gap-2.5 flex-1 min-w-[260px]">
+        <span class="text-xs font-bold text-cyan-300 whitespace-nowrap"><i class="fa-solid fa-book mr-1"></i> โหลดโจทย์มาทดสอบ:</span>
+        <select id="problemSelector" onchange="loadSelectedProblemData()" class="bg-black/70 border border-cyan-500/30 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-400 max-w-md w-full cursor-pointer">
+          <option value="">-- โหมดอิสระ (ไม่ผูกกับโจทย์) --</option>
+        </select>
+        <span id="problemModeTag" class="hidden text-[11px] px-2.5 py-1 rounded-lg bg-purple-500/20 text-purple-300 border border-purple-500/35 font-semibold"></span>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2">
+        <select id="langSelect" onchange="applyDefaultBoilerplate()" class="bg-black/70 border border-cyan-500/30 rounded-xl px-3 py-2 text-xs text-white font-semibold cursor-pointer">
+          <option value="cpp">C++ 20 (G++)</option>
+          <option value="c">C (GCC)</option>
+          <option value="python">Python 3</option>
+          <option value="javascript">JavaScript (Node.js)</option>
+        </select>
+
+        <button type="button" onclick="runSingleCustomTest()" id="btnRunCustom" class="bg-gradient-to-r from-emerald-600 to-teal-500 hover:opacity-95 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-lg shadow-emerald-500/20 transition cursor-pointer flex items-center gap-1.5">
+          <i class="fa-solid fa-play"></i> รันทดสอบ (Custom Input)
+        </button>
+
+        <button type="button" onclick="runAllProblemTestCases()" id="btnRunAllCases" class="hidden bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-95 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-lg shadow-cyan-500/20 transition cursor-pointer flex items-center gap-1.5">
+          <i class="fa-solid fa-vials"></i> ตรวจทุก Test Case ของโจทย์
+        </button>
+      </div>
+    </div>
+
+    <!-- EDITOR & I/O GRID -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+      <!-- CODE EDITOR -->
+      <div class="lg:col-span-7 tech-glass rounded-2xl border border-cyan-500/20 flex flex-col overflow-hidden">
+        <div class="bg-cyan-950/40 px-4 py-2.5 border-b border-cyan-500/20 flex items-center justify-between">
+          <span class="text-xs font-bold text-cyan-300"><i class="fa-solid fa-code mr-1.5"></i> Source Code</span>
+          <div class="flex items-center gap-2">
+            <label id="wrapGraderWrapper" class="hidden items-center gap-1.5 text-[11px] text-amber-300 cursor-pointer">
+              <input type="checkbox" id="chkWrapGraderMain" checked class="accent-amber-400">
+              <span>ประกบ main() ของ Grader อัตโนมัติ</span>
+            </label>
+            <button type="button" onclick="applyDefaultBoilerplate(true)" class="text-[11px] text-gray-400 hover:text-cyan-300 transition cursor-pointer">
+              <i class="fa-solid fa-rotate-left mr-1"></i> รีเซ็ตโค้ด
+            </button>
+          </div>
+        </div>
+        <textarea id="codeEditor" rows="20" spellcheck="false" class="w-full flex-1 bg-[#020617] p-4 text-xs md:text-sm text-emerald-300 code-font leading-relaxed focus:outline-none resize-y" placeholder="เขียนโค้ดที่ต้องการทดสอบที่นี่..."></textarea>
+      </div>
+
+      <!-- INPUT / OUTPUT & TEST RESULTS -->
+      <div class="lg:col-span-5 space-y-4 flex flex-col">
+        <div class="tech-glass rounded-2xl border border-cyan-500/20 overflow-hidden">
+          <div class="bg-cyan-950/40 px-4 py-2 border-b border-cyan-500/20 flex justify-between items-center">
+            <span class="text-xs font-bold text-cyan-300"><i class="fa-solid fa-keyboard mr-1"></i> Standard Input (stdin)</span>
+            <button type="button" onclick="loadSampleInput()" id="btnLoadSample" class="hidden text-[11px] text-amber-300 hover:underline cursor-pointer">โหลด Sample Input</button>
+          </div>
+          <textarea id="stdinBox" rows="5" spellcheck="false" class="w-full bg-[#020617] p-3 text-xs text-white code-font focus:outline-none resize-y" placeholder="ใส่ข้อมูล Input..."></textarea>
+        </div>
+
+        <div class="tech-glass rounded-2xl border border-cyan-500/20 overflow-hidden">
+          <div class="bg-cyan-950/40 px-4 py-2 border-b border-cyan-500/20 flex justify-between items-center">
+            <span class="text-xs font-bold text-purple-300"><i class="fa-solid fa-bullseye mr-1"></i> Expected Output (ตัวเลือกเสริมสำหรับเทียบผล)</span>
+          </div>
+          <textarea id="expectedBox" rows="3" spellcheck="false" class="w-full bg-[#020617] p-3 text-xs text-gray-300 code-font focus:outline-none resize-y" placeholder="ใส่คำตอบที่คาดหวัง (ถ้ามี)..."></textarea>
+        </div>
+
+        <div class="tech-glass rounded-2xl border border-cyan-500/20 overflow-hidden flex-1 flex flex-col">
+          <div class="bg-cyan-950/40 px-4 py-2 border-b border-cyan-500/20 flex justify-between items-center">
+            <span class="text-xs font-bold text-emerald-300"><i class="fa-solid fa-terminal mr-1"></i> Output / ผลการประมวลผล</span>
+            <span id="execMetaBadge" class="text-[11px] text-gray-400 code-font">Ready</span>
+          </div>
+          <div id="outputPanel" class="p-3.5 bg-[#020617] flex-1 min-h-[160px] max-h-[320px] overflow-y-auto text-xs code-font text-gray-200 whitespace-pre-wrap">กดปุ่ม "รันทดสอบ" เพื่อดูผลลัพธ์...</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const SUPABASE_URL = 'https://hqnmfkafwwnjiqpdhzoh.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhxbm1ma2Fmd3duamlxcGRoem9oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQyMTc0NzEsImV4cCI6MjEwOTc5MzQ3MX0.m6dHtNnXuQ108DvafyKWeFvAg_oySuQH3LRg0Jzaops';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let cachedProblems = [];
+    let selectedProblem = null;
+
+    const BOILERPLATES = {
+      cpp: `#include <bits/stdc++.h>\nusing namespace std;\n\nint main() {\n    ios::sync_with_stdio(false);\n    cin.tie(nullptr);\n    \n    return 0;\n}`,
+      c: `#include <stdio.h>\n\nint main() {\n    \n    return 0;\n}`,
+      python: `import sys\n\ndef solve():\n    data = sys.stdin.read().split()\n    if not data:\n        return\n\nif __name__ == '__main__':\n    solve()`,
+      javascript: `const fs = require('fs');\nconst input = fs.readFileSync(0, 'utf-8').trim().split(/\\s+/);\n`
+    };
+
+    const PISTON_LANG_MAP = {
+      cpp: { language: 'c++', version: '10.2.0' },
+      c: { language: 'c', version: '10.2.0' },
+      python: { language: 'python', version: '3.10.0' },
+      javascript: { language: 'javascript', version: '18.15.0' }
+    };
+
+    async function verifyAdminAndInit() {
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      if (!session) {
+        window.location.href = 'index.html';
+        return;
+      }
+      const { data: prof } = await supabaseClient.from('profiles').select('role').eq('id', session.user.id).maybeSingle();
+      if (!prof || prof.role !== 'admin') {
+        alert('สำหรับผู้ดูแลระบบ (Admin) เท่านั้น');
+        window.location.href = 'index.html';
+        return;
+      }
+
+      applyDefaultBoilerplate();
+      const { data: probs } = await supabaseClient.from('problems').select('*').order('id', { ascending: false });
+      cachedProblems = probs || [];
+
+      const sel = document.getElementById('problemSelector');
+      cachedProblems.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.id;
+        const statusTxt = p.is_draft ? '[Draft]' : (p.is_verified ? '[Verified]' : '[รอตรวจ]');
+        opt.textContent = `${p.problem_code || 'P' + p.id} - ${p.title} ${statusTxt}`;
+        sel.appendChild(opt);
+      });
+    }
+
+    function applyDefaultBoilerplate(force = false) {
+      const editor = document.getElementById('codeEditor');
+      const lang = document.getElementById('langSelect').value;
+      if (force || !editor.value.trim()) {
+        editor.value = BOILERPLATES[lang] || '';
+      }
+    }
+
+    function loadSelectedProblemData() {
+      const pid = document.getElementById('problemSelector').value;
+      selectedProblem = cachedProblems.find(p => String(p.id) === String(pid)) || null;
+
+      const modeTag = document.getElementById('problemModeTag');
+      const wrapBox = document.getElementById('wrapGraderWrapper');
+      const btnAll = document.getElementById('btnRunAllCases');
+      const btnSample = document.getElementById('btnLoadSample');
+
+      if (!selectedProblem) {
+        modeTag.classList.add('hidden');
+        wrapBox.classList.add('hidden');
+        btnAll.classList.add('hidden');
+        btnSample.classList.add('hidden');
+        return;
+      }
+
+      btnAll.classList.remove('hidden');
+      btnSample.classList.remove('hidden');
+
+      const isFunc = selectedProblem.is_function_mode || (selectedProblem.problem_mode && selectedProblem.problem_mode !== 'standard');
+      modeTag.classList.remove('hidden');
+      modeTag.textContent = isFunc ? 'Function Mode' : 'Standard I/O';
+
+      if (isFunc) {
+        wrapBox.classList.remove('hidden');
+        wrapBox.classList.add('inline-flex');
+        if (selectedProblem.func_lang) document.getElementById('langSelect').value = selectedProblem.func_lang;
+        if (selectedProblem.starter_code) document.getElementById('codeEditor').value = selectedProblem.starter_code;
+      } else {
+        wrapBox.classList.add('hidden');
+      }
+
+      loadSampleInput();
+    }
+
+    function loadSampleInput() {
+      if (!selectedProblem || !Array.isArray(selectedProblem.test_cases) || selectedProblem.test_cases.length === 0) return;
+      const sample = selectedProblem.test_cases.find(tc => tc.is_sample) || selectedProblem.test_cases[0];
+      document.getElementById('stdinBox').value = sample.input || '';
+      document.getElementById('expectedBox').value = sample.output || '';
+    }
+
+    function buildRunnableSource() {
+      const userCode = document.getElementById('codeEditor').value;
+      const isFunc = selectedProblem && (selectedProblem.is_function_mode || (selectedProblem.problem_mode && selectedProblem.problem_mode !== 'standard'));
+      const shouldWrap = isFunc && document.getElementById('chkWrapGraderMain').checked && selectedProblem.grader_main_code;
+      if (shouldWrap) {
+        return `${userCode}\n\n// --- GRADER MAIN ---\n${selectedProblem.grader_main_code}`;
+      }
+      return userCode;
+    }
+
+    async function executeCodeViaRunner(sourceCode, langKey, stdinText) {
+      const spec = PISTON_LANG_MAP[langKey] || PISTON_LANG_MAP.cpp;
+      const t0 = performance.now();
+      const res = await fetch('https://emkc.org/api/v2/piston/execute', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          language: spec.language,
+          version: spec.version,
+          files: [{ content: sourceCode }],
+          stdin: stdinText || ''
+        })
+      });
+      const data = await res.json();
+      const elapsed = Math.round(performance.now() - t0);
+      return { data, elapsed };
+    }
+
+    async function runSingleCustomTest() {
+      const panel = document.getElementById('outputPanel');
+      const meta = document.getElementById('execMetaBadge');
+      const lang = document.getElementById('langSelect').value;
+      const stdinText = document.getElementById('stdinBox').value;
+      const expectedText = document.getElementById('expectedBox').value.trim();
+
+      panel.textContent = '⏳ กำลัง Compile และรันโค้ด...';
+      meta.textContent = 'Running...';
+
+      try {
+        const fullSource = buildRunnableSource();
+        const { data, elapsed } = await executeCodeViaRunner(fullSource, lang, stdinText);
+
+        if (data.compile && data.compile.code !== 0) {
+          meta.textContent = `CE (${elapsed} ms)`;
+          panel.innerHTML = `<span class="text-rose-400 font-bold">[Compilation Error]</span>\n${escapeHtml(data.compile.stderr || data.compile.output || '')}`;
+          return;
+        }
+
+        const run = data.run || {};
+        const actualOut = (run.stdout || '').trim();
+        const stderrOut = (run.stderr || '').trim();
+
+        if (run.code !== 0) {
+          meta.textContent = `RE (${elapsed} ms)`;
+          panel.innerHTML = `<span class="text-amber-400 font-bold">[Runtime Error - Exit Code ${run.code}]</span>\n${escapeHtml(stderrOut || actualOut)}`;
+          return;
+        }
+
+        let verdictHtml = '';
+        if (expectedText !== '') {
+          const isMatch = normalizeOut(actualOut) === normalizeOut(expectedText);
+          verdictHtml = isMatch
+            ? `<div class="mb-2 px-2.5 py-1 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-bold">✔ ตรงกับ Expected Output (Accepted)</div>`
+            : `<div class="mb-2 px-2.5 py-1 rounded bg-rose-500/20 text-rose-300 border border-rose-500/40 font-bold">✘ ไม่ตรงกับ Expected Output (Wrong Answer)</div>`;
+        }
+
+        meta.textContent = `Done (${elapsed} ms)`;
+        panel.innerHTML = `${verdictHtml}${escapeHtml(actualOut || '(ไม่มีข้อความ Output)')}${stderrOut ? `\n\n<span class="text-amber-300">[stderr]</span>\n${escapeHtml(stderrOut)}` : ''}`;
+      } catch (err) {
+        meta.textContent = 'Error';
+        panel.textContent = `เกิดข้อผิดพลาดในการเชื่อมต่อ Runner: ${err.message}`;
+      }
+    }
+
+    async function runAllProblemTestCases() {
+      if (!selectedProblem || !Array.isArray(selectedProblem.test_cases) || selectedProblem.test_cases.length === 0) {
+        alert('โจทย์ข้อนี้ยังไม่มี Test Cases');
+        return;
+      }
+      const panel = document.getElementById('outputPanel');
+      const meta = document.getElementById('execMetaBadge');
+      const lang = document.getElementById('langSelect').value;
+      const fullSource = buildRunnableSource();
+      const cases = selectedProblem.test_cases;
+
+      panel.innerHTML = `⏳ กำลังตรวจทั้งหมด ${cases.length} Test Cases...\n`;
+      meta.textContent = `0 / ${cases.length}`;
+
+      let passed = 0;
+      let lines = [];
+
+      for (let i = 0; i < cases.length; i++) {
+        const tc = cases[i];
+        const { data, elapsed } = await executeCodeViaRunner(fullSource, lang, tc.input || '');
+
+        if (data.compile && data.compile.code !== 0) {
+          meta.textContent = 'Compilation Error';
+          panel.innerHTML = `<span class="text-rose-400 font-bold">[Compilation Error]</span>\n${escapeHtml(data.compile.stderr || '')}`;
+          return;
+        }
+
+        const run = data.run || {};
+        const actual = normalizeOut(run.stdout || '');
+        const expected = normalizeOut(tc.output || '');
+
+        if (run.code !== 0) {
+          lines.push(`<span class="text-amber-400">Case #${i + 1}: Runtime Error (${elapsed} ms)</span>`);
+        } else if (actual === expected) {
+          passed++;
+          lines.push(`<span class="text-emerald-400">Case #${i + 1}: ✔ Accepted (${elapsed} ms)</span>`);
+        } else {
+          lines.push(`<span class="text-rose-400">Case #${i + 1}: ✘ Wrong Answer (${elapsed} ms)</span>`);
+        }
+
+        meta.textContent = `${i + 1} / ${cases.length}`;
+        panel.innerHTML = lines.join('\n');
+      }
+
+      const summaryColor = passed === cases.length ? 'text-emerald-300' : 'text-amber-300';
+      panel.innerHTML = `<div class="font-bold ${summaryColor} mb-2">สรุปผล: ผ่าน ${passed} / ${cases.length} เคส</div>` + lines.join('\n');
+    }
+
+    function normalizeOut(str) {
+      return (str || '').replace(/\r\n/g, '\n').trim().split('\n').map(l => l.trimEnd()).join('\n');
+    }
+
+    function escapeHtml(str) {
+      return (str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    verifyAdminAndInit();
+  </script>
+</body>
+</html>

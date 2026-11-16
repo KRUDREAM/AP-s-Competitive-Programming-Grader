@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="th" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Support Inbox | ST8 CP-Grader</title>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body { font-family: 'Kanit', sans-serif; background-color: #030712; color: #f3f4f6; overflow: hidden; }
+    .font-code { font-family: 'JetBrains Mono', monospace; }
+    @keyframes fadeInScale {
+      from { opacity: 0; transform: scale(0.97) translateY(6px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .animate-fade-in { animation: fadeInScale 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    .tech-glass {
+      background: rgba(10, 15, 30, 0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(56, 189, 248, 0.16);
+    }
+    .tech-modal {
+      background: rgba(6, 11, 25, 0.97);
+      backdrop-filter: blur(28px);
+      border: 1px solid rgba(56, 189, 248, 0.28);
+      box-shadow: 0 20px 70px rgba(14, 165, 233, 0.25);
+    }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: rgba(3, 7, 18, 0.6); }
+    ::-webkit-scrollbar-thumb { background: rgba(56, 189, 248, 0.25); border-radius: 9999px; }
+  </style>
+</head>
+<body class="h-screen w-screen flex flex-col overflow-hidden selection:bg-cyan-500 selection:text-black">
+
+  <!-- TOAST -->
+  <div id="systemToast" class="fixed top-4 right-4 z-[90] transform translate-x-[130%] transition-all duration-300 tech-glass px-4 py-3 rounded-2xl border border-cyan-500/40 shadow-2xl flex items-center gap-3">
+    <i id="toastIcon" class="fa-solid fa-circle-check text-cyan-400 text-base"></i>
+    <div>
+      <h4 id="toastTitle" class="text-xs font-bold text-white">แจ้งเตือน</h4>
+      <p id="toastDesc" class="text-[11px] text-gray-300"></p>
+    </div>
+  </div>
+
+  <!-- TOP NAVBAR -->
+  <header class="h-14 shrink-0 tech-glass border-b border-cyan-500/20 px-4 flex items-center justify-between gap-3 z-30">
+    <div class="flex items-center gap-3 min-w-0">
+      <a href="admin.html" class="bg-white/5 hover:bg-cyan-500/15 text-cyan-300 border border-cyan-500/25 px-3 py-1.5 rounded-xl text-xs font-semibold transition active:scale-95 flex items-center gap-1.5 shrink-0">
+        <i class="fa-solid fa-arrow-left"></i> <span>กลับหน้า Admin</span>
+      </a>
+      <div class="h-5 w-[1px] bg-cyan-500/20 hidden sm:block"></div>
+      <div class="flex items-center gap-2 min-w-0">
+        <span class="w-8 h-8 rounded-xl bg-amber-500/15 border border-amber-500/35 flex items-center justify-center text-amber-300 shrink-0">
+          <i class="fa-solid fa-headset"></i>
+        </span>
+        <div class="min-w-0">
+          <h1 class="text-sm md:text-base font-bold text-white truncate">ศูนย์ตอบคำถามนักเรียน (Clarifications)</h1>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-2 shrink-0">
+      <span id="totalUnreadBadge" class="hidden text-[11px] font-bold px-2.5 py-1 rounded-xl bg-rose-500/20 text-rose-300 border border-rose-500/40 animate-pulse">
+        ยังไม่อ่าน 0 ห้อง
+      </span>
+      <button type="button" onclick="loadAllChatRooms(true)" class="bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 border border-cyan-500/30 px-3 py-1.5 rounded-xl text-xs font-semibold transition active:scale-95 cursor-pointer flex items-center gap-1.5">
+        <i id="refreshRoomsIcon" class="fa-solid fa-rotate"></i> <span class="hidden sm:inline">รีเฟรช</span>
+      </button>
+      <span id="adminUserBadge" class="text-xs font-semibold text-amber-300 bg-amber-950/60 border border-amber-500/30 px-3 py-1.5 rounded-xl hidden md:inline-flex items-center gap-1.5"></span>
+    </div>
+  </header>
+
+  <!-- MAIN SPLIT WORKSPACE -->
+  <div class="flex-1 flex min-h-0 overflow-hidden">
+
+    <!-- LEFT SIDEBAR: LIST OF STUDENT-PROBLEM CHAT ROOMS -->
+    <aside id="roomsSidebar" class="w-full md:w-96 lg:w-[410px] shrink-0 bg-[#070c1b] border-r border-cyan-500/20 flex flex-col min-h-0">
+      <!-- Search & Filter Controls -->
+      <div class="p-3 bg-[#090f22] border-b border-cyan-500/15 space-y-2.5 shrink-0">
+        <div class="relative">
+          <i class="fa-solid fa-magnifying-glass text-gray-400 text-xs absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+          <input type="text" id="roomSearchInput" oninput="renderChatRoomsList()" placeholder="ค้นหาชื่อนักเรียน, รหัสโจทย์, ข้อความ..." class="w-full bg-black/65 border border-cyan-500/25 focus:border-cyan-400 focus:outline-none rounded-xl pl-9 pr-3 py-2 text-xs text-white">
+        </div>
+
+        <div class="flex items-center gap-1.5">
+          <button type="button" id="filterAllBtn" onclick="setRoomFilter('all')" class="flex-1 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow cursor-pointer transition">
+            ทั้งหมด (<span id="countAllRooms">0</span>)
+          </button>
+          <button type="button" id="filterUnreadBtn" onclick="setRoomFilter('unread')" class="flex-1 py-1.5 rounded-xl text-xs font-semibold text-gray-300 bg-white/5 hover:bg-white/10 cursor-pointer transition">
+            ยังไม่อ่าน (<span id="countUnreadRooms">0</span>)
+          </button>
+        </div>
+      </div>
+
+      <!-- Scrollable List of Chat Rooms -->
+      <div id="chatRoomsListContainer" class="flex-1 overflow-y-auto divide-y divide-cyan-500/10">
+        <div class="text-center py-12 text-xs text-gray-400">
+          <i class="fa-solid fa-spinner fa-spin text-cyan-400 text-lg mb-2 block"></i>
+          กำลังโหลดรายการแชต...
+        </div>
+      </div>
+    </aside>
+
+    <!-- RIGHT PANEL: ACTIVE CONVERSATION -->
+    <main id="activeChatPanel" class="hidden md:flex flex-1 flex-col bg-[#050914] min-w-0 min-h-0">
+      <!-- Empty State -->
+      <div id="noRoomSelectedState" class="flex-1 flex flex-col items-center justify-center p-6 text-center space-y-3">
+        <div class="w-16 h-16 rounded-2xl bg-cyan-500/10 border border-cyan-500/25 flex items-center justify-center text-cyan-400 text-2xl">
+          <i class="fa-regular fa-comments"></i>
+        </div>
+        <h2 class="text-base font-bold text-white">เลือกห้องสนทนาจากรายการด้านซ้าย</h2>
+        <p class="text-xs text-gray-400 max-w-sm leading-relaxed">
+          แต่ละห้องจะแยกตาม <b>1 นักเรียน : 1 โจทย์</b> สามารถเปิดดูซอร์สโค้ด Submission ที่นักเรียนแนบมา และพิมพ์ตอบกลับได้แบบเรียลไทม์
+        </p>
+      </div>
+
+      <!-- Active Conversation Wrapper -->
+      <div id="conversationWrapper" class="hidden flex-1 flex flex-col min-h-0">
+        <!-- Room Header -->
+        <div class="h-16 px-4 bg-[#080e20] border-b border-cyan-500/20 flex items-center justify-between gap-3 shrink-0">
+          <div class="flex items-center gap-3 min-w-0">
+            <button type="button" onclick="closeMobileRoomView()" class="md:hidden w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 flex items-center justify-center shrink-0 cursor-pointer">
+              <i class="fa-solid fa-arrow-left text-xs"></i>
+            </button>
+            <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-600/30 to-cyan-500/30 border border-cyan-400/40 flex items-center justify-center text-cyan-300 font-bold text-sm shrink-0" id="activeRoomAvatar">
+              U
+            </div>
+            <div class="min-w-0">
+              <div class="flex items-center gap-2">
+                <h2 id="activeRoomStudentName" class="text-sm font-bold text-white truncate">ชื่อนักเรียน</h2>
+                <span id="activeRoomStudentSub" class="text-[11px] text-gray-400 truncate hidden sm:inline"></span>
+              </div>
+              <div class="flex items-center gap-1.5 text-xs text-cyan-300 truncate">
+                <span id="activeRoomProbCode" class="font-code font-bold bg-cyan-500/15 px-1.5 py-0.2 rounded border border-cyan-500/30 text-[10px]">P01</span>
+                <span id="activeRoomProbTitle" class="truncate text-gray-300">ชื่อโจทย์</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2 shrink-0">
+            <a id="activeRoomOpenProbLink" href="#" target="_blank" class="bg-white/5 hover:bg-cyan-500/15 text-cyan-300 border border-cyan-500/25 px-3 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-1.5">
+              <i class="fa-solid fa-up-right-from-square"></i> <span class="hidden sm:inline">เปิดหน้าโจทย์</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Messages Stream -->
+        <div id="adminChatMessagesBox" class="flex-1 overflow-y-auto p-5 space-y-4"></div>
+
+        <!-- Quick Replies Bar -->
+        <div class="px-4 py-2 bg-[#070c1b] border-t border-cyan-500/15 flex items-center gap-1.5 overflow-x-auto shrink-0">
+          <span class="text-[10px] text-gray-400 font-bold uppercase shrink-0 mr-1">ตอบด่วน:</span>
+          <button type="button" onclick="insertQuickReply('ลองตรวจสอบเงื่อนไขขอบเขต (Edge Cases) และขนาดของตัวแปร (เช่น long long) อีกครั้งครับ')" class="text-[11px] bg-white/5 hover:bg-cyan-500/20 text-gray-200 hover:text-cyan-200 border border-white/10 px-2.5 py-1 rounded-lg transition cursor-pointer shrink-0">
+            เช็ก Edge Cases / long long
+          </button>
+          <button type="button" onclick="insertQuickReply('โจทย์ข้อนี้ข้อมูลนำเข้ามีขนาดใหญ่ แนะนำให้ใช้ ios::sync_with_stdio(false); cin.tie(nullptr); และปรับอัลกอริทึมให้เร็วขึ้นครับ')" class="text-[11px] bg-white/5 hover:bg-cyan-500/20 text-gray-200 hover:text-cyan-200 border border-white/10 px-2.5 py-1 rounded-lg transition cursor-pointer shrink-0">
+            แนะนำเรื่อง Time Limit
+          </button>
+          <button type="button" onclick="insertQuickReply('ตรวจสอบรูปแบบการแสดงผล (Output Format) ช่องว่างและการขึ้นบรรทัดใหม่ให้ตรงกับตัวอย่างนะครับ')" class="text-[11px] bg-white/5 hover:bg-cyan-500/20 text-gray-200 hover:text-cyan-200 border border-white/10 px-2.5 py-1 rounded-lg transition cursor-pointer shrink-0">
+            เช็ก Output Format
+          </button>
+        </div>
+
+        <!-- Reply Input Box -->
+        <form id="adminReplyForm" onsubmit="sendAdminReply(event)" class="p-3.5 bg-[#080e20] border-t border-cyan-500/20 flex items-end gap-2.5 shrink-0">
+          <textarea id="adminReplyInput" rows="1" onkeydown="handleReplyKeydown(event)" placeholder="พิมพ์คำตอบถึงนักเรียน... (กด Enter เพื่อส่ง, Shift+Enter ขึ้นบรรทัดใหม่)" class="flex-1 bg-black/65 border border-cyan-500/30 focus:border-cyan-400 focus:outline-none rounded-xl px-3.5 py-2.5 text-xs text-white resize-none max-h-32"></textarea>
+          <button type="submit" id="adminSendReplyBtn" class="bg-gradient-to-r from-amber-500 to-orange-500 hover:opacity-95 text-black px-5 py-2.5 rounded-xl text-xs font-bold shadow-lg shadow-amber-500/20 transition active:scale-95 cursor-pointer shrink-0 flex items-center gap-1.5">
+            <i class="fa-solid fa-paper-plane"></i> <span>ส่งคำตอบ</span>
+          </button>
+        </form>
+      </div>
+    </main>
+  </div>
+
+  <!-- SUBMISSION INSPECTOR MODAL -->
+  <div id="submissionInspectorModal" onclick="if(event.target === this) closeInspectorModal()" class="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/85 backdrop-blur-md opacity-0 pointer-events-none transition-all duration-200">
+    <div class="tech-modal rounded-3xl p-6 max-w-2xl w-full space-y-4 border border-cyan-500/35 max-h-[90vh] flex flex-col animate-fade-in">
+      <div class="flex justify-between items-center border-b border-cyan-500/20 pb-3 shrink-0 gap-2">
+        <div class="flex items-center gap-2 min-w-0">
+          <span id="inspSubTitle" class="text-sm font-bold text-cyan-300 font-code truncate">Submission Detail</span>
+          <span id="inspSubStatus" class="text-[10px] px-2.5 py-0.5 rounded-full font-bold shrink-0"></span>
+        </div>
+        <button type="button" onclick="closeInspectorModal()" class="text-gray-400 hover:text-white w-7 h-7 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center cursor-pointer transition">
+          <i class="fa-solid fa-xmark text-base"></i>
+        </button>
+      </div>
+
+      <div class="flex-1 overflow-y-auto space-y-4 min-h-0 pr-1">
+        <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-gray-300 bg-black/40 p-3 rounded-2xl border border-white/10">
+          <span>ภาษา: <b id="inspSubLang" class="text-cyan-300 uppercase">CPP</b></span>
+          <span>เวลาประมวลผลสูงสุด: <b id="inspSubTime" class="text-emerald-400 font-code">0s</b></span>
+          <span>คะแนนรวม: <b id="inspSubScore" class="text-amber-300 font-code">0 / 100</b></span>
+        </div>
+
+        <div class="space-y-1.5">
+          <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">ผลตรวจราย Test Case</div>
+          <div id="inspSubTestCasesList" class="space-y-1.5"></div>
+        </div>
+
+        <div class="space-y-1.5">
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] font-bold text-gray-400 uppercase">ซอร์สโค้ดของนักเรียน</span>
+            <button type="button" id="inspCopyCodeBtn" class="text-[11px] text-cyan-300 hover:underline cursor-pointer">
+              <i class="fa-regular fa-copy mr-1"></i> คัดลอกโค้ด
+            </button>
+          </div>
+          <pre id="inspSubCodeBox" class="bg-black/85 border border-white/10 rounded-2xl p-3.5 text-xs text-cyan-100 font-code overflow-auto max-h-64 whitespace-pre-wrap"></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://hqnmfkafwwnjiqpdhzoh.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhxbm1ma2Fmd3duamlxcGRoem9oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQyMTc0NzEsImV4cCI6MjEwOTc5MzQ3MX0.m6dHtNnXuQ108DvafyKWeFvAg_oySuQH3LRg0Jzaops';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let currentAdminUser = null;
+    let roomsList = [];
+    let selectedRoomKey = null;
+    let currentFilterMode = 'all'; // 'all' | 'unread'
+
+    const problemsMap = new Map();
+    const profilesMap = new Map();
+    const submissionsMap = new Map();
+
+    function showToast(title, desc, isError = false) {
+      const toast = document.getElementById('systemToast');
+      document.getElementById('toastTitle').textContent = title;
+      document.getElementById('toastDesc').textContent = desc;
+      document.getElementById('toastIcon').className = isError
+        ? 'fa-solid fa-circle-exclamation text-rose-400 text-base animate-bounce'
+        : 'fa-solid fa-circle-check text-cyan-400 text-base';
+      toast.classList.remove('translate-x-[130%]');
+      setTimeout(() => toast.classList.add('translate-x-[130%]'), 3400);
+    }
+
+    function escapeHtml(str) {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function formatRelativeTime(isoStr) {
+      if (!isoStr) return '';
+      const d = new Date(isoStr);
+      const now = new Date();
+      const diffSec = Math.floor((now - d) / 1000);
+      if (diffSec < 60) return 'เมื่อสักครู่';
+      if (diffSec < 3600) return `${Math.floor(diffSec / 60)} นาทีที่แล้ว`;
+      if (d.toDateString() === now.toDateString()) {
+        return d.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+      }
+      return d.toLocaleDateString('th-TH', { day: 'numeric', month: 'short' });
+    }
+
+    function setRoomFilter(mode) {
+      currentFilterMode = mode;
+      const allBtn = document.getElementById('filterAllBtn');
+      const unreadBtn = document.getElementById('filterUnreadBtn');
+      if (mode === 'all') {
+        allBtn.className = 'flex-1 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow cursor-pointer transition';
+        unreadBtn.className = 'flex-1 py-1.5 rounded-xl text-xs font-semibold text-gray-300 bg-white/5 hover:bg-white/10 cursor-pointer transition';
+      } else {
+        unreadBtn.className = 'flex-1 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-rose-600 to-amber-500 text-white shadow cursor-pointer transition';
+        allBtn.className = 'flex-1 py-1.5 rounded-xl text-xs font-semibold text-gray-300 bg-white/5 hover:bg-white/10 cursor-pointer transition';
+      }
+      renderChatRoomsList();
+    }
+
+    async function hydrateMetadata(messages) {
+      const missingProbIds = [...new Set(messages.map(m => m.problem_id).filter(id => id && !problemsMap.has(String(id))))];
+      const missingUserIds = [...new Set(messages.map(m => m.student_id).filter(id => id && !profilesMap.has(String(id))))];
+      const missingSubIds = [...new Set(messages.map(m => m.submission_id).filter(id => id && !submissionsMap.has(String(id))))];
+
+      const tasks = [];
+      if (missingProbIds.length > 0) {
+        tasks.push(
+          supabaseClient.from('problems').select('id, problem_code, title, max_score').in('id', missingProbIds)
+            .then(({ data }) => (data || []).forEach(p => problemsMap.set(String(p.id), p)))
+        );
+      }
+      if (missingUserIds.length > 0) {
+        tasks.push(
+          supabaseClient.from('profiles').select('id, display_name, username, student_id').in('id', missingUserIds)
+            .then(({ data }) => (data || []).forEach(u => profilesMap.set(String(u.id), u)))
+        );
+      }
+      if (missingSubIds.length > 0) {
+        tasks.push(
+          supabaseClient.from('submissions').select('*').in('id', missingSubIds)
+            .then(({ data }) => (data || []).forEach(s => submissionsMap.set(String(s.id), s)))
+        );
+      }
+      if (tasks.length > 0) await Promise.all(tasks);
+    }
+
+    function buildRoomsFromMessages(messages) {
+      const map = new Map();
+      // messages เรียงจากใหม่ -> เก่า (descending)
+      messages.forEach(msg => {
+        const key = `${msg.problem_id}__${msg.student_id}`;
+        if (!map.has(key)) {
+          map.set(key, {
+            roomKey: key,
+            problem_id: msg.problem_id,
+            student_id: msg.student_id,
+            lastMessage: msg,
+            unreadCount: 0,
+            messages: []
+          });
+        }
+        const room = map.get(key);
+        room.messages.unshift(msg); // เก็บเรียงจากเก่า -> ใหม่ สำหรับแสดงในแชต
+        if (msg.sender_role === 'student' && !msg.is_read) {
+          room.unreadCount++;
+        }
+      });
+      roomsList = Array.from(map.values());
+    }
+
+    function updateCountersUI() {
+      const unreadRoomsCount = roomsList.filter(r => r.unreadCount > 0).length;
+      document.getElementById('countAllRooms').textContent = roomsList.length;
+      document.getElementById('countUnreadRooms').textContent = unreadRoomsCount;
+
+      const topBadge = document.getElementById('totalUnreadBadge');
+      if (unreadRoomsCount > 0) {
+        topBadge.textContent = `ยังไม่อ่าน ${unreadRoomsCount} ห้อง`;
+        topBadge.classList.remove('hidden');
+      } else {
+        topBadge.classList.add('hidden');
+      }
+    }
+
+    function renderChatRoomsList() {
+      updateCountersUI();
+      const container = document.getElementById('chatRoomsListContainer');
+      const keyword = (document.getElementById('roomSearchInput').value || '').trim().toLowerCase();
+
+      const filtered = roomsList.filter(room => {
+        if (currentFilterMode === 'unread' && room.unreadCount === 0) return false;
+        if (!keyword) return true;
+
+        const prof = profilesMap.get(String(room.student_id));
+        const prob = problemsMap.get(String(room.problem_id));
+        const sName = (prof?.display_name || prof?.username || '').toLowerCase();
+        const pCode = (prob?.problem_code || '').toLowerCase();
+        const pTitle = (prob?.title || '').toLowerCase();
+        const lastTxt = (room.lastMessage?.message || '').toLowerCase();
+
+        return sName.includes(keyword) || pCode.includes(keyword) || pTitle.includes(keyword) || lastTxt.includes(keyword);
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-12 px-4 text-xs text-gray-400">
+            <i class="fa-regular fa-folder-open text-2xl text-gray-600 mb-2 block"></i>
+            ไม่พบรายการแชตที่ตรงกับเงื่อนไข
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = filtered.map(room => {
+        const prof = profilesMap.get(String(room.student_id));
+        const prob = problemsMap.get(String(room.problem_id));
+        const studentName = prof?.display_name || prof?.username || `Student (${String(room.student_id).slice(0, 6)})`;
+        const probCode = prob?.problem_code || 'PROB';
+        const probTitle = prob?.title || 'ไม่ระบุชื่อโจทย์';
+        const isSelected = room.roomKey === selectedRoomKey;
+        const hasUnread = room.unreadCount > 0;
+        const lastMsg = room.lastMessage;
+        const prefix = lastMsg?.sender_role === 'admin' ? '<span class="text-amber-300">คุณ:</span> ' : '';
+        const attachTag = lastMsg?.submission_id ? '<i class="fa-solid fa-paperclip text-cyan-400 mr-1"></i>' : '';
+
+        return `
+          <div onclick="selectChatRoom('${room.roomKey}')" class="p-3.5 cursor-pointer transition flex items-start gap-3 ${isSelected ? 'bg-cyan-500/15 border-l-4 border-l-cyan-400' : 'hover:bg-white/[0.04] border-l-4 border-l-transparent'}">
+            <div class="w-10 h-10 rounded-xl ${hasUnread ? 'bg-amber-500/20 border-amber-400/50 text-amber-300' : 'bg-cyan-500/10 border-cyan-500/25 text-cyan-300'} border flex items-center justify-center font-bold text-sm shrink-0">
+              ${escapeHtml(studentName.charAt(0).toUpperCase())}
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center justify-between gap-2">
+                <span class="text-xs font-bold ${hasUnread ? 'text-white' : 'text-gray-200'} truncate">${escapeHtml(studentName)}</span>
+                <span class="text-[10px] ${hasUnread ? 'text-amber-300 font-bold' : 'text-gray-500'} shrink-0">${formatRelativeTime(lastMsg?.created_at)}</span>
+              </div>
+              <div class="flex items-center gap-1.5 mt-0.5">
+                <span class="text-[10px] font-code font-bold text-cyan-300 bg-cyan-500/15 px-1.5 rounded border border-cyan-500/25 shrink-0">${escapeHtml(probCode)}</span>
+                <span class="text-[11px] text-gray-400 truncate">${escapeHtml(probTitle)}</span>
+              </div>
+              <div class="flex items-center justify-between gap-2 mt-1.5">
+                <p class="text-[11px] ${hasUnread ? 'text-gray-100 font-medium' : 'text-gray-400'} truncate">
+                  ${prefix}${attachTag}${escapeHtml(lastMsg?.message || '')}
+                </p>
+                ${hasUnread ? `<span class="text-[10px] font-bold px-2 py-0.2 rounded-full bg-rose-500 text-white shrink-0">${room.unreadCount}</span>` : ''}
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function markRoomAsRead(room) {
+      if (!room || room.unreadCount === 0) return;
+      room.unreadCount = 0;
+      room.messages.forEach(m => { if (m.sender_role === 'student') m.is_read = true; });
+      renderChatRoomsList();
+
+      await supabaseClient
+        .from('problem_chats')
+        .update({ is_read: true })
+        .eq('problem_id', room.problem_id)
+        .eq('student_id', room.student_id)
+        .eq('sender_role', 'student')
+        .eq('is_read', false);
+    }
+
+    async function selectChatRoom(roomKey) {
+      selectedRoomKey = roomKey;
+      const room = roomsList.find(r => r.roomKey === roomKey);
+      if (!room) return;
+
+      // Mobile view switch
+      if (window.innerWidth < 768) {
+        document.getElementById('roomsSidebar').classList.add('hidden');
+        document.getElementById('activeChatPanel').classList.remove('hidden');
+        document.getElementById('activeChatPanel').classList.add('flex');
+      }
+
+      document.getElementById('noRoomSelectedState').classList.add('hidden');
+      document.getElementById('conversationWrapper').classList.remove('hidden');
+
+      const prof = profilesMap.get(String(room.student_id));
+      const prob = problemsMap.get(String(room.problem_id));
+      const studentName = prof?.display_name || prof?.username || 'Student';
+
+      document.getElementById('activeRoomAvatar').textContent = studentName.charAt(0).toUpperCase();
+      document.getElementById('activeRoomStudentName').textContent = studentName;
+      document.getElementById('activeRoomStudentSub').textContent = prof?.student_id ? `(รหัส: ${prof.student_id})` : '';
+      document.getElementById('activeRoomProbCode').textContent = prob?.problem_code || 'PROB';
+      document.getElementById('activeRoomProbTitle').textContent = prob?.title || '';
+      document.getElementById('activeRoomOpenProbLink').href = `editor.html?id=${encodeURIComponent(room.problem_id)}`;
+
+      await markRoomAsRead(room);
+      renderChatRoomsList();
+      renderActiveRoomMessages(room);
+    }
+
+    function closeMobileRoomView() {
+      selectedRoomKey = null;
+      document.getElementById('roomsSidebar').classList.remove('hidden');
+      document.getElementById('activeChatPanel').classList.add('hidden');
+      document.getElementById('activeChatPanel').classList.remove('flex');
+      renderChatRoomsList();
+    }
+
+    function renderActiveRoomMessages(room) {
+      const box = document.getElementById('adminChatMessagesBox');
+      if (!box || !room) return;
+
+      const prob = problemsMap.get(String(room.problem_id));
+      const maxScore = prob?.max_score || 100;
+
+      box.innerHTML = room.messages.map(msg => {
+        const isAdminMsg = msg.sender_role === 'admin';
+        const timeStr = msg.created_at
+          ? new Date(msg.created_at).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' })
+          : '';
+
+        let attachmentCard = '';
+        if (msg.submission_id) {
+          const sub = submissionsMap.get(String(msg.submission_id));
+          if (sub) {
+            const isAc = sub.status === 'Accepted' || sub.status === 'AC';
+            const badgeCls = isAc
+              ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+              : 'bg-rose-500/20 text-rose-300 border-rose-500/40';
+            attachmentCard = `
+              <button type="button" onclick="openSubmissionInspector('${sub.id}')" class="mt-2.5 w-full text-left bg-black/65 hover:bg-black/90 border border-cyan-500/40 rounded-xl p-3 transition flex items-center justify-between gap-3 cursor-pointer group">
+                <div class="min-w-0">
+                  <div class="text-xs font-bold font-code text-cyan-300 group-hover:underline">
+                    <i class="fa-solid fa-file-code mr-1.5"></i> ดูโค้ด Submission (${(sub.language || 'cpp').toUpperCase()})
+                  </div>
+                  <div class="text-[11px] text-gray-400 mt-0.5">คะแนน ${sub.score ?? 0}/${maxScore} &bull; เวลา ${sub.execution_time || 0}s &bull; คลิกเพื่อตรวจโค้ด</div>
+                </div>
+                <span class="text-[10px] font-bold px-2.5 py-1 rounded-full border ${badgeCls} shrink-0">${sub.status}</span>
+              </button>
+            `;
+          } else {
+            attachmentCard = `
+              <button type="button" onclick="openSubmissionInspector('${msg.submission_id}')" class="mt-2 bg-black/50 hover:bg-black/75 border border-cyan-500/30 rounded-xl px-3 py-2 text-xs font-code text-cyan-300 cursor-pointer">
+                <i class="fa-solid fa-paperclip mr-1"></i> คลิกโหลดข้อมูล Submission (${String(msg.submission_id).slice(0, 8)}...)
+              </button>
+            `;
+          }
+        }
+
+        if (isAdminMsg) {
+          return `
+            <div class="flex flex-col items-end animate-fade-in">
+              <div class="max-w-[82%] bg-gradient-to-br from-amber-500/25 to-orange-500/20 border border-amber-500/40 rounded-2xl rounded-tr-sm px-4 py-3 shadow">
+                <div class="text-xs text-white whitespace-pre-wrap break-words leading-relaxed">${escapeHtml(msg.message)}</div>
+                ${attachmentCard}
+              </div>
+              <span class="text-[10px] text-amber-300/80 mt-1 pr-1"><i class="fa-solid fa-shield-halved mr-1"></i>ผู้ดูแลระบบ &bull; ${timeStr}</span>
+            </div>
+          `;
+        } else {
+          return `
+            <div class="flex flex-col items-start animate-fade-in">
+              <div class="max-w-[82%] bg-[#0c142b] border border-cyan-500/30 rounded-2xl rounded-tl-sm px-4 py-3 shadow">
+                <div class="text-xs text-gray-100 whitespace-pre-wrap break-words leading-relaxed">${escapeHtml(msg.message)}</div>
+                ${attachmentCard}
+              </div>
+              <span class="text-[10px] text-gray-400 mt-1 pl-1">นักเรียน &bull; ${timeStr}</span>
+            </div>
+          `;
+        }
+      }).join('');
+
+      setTimeout(() => { box.scrollTop = box.scrollHeight; }, 40);
+    }
+
+    function insertQuickReply(text) {
+      const input = document.getElementById('adminReplyInput');
+      input.value = text;
+      input.focus();
+    }
+
+    function handleReplyKeydown(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendAdminReply(e);
+      }
+    }
+
+    async function sendAdminReply(event) {
+      if (event) event.preventDefault();
+      if (!selectedRoomKey || !currentAdminUser) return;
+
+      const room = roomsList.find(r => r.roomKey === selectedRoomKey);
+      if (!room) return;
+
+      const input = document.getElementById('adminReplyInput');
+      const btn = document.getElementById('adminSendReplyBtn');
+      const text = (input.value || '').trim();
+      if (!text) return;
+
+      btn.disabled = true;
+      try {
+        const { data: inserted, error } = await supabaseClient
+          .from('problem_chats')
+          .insert([{
+            problem_id: room.problem_id,
+            student_id: room.student_id,
+            sender_id: currentAdminUser.id,
+            sender_role: 'admin',
+            message: text,
+            is_read: false
+          }])
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        input.value = '';
+        if (inserted && !room.messages.some(m => String(m.id) === String(inserted.id))) {
+          room.messages.push(inserted);
+          room.lastMessage = inserted;
+          // เลื่อนห้องนี้ขึ้นบนสุด
+          roomsList = [room, ...roomsList.filter(r => r.roomKey !== room.roomKey)];
+        }
+        renderChatRoomsList();
+        renderActiveRoomMessages(room);
+      } catch (err) {
+        showToast('ส่งคำตอบไม่สำเร็จ', err.message, true);
+      } finally {
+        btn.disabled = false;
+        input.focus();
+      }
+    }
+
+    async function openSubmissionInspector(subId) {
+      let sub = submissionsMap.get(String(subId));
+      if (!sub) {
+        const { data } = await supabaseClient.from('submissions').select('*').eq('id', subId).maybeSingle();
+        if (data) {
+          sub = data;
+          submissionsMap.set(String(sub.id), sub);
+        }
+      }
+      if (!sub) {
+        showToast('ไม่พบข้อมูล', 'ไม่พบ Submission นี้ในระบบ', true);
+        return;
+      }
+
+      const prob = problemsMap.get(String(sub.problem_id));
+      const maxScore = prob?.max_score || 100;
+      const isAc = sub.status === 'Accepted' || sub.status === 'AC';
+
+      document.getElementById('inspSubTitle').textContent = `Submission (${String(sub.id).slice(0, 8)}...)`;
+      const badge = document.getElementById('inspSubStatus');
+      badge.textContent = sub.status;
+      badge.className = isAc
+        ? 'text-[10px] px-2.5 py-0.5 rounded-full font-bold text-emerald-300 bg-emerald-500/20 border border-emerald-500/40'
+        : 'text-[10px] px-2.5 py-0.5 rounded-full font-bold text-rose-300 bg-rose-500/20 border border-rose-500/40';
+
+      document.getElementById('inspSubLang').textContent = (sub.language || 'cpp').toUpperCase();
+      document.getElementById('inspSubTime').textContent = `${sub.execution_time || 0}s`;
+      document.getElementById('inspSubScore').textContent = `${sub.score ?? 0} / ${maxScore}`;
+      document.getElementById('inspSubCodeBox').textContent = sub.source_code || '';
+
+      const testResults = sub.test_results || [];
+      document.getElementById('inspSubTestCasesList').innerHTML = testResults.map(tc => {
+        const isPass = tc.verdict === 'AC';
+        const color = isPass ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' : 'bg-rose-500/20 text-rose-300 border-rose-500/40';
+        const detail = tc.detail ? `<pre class="mt-2 bg-black/90 border border-rose-500/30 rounded-lg p-2 text-[11px] text-rose-200 font-code overflow-x-auto whitespace-pre-wrap">${escapeHtml(tc.detail)}</pre>` : '';
+        return `
+          <div class="bg-black/70 border border-white/10 rounded-xl p-2.5">
+            <div class="flex items-center justify-between text-xs">
+              <div class="flex items-center gap-2">
+                <span class="font-bold text-cyan-300">Test Case #${tc.index}</span>
+                <span class="px-2 py-0.5 rounded border text-[10px] font-bold ${color}">${tc.verdict}</span>
+              </div>
+              <span class="text-[11px] text-gray-400 font-code">Time: ${tc.time || 0}s &bull; Mem: ${tc.memory || '1.8 MB'}</span>
+            </div>
+            ${detail}
+          </div>
+        `;
+      }).join('') || '<p class="text-xs text-gray-400 italic">ไม่มีรายละเอียดรายเคส</p>';
+
+      document.getElementById('inspCopyCodeBtn').onclick = () => {
+        navigator.clipboard.writeText(sub.source_code || '');
+        showToast('คัดลอกแล้ว', 'คัดลอกซอร์สโค้ดของนักเรียนเรียบร้อย');
+      };
+
+      document.getElementById('submissionInspectorModal').classList.remove('opacity-0', 'pointer-events-none');
+    }
+
+    function closeInspectorModal() {
+      document.getElementById('submissionInspectorModal').classList.add('opacity-0', 'pointer-events-none');
+    }
+
+    async function loadAllChatRooms(notifyToast = false) {
+      const icon = document.getElementById('refreshRoomsIcon');
+      if (icon) icon.classList.add('fa-spin');
+
+      try {
+        const { data: messages, error } = await supabaseClient
+          .from('problem_chats')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(1000);
+
+        if (error) throw error;
+
+        await hydrateMetadata(messages || []);
+        buildRoomsFromMessages(messages || []);
+        renderChatRoomsList();
+
+        if (selectedRoomKey) {
+          const activeRoom = roomsList.find(r => r.roomKey === selectedRoomKey);
+          if (activeRoom) {
+            await markRoomAsRead(activeRoom);
+            renderActiveRoomMessages(activeRoom);
+          }
+        }
+
+        if (notifyToast) showToast('อัปเดตแล้ว', `โหลดห้องแชตทั้งหมด ${roomsList.length} ห้อง`);
+      } catch (err) {
+        showToast('โหลดข้อมูลไม่สำเร็จ', err.message, true);
+      } finally {
+        if (icon) setTimeout(() => icon.classList.remove('fa-spin'), 350);
+      }
+    }
+
+    function subscribeAdminRealtime() {
+      supabaseClient
+        .channel('st8_admin_all_problem_chats')
+        .on(
+          'postgres_changes',
+          { event: 'INSERT', schema: 'public', table: 'problem_chats' },
+          async (payload) => {
+            const newMsg = payload.new;
+            if (!newMsg) return;
+
+            await hydrateMetadata([newMsg]);
+            const key = `${newMsg.problem_id}__${newMsg.student_id}`;
+            let room = roomsList.find(r => r.roomKey === key);
+
+            if (!room) {
+              room = {
+                roomKey: key,
+                problem_id: newMsg.problem_id,
+                student_id: newMsg.student_id,
+                lastMessage: newMsg,
+                unreadCount: 0,
+                messages: []
+              };
+              roomsList.unshift(room);
+            } else {
+              roomsList = [room, ...roomsList.filter(r => r.roomKey !== key)];
+            }
+
+            if (!room.messages.some(m => String(m.id) === String(newMsg.id))) {
+              room.messages.push(newMsg);
+              room.lastMessage = newMsg;
+            }
+
+            if (newMsg.sender_role === 'student') {
+              if (selectedRoomKey === key) {
+                await markRoomAsRead(room);
+                renderActiveRoomMessages(room);
+              } else {
+                room.unreadCount++;
+                const prof = profilesMap.get(String(newMsg.student_id));
+                const prob = problemsMap.get(String(newMsg.problem_id));
+                showToast(
+                  `คำถามใหม่จาก ${prof?.display_name || prof?.username || 'นักเรียน'}`,
+                  `[${prob?.problem_code || 'โจทย์'}] ${newMsg.message.slice(0, 50)}`
+                );
+              }
+            } else if (selectedRoomKey === key) {
+              renderActiveRoomMessages(room);
+            }
+
+            renderChatRoomsList();
+          }
+        )
+        .subscribe();
+    }
+
+    async function initAdminChatPage() {
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      if (!session) {
+        window.location.href = 'index.html';
+        return;
+      }
+      currentAdminUser = session.user;
+
+      const { data: prof } = await supabaseClient
+        .from('profiles')
+        .select('*')
+        .eq('id', currentAdminUser.id)
+        .maybeSingle();
+
+      if (!prof || prof.role !== 'admin') {
+        alert('หน้านี้สงวนสิทธิ์เฉพาะผู้ดูแลระบบ (Admin) เท่านั้น');
+        window.location.href = 'problems.html';
+        return;
+      }
+
+      const badge = document.getElementById('adminUserBadge');
+      badge.innerHTML = `<i class="fa-solid fa-shield-halved"></i> ${escapeHtml(prof.display_name || prof.username || 'Admin')}`;
+      badge.classList.remove('hidden');
+
+      await loadAllChatRooms(false);
+      subscribeAdminRealtime();
+    }
+
+    initAdminChatPage();
+  </script>
+</body>
+</html>

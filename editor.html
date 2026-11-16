@@ -11,7 +11,16 @@
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js"></script>
   <style>
-    body { font-family: 'Kanit', sans-serif; background-color: #030712; color: #f3f4f6; overflow: hidden; }
+    html, body {
+      height: 100%;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      font-family: 'Kanit', sans-serif;
+      background-color: #030712;
+      color: #f3f4f6;
+    }
     .font-code { font-family: 'JetBrains Mono', monospace; }
     @keyframes fadeInScale {
       from { opacity: 0; transform: scale(0.97) translateY(6px); }
@@ -28,7 +37,7 @@
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
       border: 1px solid rgba(56, 189, 248, 0.16);
-      transition: all 0.2s ease;
+      transition: border-color 0.2s ease, background-color 0.2s ease;
     }
     .tech-glass:hover { border-color: rgba(56, 189, 248, 0.35); }
     .tech-modal {
@@ -37,7 +46,7 @@
       border: 1px solid rgba(56, 189, 248, 0.28);
       box-shadow: 0 20px 70px rgba(14, 165, 233, 0.25);
     }
-    .markdown-preview { line-height: 1.75; color: #e5e7eb; font-size: 0.92rem; }
+    .markdown-preview { line-height: 1.75; color: #e5e7eb; font-size: 0.92rem; overflow-wrap: break-word; }
     .markdown-preview h1 { font-size: 1.35rem; font-weight: 700; color: #38bdf8; margin-top: 1rem; margin-bottom: 0.5rem; border-bottom: 1px solid rgba(56, 189, 248, 0.2); padding-bottom: 0.25rem; }
     .markdown-preview h2 { font-size: 1.15rem; font-weight: 700; color: #7dd3fc; margin-top: 0.85rem; margin-bottom: 0.4rem; }
     .markdown-preview h3 { font-size: 1.02rem; font-weight: 600; color: #bae6fd; margin-top: 0.7rem; margin-bottom: 0.3rem; }
@@ -46,88 +55,140 @@
     .markdown-preview ol { list-style: decimal; padding-left: 1.4rem; margin-bottom: 0.65rem; }
     .markdown-preview code { background: rgba(56, 189, 248, 0.15); color: #67e8f9; padding: 0.12rem 0.38rem; border-radius: 0.35rem; font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; }
     .markdown-preview pre { background: #020617; border: 1px solid rgba(56, 189, 248, 0.25); padding: 0.85rem; border-radius: 0.75rem; overflow-x: auto; margin-bottom: 0.75rem; }
-    .a4-pdf-frame { width: 100%; aspect-ratio: 1 / 1.414; min-height: 540px; }
-    .split-resizer { width: 6px; cursor: col-resize; background: rgba(56, 189, 248, 0.12); transition: background 0.15s ease; position: relative; z-index: 20; }
+    .a4-pdf-frame { width: 100%; aspect-ratio: 1 / 1.414; min-height: 460px; }
+
+    /* Horizontal Split Resizer (Desktop) */
+    .split-resizer {
+      width: 6px;
+      cursor: col-resize;
+      background: rgba(56, 189, 248, 0.12);
+      transition: background 0.15s ease;
+      position: relative;
+      z-index: 20;
+      touch-action: none;
+    }
     .split-resizer:hover, .split-resizer.dragging { background: rgba(56, 189, 248, 0.65); }
-    .split-resizer::after { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 2px; height: 28px; border-radius: 999px; background: rgba(186, 230, 253, 0.7); }
+    .split-resizer::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 2px;
+      height: 28px;
+      border-radius: 999px;
+      background: rgba(186, 230, 253, 0.7);
+    }
+
+    /* Vertical Split Resizer (Mobile/Tablet & Console) */
+    .h-resizer {
+      height: 6px;
+      cursor: row-resize;
+      background: rgba(56, 189, 248, 0.12);
+      transition: background 0.15s ease;
+      position: relative;
+      z-index: 20;
+      touch-action: none;
+    }
+    .h-resizer:hover, .h-resizer.dragging { background: rgba(56, 189, 248, 0.65); }
+    .h-resizer::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      height: 2px;
+      width: 28px;
+      border-radius: 999px;
+      background: rgba(186, 230, 253, 0.7);
+    }
+
+    /* Prevent iframe stealing pointer events while dragging */
+    body.is-resizing iframe { pointer-events: none !important; }
+
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: rgba(3, 7, 18, 0.6); }
     ::-webkit-scrollbar-thumb { background: rgba(56, 189, 248, 0.25); border-radius: 9999px; transition: background 0.2s; }
   </style>
 </head>
-<body class="h-screen w-screen flex flex-col overflow-hidden selection:bg-cyan-500 selection:text-black">
+<body class="h-[100dvh] w-screen flex flex-col overflow-hidden selection:bg-cyan-500 selection:text-black">
 
   <!-- TOAST -->
-  <div id="systemToast" class="fixed top-4 right-4 z-[90] transform translate-x-[130%] transition-all duration-300 tech-glass px-4 py-3 rounded-2xl border border-cyan-500/40 shadow-2xl flex items-center gap-3">
-    <i id="toastIcon" class="fa-solid fa-circle-check text-cyan-400 text-base"></i>
-    <div>
-      <h4 id="toastTitle" class="text-xs font-bold text-white">แจ้งเตือน</h4>
-      <p id="toastDesc" class="text-[11px] text-gray-300"></p>
+  <div id="systemToast" class="fixed top-4 right-4 z-[90] transform translate-x-[130%] transition-all duration-300 tech-glass px-4 py-3 rounded-2xl border border-cyan-500/40 shadow-2xl flex items-center gap-3 max-w-[90vw]">
+    <i id="toastIcon" class="fa-solid fa-circle-check text-cyan-400 text-base shrink-0"></i>
+    <div class="min-w-0">
+      <h4 id="toastTitle" class="text-xs font-bold text-white truncate">แจ้งเตือน</h4>
+      <p id="toastDesc" class="text-[11px] text-gray-300 break-words"></p>
     </div>
   </div>
 
   <!-- TOP IDE NAVBAR -->
-  <header class="h-14 shrink-0 tech-glass border-b border-cyan-500/20 px-4 flex items-center justify-between gap-3 z-30 animate-glow">
-    <div class="flex items-center gap-3 min-w-0">
-      <a id="backToContestBtn" href="problems.html" class="bg-white/5 hover:bg-cyan-500/15 text-cyan-300 border border-cyan-500/25 px-3 py-1.5 rounded-xl text-xs font-semibold transition active:scale-95 flex items-center gap-1.5 shrink-0">
-        <i class="fa-solid fa-arrow-left"></i> <span id="backBtnText">กลับสู่คลังโจทย์</span>
+  <header class="h-14 shrink-0 tech-glass border-b border-cyan-500/20 px-3 sm:px-4 flex items-center justify-between gap-2 sm:gap-3 z-30 animate-glow">
+    <div class="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+      <a id="backToContestBtn" href="problems.html" class="bg-white/5 hover:bg-cyan-500/15 text-cyan-300 border border-cyan-500/25 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-semibold transition active:scale-95 flex items-center gap-1.5 shrink-0">
+        <i class="fa-solid fa-arrow-left"></i> <span id="backBtnText" class="hidden xs:inline sm:inline">กลับสู่คลังโจทย์</span>
       </a>
-      <div class="h-5 w-[1px] bg-cyan-500/20 hidden sm:block"></div>
+      <div class="h-5 w-[1px] bg-cyan-500/20 hidden sm:block shrink-0"></div>
       <div class="flex items-center gap-2 min-w-0">
-        <span id="navProbCode" class="text-xs font-bold text-cyan-300 bg-cyan-500/15 px-2.5 py-0.5 rounded-lg border border-cyan-500/30 font-code shrink-0">LOADING</span>
-        <h1 id="navProbTitle" class="text-sm md:text-base font-bold text-white truncate">กำลังโหลดโจทย์...</h1>
-        <span id="navProbDiff" class="hidden sm:inline-block text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 shrink-0">Easy</span>
+        <span id="navProbCode" class="text-xs font-bold text-cyan-300 bg-cyan-500/15 px-2 sm:px-2.5 py-0.5 rounded-lg border border-cyan-500/30 font-code shrink-0">LOADING</span>
+        <h1 id="navProbTitle" class="text-xs sm:text-sm md:text-base font-bold text-white truncate">กำลังโหลดโจทย์...</h1>
+        <span id="navProbDiff" class="hidden md:inline-block text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 shrink-0">Easy</span>
         
         <span id="navProbScoreBadge" class="hidden sm:inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-cyan-500/10 text-cyan-200 border border-cyan-500/30 shrink-0 transition-all duration-300">
-          <i class="fa-solid fa-trophy text-amber-400 animate-bounce"></i> <span id="navScoreText">0 / 100</span>
+          <i class="fa-solid fa-trophy text-amber-400"></i> <span id="navScoreText">0 / 100</span>
         </span>
       </div>
     </div>
 
     <div class="flex items-center gap-2 shrink-0">
       <button type="button" id="pendingJudgePill" onclick="openPendingSubmissionModal()" class="hidden items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/40 cursor-pointer animate-pulse">
-        <i class="fa-solid fa-spinner fa-spin"></i> กำลังตรวจคำตอบ...
+        <i class="fa-solid fa-spinner fa-spin"></i> <span class="hidden sm:inline">กำลังตรวจคำตอบ...</span>
       </button>
-      <span id="engineStatusPill" class="hidden md:inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-xl bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+      <span id="engineStatusPill" class="hidden xl:inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-xl bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
         <i class="fa-solid fa-bolt text-amber-400 animate-pulse"></i> Turbo Judge v3.1
       </span>
-      <span id="navUserBadge" class="text-xs font-semibold text-cyan-300 bg-cyan-950/70 border border-cyan-500/30 px-3 py-1.5 rounded-xl hidden md:inline-flex items-center gap-1.5"></span>
+      <span id="navUserBadge" class="text-xs font-semibold text-cyan-300 bg-cyan-950/70 border border-cyan-500/30 px-2.5 sm:px-3 py-1.5 rounded-xl hidden md:inline-flex items-center gap-1.5 max-w-[160px] truncate"></span>
     </div>
   </header>
 
   <!-- MAIN WORKSPACE -->
-  <div id="workspaceContainer" class="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden">
+  <div id="workspaceContainer" class="flex-1 flex flex-col lg:flex-row min-h-0 min-w-0 overflow-hidden relative">
 
-    <!-- LEFT PANE -->
-    <section id="leftPane" style="width: 48%;" class="w-full lg:w-[48%] h-[45vh] lg:h-full flex flex-col bg-[#070c1b] border-b lg:border-b-0 border-cyan-500/20 min-w-0 shrink-0 overflow-hidden">
-      <div class="h-12 shrink-0 px-3 bg-[#090f22] border-b border-cyan-500/20 flex items-center justify-between gap-1.5 overflow-x-auto">
-        <div class="flex items-center gap-1.5">
-          <button type="button" id="leftTabBtnStmt" onclick="switchLeftTab('stmt')" class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow transition active:scale-95 cursor-pointer flex items-center gap-1.5 shrink-0">
+    <!-- LEFT PANE (PROBLEM STATEMENT / SUBMISSIONS / CHAT) -->
+    <section id="leftPane" class="w-full h-[42%] lg:h-full flex flex-col bg-[#070c1b] border-b lg:border-b-0 border-cyan-500/20 min-w-0 min-h-0 shrink-0 overflow-hidden">
+      <div class="h-11 sm:h-12 shrink-0 px-3 bg-[#090f22] border-b border-cyan-500/20 flex items-center justify-between gap-1.5 overflow-x-auto">
+        <div class="flex items-center gap-1.5 shrink-0">
+          <button type="button" id="leftTabBtnStmt" onclick="switchLeftTab('stmt')" class="px-3 sm:px-3.5 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow transition active:scale-95 cursor-pointer flex items-center gap-1.5 shrink-0">
             <i class="fa-solid fa-book-open"></i> โจทย์
           </button>
-          <button type="button" id="leftTabBtnSubs" onclick="switchLeftTab('subs')" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-gray-300 hover:bg-white/5 transition active:scale-95 cursor-pointer flex items-center gap-1.5 shrink-0">
+          <button type="button" id="leftTabBtnSubs" onclick="switchLeftTab('subs')" class="px-3 sm:px-3.5 py-1.5 rounded-xl text-xs font-semibold text-gray-300 hover:bg-white/5 transition active:scale-95 cursor-pointer flex items-center gap-1.5 shrink-0">
             <i class="fa-solid fa-clock-rotate-left text-cyan-400"></i> ประวัติ
             <span id="mySubsCountBadge" class="text-[10px] px-1.5 py-0.2 rounded-full bg-cyan-500/20 text-cyan-300">0</span>
           </button>
-          <button type="button" id="leftTabBtnChat" onclick="switchLeftTab('chat')" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-gray-300 hover:bg-white/5 transition active:scale-95 cursor-pointer flex items-center gap-1.5 shrink-0">
+          <button type="button" id="leftTabBtnChat" onclick="switchLeftTab('chat')" class="px-3 sm:px-3.5 py-1.5 rounded-xl text-xs font-semibold text-gray-300 hover:bg-white/5 transition active:scale-95 cursor-pointer flex items-center gap-1.5 shrink-0">
             <i class="fa-solid fa-headset text-amber-400"></i> ถามผู้ดูแล
             <span id="chatCountBadge" class="text-[10px] px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-300">0</span>
           </button>
         </div>
 
-        <button type="button" onclick="toggleCollapseLeftPane()" id="collapseLeftBtn" class="hidden lg:flex items-center justify-center w-7 h-7 rounded-lg bg-white/5 hover:bg-cyan-500/20 text-gray-300 hover:text-cyan-300 transition cursor-pointer shrink-0">
-          <i class="fa-solid fa-angles-left text-xs"></i>
-        </button>
+        <div class="flex items-center gap-1.5 shrink-0">
+          <button type="button" onclick="toggleMobileLeftPane()" id="mobileToggleLeftBtn" class="lg:hidden flex items-center justify-center px-2.5 h-7 rounded-lg bg-white/5 hover:bg-cyan-500/20 text-gray-300 hover:text-cyan-300 text-[11px] font-semibold transition cursor-pointer shrink-0" title="ย่อ/ขยายส่วนโจทย์">
+            <i class="fa-solid fa-up-down mr-1"></i> <span>สลับสัดส่วน</span>
+          </button>
+          <button type="button" onclick="toggleCollapseLeftPane()" id="collapseLeftBtn" class="hidden lg:flex items-center justify-center w-7 h-7 rounded-lg bg-white/5 hover:bg-cyan-500/20 text-gray-300 hover:text-cyan-300 transition cursor-pointer shrink-0" title="ย่อ/ขยายแถบซ้าย">
+            <i class="fa-solid fa-angles-left text-xs"></i>
+          </button>
+        </div>
       </div>
 
       <!-- STATEMENT -->
-      <div id="leftPaneStmt" class="flex-1 overflow-y-auto p-5 space-y-5 animate-fade-in">
+      <div id="leftPaneStmt" class="flex-1 overflow-y-auto p-4 sm:p-5 space-y-5 animate-fade-in min-h-0">
         <div class="border-b border-cyan-500/15 pb-3.5 space-y-2">
           <div class="flex flex-wrap items-center justify-between gap-2">
-            <h2 id="stmtFullTitle" class="text-xl font-bold text-white">กำลังโหลด...</h2>
-            <span id="stmtModeChip" class="text-[11px] px-2.5 py-0.5 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">Standard I/O</span>
+            <h2 id="stmtFullTitle" class="text-lg sm:text-xl font-bold text-white break-words">กำลังโหลด...</h2>
+            <span id="stmtModeChip" class="text-[11px] px-2.5 py-0.5 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 shrink-0">Standard I/O</span>
           </div>
-          <div class="flex flex-wrap items-center gap-3 text-xs text-gray-400">
+          <div class="flex flex-wrap items-center gap-2 sm:gap-3 text-xs text-gray-400">
             <span id="stmtAuthor"><i class="fa-solid fa-user-pen text-cyan-400 mr-1"></i> ผู้ออกโจทย์: -</span>
             <span>&bull;</span>
             <span>Time: <b id="stmtTime" class="text-gray-200">1.0</b>s</span>
@@ -156,13 +217,13 @@
       </div>
 
       <!-- SUBMISSIONS -->
-      <div id="leftPaneSubs" class="hidden flex-1 overflow-y-auto p-5 space-y-4 animate-fade-in">
-        <div class="flex items-center justify-between">
-          <div>
+      <div id="leftPaneSubs" class="hidden flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 animate-fade-in min-h-0">
+        <div class="flex items-center justify-between gap-2">
+          <div class="min-w-0">
             <h3 class="text-base font-bold text-white">ประวัติการส่งโค้ด</h3>
-            <p class="text-xs text-gray-400">คลิกที่รายการเพื่อเปิด Pop-up ดูรายละเอียดโค้ดและผลตรวจ</p>
+            <p class="text-xs text-gray-400 truncate">คลิกที่รายการเพื่อเปิด Pop-up ดูรายละเอียดโค้ดและผลตรวจ</p>
           </div>
-          <button type="button" onclick="loadMySubmissions(true)" class="text-xs bg-white/5 hover:bg-cyan-500/15 text-cyan-300 px-3 py-1.5 rounded-xl border border-cyan-500/25 transition active:scale-95 cursor-pointer flex items-center gap-1">
+          <button type="button" onclick="loadMySubmissions(true)" class="text-xs bg-white/5 hover:bg-cyan-500/15 text-cyan-300 px-3 py-1.5 rounded-xl border border-cyan-500/25 transition active:scale-95 cursor-pointer flex items-center gap-1 shrink-0">
             <i class="fa-solid fa-rotate"></i> รีเฟรช
           </button>
         </div>
@@ -171,7 +232,7 @@
         </div>
       </div>
 
-      <!-- DIRECT ADMIN SUPPORT CHAT (1 PROBLEM / 1 STUDENT / 1 ROOM) -->
+      <!-- DIRECT ADMIN SUPPORT CHAT -->
       <div id="leftPaneChat" class="hidden flex-1 flex flex-col min-h-0 animate-fade-in">
         <div class="px-4 py-2.5 bg-gradient-to-r from-amber-950/40 to-cyan-950/35 border-b border-cyan-500/15 flex items-center justify-between gap-2 shrink-0">
           <div class="flex items-center gap-2 min-w-0">
@@ -186,11 +247,11 @@
           </button>
         </div>
 
-        <div id="chatMessagesContainer" class="flex-1 overflow-y-auto p-4 space-y-3 bg-[#050914]/60">
+        <div id="chatMessagesContainer" class="flex-1 overflow-y-auto p-4 space-y-3 bg-[#050914]/60 min-h-0">
           <p class="text-xs text-gray-400 text-center py-8">กำลังโหลดข้อความ...</p>
         </div>
 
-        <!-- Submission Picker Bar (ซ่อน/เปิดเมื่อกดปุ่มแนบ Submission) -->
+        <!-- Submission Picker Bar -->
         <div id="chatSubmissionPickerPanel" class="hidden px-3 py-2 bg-[#0a1228] border-t border-cyan-500/25 space-y-1.5 shrink-0 animate-fade-in">
           <div class="flex items-center justify-between text-[11px]">
             <span class="font-bold text-cyan-300"><i class="fa-solid fa-code-branch mr-1"></i> เลือก Submission ที่ต้องการแนบ:</span>
@@ -212,11 +273,11 @@
           </button>
         </div>
 
-        <form id="chatSendForm" onsubmit="sendProblemChatMessage(event)" class="p-3 bg-[#080e20] border-t border-cyan-500/20 flex items-center gap-2 shrink-0">
+        <form id="chatSendForm" onsubmit="sendProblemChatMessage(event)" class="p-2.5 sm:p-3 bg-[#080e20] border-t border-cyan-500/20 flex items-center gap-2 shrink-0">
           <button type="button" onclick="toggleSubmissionPicker()" id="attachSubBtn" class="bg-white/5 hover:bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 w-9 h-9 rounded-xl flex items-center justify-center transition active:scale-95 cursor-pointer shrink-0" title="แนบ Submission ส่งให้ผู้ดูแล">
             <i class="fa-solid fa-paperclip"></i>
           </button>
-          <input type="text" id="chatMessageInput" autocomplete="off" placeholder="พิมพ์คำถามถึงผู้ดูแลระบบ..." class="flex-1 bg-black/65 border border-cyan-500/25 focus:border-cyan-400 focus:outline-none rounded-xl px-3.5 py-2 text-xs text-white">
+          <input type="text" id="chatMessageInput" autocomplete="off" placeholder="พิมพ์คำถามถึงผู้ดูแลระบบ..." class="flex-1 min-w-0 bg-black/65 border border-cyan-500/25 focus:border-cyan-400 focus:outline-none rounded-xl px-3.5 py-2 text-xs text-white">
           <button type="submit" id="chatSendBtn" class="bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-95 text-white px-4 py-2 rounded-xl text-xs font-bold shadow transition active:scale-95 cursor-pointer shrink-0">
             <i class="fa-solid fa-paper-plane"></i>
           </button>
@@ -224,13 +285,14 @@
       </div>
     </section>
 
-    <!-- RESIZER -->
-    <div id="splitResizer" class="hidden lg:block split-resizer shrink-0"></div>
+    <!-- RESIZER (DESKTOP HORIZONTAL) -->
+    <div id="splitResizer" class="hidden lg:block split-resizer shrink-0" title="ลากเพื่อปรับความกว้างซ้าย-ขวา"></div>
 
     <!-- RIGHT PANE (EDITOR & CONSOLE) -->
-    <section id="rightPane" class="flex-1 h-[55vh] lg:h-full flex flex-col bg-[#050914] min-w-0 overflow-hidden">
-      <div class="h-12 shrink-0 px-3 bg-[#080d1e] border-b border-cyan-500/15 flex items-center justify-between gap-2 overflow-x-auto">
-        <div class="flex items-center gap-2 min-w-0">
+    <section id="rightPane" class="flex-1 flex flex-col bg-[#050914] min-w-0 min-h-0 overflow-hidden">
+      <!-- Editor Toolbar -->
+      <div class="h-11 sm:h-12 shrink-0 px-3 bg-[#080d1e] border-b border-cyan-500/15 flex items-center justify-between gap-2 overflow-x-auto">
+        <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
           <select id="langSelect" onchange="handleLanguageChange()" class="bg-black/70 border border-cyan-500/30 focus:border-cyan-400 focus:outline-none rounded-xl px-2.5 py-1 text-xs font-semibold text-white cursor-pointer shrink-0">
             <option value="cpp">C++ 17</option>
             <option value="c">C</option>
@@ -242,51 +304,61 @@
           <button type="button" onclick="resetEditorTemplate()" class="bg-white/5 hover:bg-white/10 text-gray-300 px-2 py-1 rounded-xl text-xs transition active:scale-95 cursor-pointer shrink-0" title="รีเซ็ตโค้ด">
             <i class="fa-solid fa-rotate-left"></i>
           </button>
+          <div class="hidden sm:flex items-center bg-black/50 border border-white/10 rounded-xl overflow-hidden shrink-0">
+            <button type="button" onclick="changeEditorFontSize(-1)" class="px-2 py-1 text-[11px] text-gray-300 hover:bg-white/10 hover:text-cyan-300 cursor-pointer transition" title="ลดขนาดตัวอักษรใน Editor">A-</button>
+            <span id="editorFontSizeLabel" class="px-1.5 text-[10px] font-code text-gray-400">14</span>
+            <button type="button" onclick="changeEditorFontSize(1)" class="px-2 py-1 text-[11px] text-gray-300 hover:bg-white/10 hover:text-cyan-300 cursor-pointer transition" title="เพิ่มขนาดตัวอักษรใน Editor">A+</button>
+          </div>
         </div>
 
         <div class="flex items-center gap-1.5 shrink-0">
           <button type="button" id="lastVerdictQuickBtn" onclick="openLatestSubmissionModal()" class="hidden bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 border border-cyan-500/30 px-2.5 py-1 rounded-xl text-xs font-semibold transition active:scale-95 cursor-pointer items-center gap-1.5">
-            <i class="fa-solid fa-square-poll-vertical"></i> ผลล่าสุด
+            <i class="fa-solid fa-square-poll-vertical"></i> <span>ผลล่าสุด</span>
           </button>
         </div>
       </div>
 
-      <!-- MONACO EDITOR -->
-      <div id="monacoContainer" class="flex-1 min-h-0 w-full relative"></div>
+      <!-- MONACO EDITOR WRAPPER -->
+      <div id="monacoWrapper" class="flex-1 min-h-[110px] min-w-0 w-full relative overflow-hidden">
+        <div id="monacoContainer" class="absolute inset-0"></div>
+      </div>
+
+      <!-- CONSOLE RESIZER (VERTICAL) -->
+      <div id="consoleResizer" class="h-resizer shrink-0" title="ลากขึ้น-ลงเพื่อปรับความสูงช่องทดสอบโค้ด"></div>
 
       <!-- BOTTOM CONSOLE (SAMPLE I/O TESTER) -->
-      <div class="h-52 shrink-0 bg-[#060a17] border-t border-cyan-500/25 flex flex-col">
-        <div class="h-9 px-3 bg-black/60 border-b border-cyan-500/15 flex items-center justify-between gap-2 overflow-x-auto">
+      <div id="bottomConsole" style="height: 205px;" class="shrink-0 bg-[#060a17] flex flex-col min-h-[115px] max-h-[65vh] overflow-hidden">
+        <div class="h-9 shrink-0 px-3 bg-black/60 border-b border-cyan-500/15 flex items-center justify-between gap-2 overflow-x-auto">
           <div class="flex items-center gap-1.5 shrink-0">
-            <span class="px-2.5 py-1 rounded-lg text-xs font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
-              <i class="fa-solid fa-terminal mr-1"></i> ทดสอบรันโค้ด (Custom Input)
+            <span class="px-2.5 py-0.5 rounded-lg text-[11px] sm:text-xs font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+              <i class="fa-solid fa-terminal mr-1"></i> <span class="hidden sm:inline">ทดสอบรันโค้ด (Custom Input)</span><span class="sm:hidden">Custom Input</span>
             </span>
           </div>
 
           <div class="flex items-center gap-1.5 shrink-0">
-            <button type="button" onclick="loadSampleIntoCustomInput()" class="text-[11px] text-amber-300 hover:text-amber-200 cursor-pointer mr-1 hidden sm:inline-block transition">
-              <i class="fa-solid fa-flask"></i> Sample
+            <button type="button" onclick="loadSampleIntoCustomInput()" class="text-[11px] text-amber-300 hover:text-amber-200 cursor-pointer mr-1 transition">
+              <i class="fa-solid fa-flask"></i> <span class="hidden xs:inline sm:inline">Sample</span>
             </button>
             <button type="button" id="runSampleBtn" onclick="runCustomTest()" class="bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 px-2.5 py-1 rounded-lg text-xs font-bold transition active:scale-95 cursor-pointer flex items-center gap-1">
               <i class="fa-solid fa-play"></i> รัน
             </button>
-            <button type="button" id="submitCodeBtn" onclick="submitSolution()" class="bg-gradient-to-r from-emerald-600 to-teal-500 hover:opacity-95 text-white px-3.5 py-1 rounded-lg text-xs font-bold shadow-lg shadow-emerald-500/20 transition active:scale-95 cursor-pointer flex items-center gap-1">
+            <button type="button" id="submitCodeBtn" onclick="submitSolution()" class="bg-gradient-to-r from-emerald-600 to-teal-500 hover:opacity-95 text-white px-3 sm:px-3.5 py-1 rounded-lg text-xs font-bold shadow-lg shadow-emerald-500/20 transition active:scale-95 cursor-pointer flex items-center gap-1">
               <i class="fa-solid fa-bolt"></i> ส่งตรวจ
             </button>
           </div>
         </div>
 
-        <div id="consoleAreaTest" class="flex-1 grid grid-cols-2 divide-x divide-cyan-500/15 min-h-0 animate-fade-in">
-          <div class="flex flex-col p-2 min-h-0">
-            <span class="text-[10px] font-bold text-gray-400 uppercase mb-1">Standard Input (stdin)</span>
-            <textarea id="customInputBox" placeholder="ใส่ Input..." class="flex-1 w-full bg-black/60 border border-white/10 focus:border-cyan-400 focus:outline-none rounded-xl p-2 text-xs text-white font-code resize-none"></textarea>
+        <div id="consoleAreaTest" class="flex-1 grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-cyan-500/15 min-h-0 overflow-hidden animate-fade-in">
+          <div class="flex flex-col p-2 min-h-0 min-w-0">
+            <span class="text-[10px] font-bold text-gray-400 uppercase mb-1 shrink-0">Standard Input (stdin)</span>
+            <textarea id="customInputBox" placeholder="ใส่ Input..." class="flex-1 w-full min-h-0 bg-black/60 border border-white/10 focus:border-cyan-400 focus:outline-none rounded-xl p-2 text-xs text-white font-code resize-none"></textarea>
           </div>
-          <div class="flex flex-col p-2 min-h-0">
-            <div class="flex justify-between items-center mb-1">
-              <span class="text-[10px] font-bold text-emerald-400 uppercase">Program Output (stdout)</span>
-              <span id="runExecStats" class="text-[10px] text-gray-400 font-code"></span>
+          <div class="flex flex-col p-2 min-h-0 min-w-0">
+            <div class="flex justify-between items-center mb-1 gap-2 shrink-0">
+              <span class="text-[10px] font-bold text-emerald-400 uppercase shrink-0">Program Output (stdout)</span>
+              <span id="runExecStats" class="text-[10px] text-gray-400 font-code truncate"></span>
             </div>
-            <pre id="customOutputBox" class="flex-1 w-full bg-black/70 border border-white/10 rounded-xl p-2 text-xs text-gray-200 font-code overflow-auto whitespace-pre-wrap">กดปุ่ม "รัน" เพื่อทดสอบ...</pre>
+            <pre id="customOutputBox" class="flex-1 w-full min-h-0 bg-black/70 border border-white/10 rounded-xl p-2 text-xs text-gray-200 font-code overflow-auto whitespace-pre-wrap">กดปุ่ม "รัน" เพื่อทดสอบ...</pre>
           </div>
         </div>
       </div>
@@ -294,8 +366,8 @@
   </div>
 
   <!-- SUBMISSION DETAIL & LIVE VERDICT POP-UP MODAL -->
-  <div id="submissionDetailModal" onclick="if(event.target === this) closeSubmissionModal()" class="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/85 backdrop-blur-md opacity-0 pointer-events-none transition-all duration-200">
-    <div class="tech-modal rounded-3xl p-6 max-w-2xl w-full space-y-4 border border-cyan-500/35 max-h-[90vh] flex flex-col animate-fade-in">
+  <div id="submissionDetailModal" onclick="if(event.target === this) closeSubmissionModal()" class="fixed inset-0 z-50 flex items-center justify-center px-3 sm:px-4 bg-black/85 backdrop-blur-md opacity-0 pointer-events-none transition-all duration-200">
+    <div class="tech-modal rounded-3xl p-5 sm:p-6 max-w-2xl w-full space-y-4 border border-cyan-500/35 max-h-[90dvh] flex flex-col animate-fade-in">
       <div class="flex justify-between items-center border-b border-cyan-500/20 pb-3 shrink-0 gap-2">
         <div class="flex items-center gap-2 min-w-0">
           <span id="modalSubTitle" class="text-sm font-bold text-cyan-300 font-code truncate">Submission Detail</span>
@@ -303,7 +375,7 @@
         </div>
         <div class="flex items-center gap-2 shrink-0">
           <button type="button" id="modalRefreshSubBtn" onclick="refreshModalSubmissionStatus()" class="bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 border border-cyan-500/30 px-2.5 py-1 rounded-xl text-xs font-semibold transition active:scale-95 cursor-pointer flex items-center gap-1" title="รีเฟรชผลตรวจ">
-            <i id="modalRefreshIcon" class="fa-solid fa-rotate"></i> <span>รีเฟรช</span>
+            <i id="modalRefreshIcon" class="fa-solid fa-rotate"></i> <span class="hidden sm:inline">รีเฟรช</span>
           </button>
           <button type="button" onclick="closeSubmissionModal()" class="text-gray-400 hover:text-white w-7 h-7 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center cursor-pointer transition">
             <i class="fa-solid fa-xmark text-base"></i>
@@ -339,11 +411,11 @@
         </div>
       </div>
 
-      <div class="flex justify-end gap-2 pt-2 border-t border-cyan-500/20 shrink-0">
-        <button type="button" id="modalAttachChatBtn" class="bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/35 px-4 py-2 rounded-xl text-xs font-semibold cursor-pointer transition active:scale-95 flex items-center gap-1.5">
+      <div class="flex flex-wrap justify-end gap-2 pt-2 border-t border-cyan-500/20 shrink-0">
+        <button type="button" id="modalAttachChatBtn" class="bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/35 px-3.5 py-2 rounded-xl text-xs font-semibold cursor-pointer transition active:scale-95 flex items-center gap-1.5">
           <i class="fa-solid fa-paperclip"></i> แนบถามผู้ดูแล
         </button>
-        <button type="button" id="modalCopyCodeBtn" class="bg-white/5 hover:bg-white/10 text-gray-200 px-4 py-2 rounded-xl text-xs font-semibold cursor-pointer transition active:scale-95">คัดลอกโค้ด</button>
+        <button type="button" id="modalCopyCodeBtn" class="bg-white/5 hover:bg-white/10 text-gray-200 px-3.5 py-2 rounded-xl text-xs font-semibold cursor-pointer transition active:scale-95">คัดลอกโค้ด</button>
         <button type="button" id="modalLoadEditorBtn" class="bg-gradient-to-r from-blue-600 to-cyan-500 text-white px-4 py-2 rounded-xl text-xs font-bold cursor-pointer transition active:scale-95 shadow">โหลดลง Editor</button>
       </div>
     </div>
@@ -362,6 +434,7 @@
     const fromParam = (urlParams.get('from') || '').toLowerCase();
 
     let editorInstance = null;
+    let editorFontSize = parseInt(localStorage.getItem('st8_editor_font_size')) || 14;
     let currentUser = null;
     let currentUserProfile = null;
     let isAdminUser = false;
@@ -379,8 +452,10 @@
     let chatRealtimeChannel = null;
     let activeLeftTab = 'stmt';
 
-    let leftPaneWidthPct = parseFloat(localStorage.getItem('st8_split_left_pct')) || 48;
+    let leftPaneWidthPct = Math.min(72, Math.max(22, parseFloat(localStorage.getItem('st8_split_left_pct')) || 48));
+    let consoleHeightPx = Math.min(480, Math.max(120, parseInt(localStorage.getItem('st8_console_height_px')) || 205));
     let isLeftCollapsed = false;
+    let mobileLeftExpanded = false;
 
     const DEFAULT_TEMPLATES = {
       cpp: `#include <bits/stdc++.h>\nusing namespace std;\n\nint main() {\n    ios::sync_with_stdio(false);\n    cin.tie(nullptr);\n    \n    // เขียนโค้ดของคุณที่นี่\n    \n    return 0;\n}`,
@@ -399,8 +474,8 @@
       document.getElementById('toastTitle').textContent = title;
       document.getElementById('toastDesc').textContent = desc;
       document.getElementById('toastIcon').className = isError
-        ? 'fa-solid fa-circle-exclamation text-rose-400 text-base animate-bounce'
-        : 'fa-solid fa-circle-check text-cyan-400 text-base';
+        ? 'fa-solid fa-circle-exclamation text-rose-400 text-base animate-bounce shrink-0'
+        : 'fa-solid fa-circle-check text-cyan-400 text-base shrink-0';
       toast.classList.remove('translate-x-[130%]');
       setTimeout(() => toast.classList.add('translate-x-[130%]'), 3600);
     }
@@ -426,67 +501,181 @@
       }
     }
 
+    // --- RESPONSIVE LAYOUT ENGINE (ป้องกันบั๊กการย่อขยายหน้าจอ/ซูม) ---
+    function syncResponsivePaneLayout() {
+      const leftEl = document.getElementById('leftPane');
+      const consoleEl = document.getElementById('bottomConsole');
+      const isDesktop = window.innerWidth >= 1024;
+
+      if (leftEl) {
+        if (isDesktop) {
+          leftEl.style.height = '100%';
+          leftEl.style.width = isLeftCollapsed ? '24%' : `${leftPaneWidthPct}%`;
+        } else {
+          leftEl.style.width = '100%';
+          leftEl.style.height = mobileLeftExpanded ? '62%' : '40%';
+        }
+      }
+
+      if (consoleEl) {
+        const maxAllowedConsole = Math.max(125, Math.floor(window.innerHeight * (isDesktop ? 0.58 : 0.34)));
+        const appliedHeight = Math.min(consoleHeightPx, maxAllowedConsole);
+        consoleEl.style.height = `${appliedHeight}px`;
+      }
+
+      if (editorInstance) {
+        requestAnimationFrame(() => editorInstance.layout());
+      }
+    }
+
+    function toggleMobileLeftPane() {
+      if (window.innerWidth >= 1024) return;
+      mobileLeftExpanded = !mobileLeftExpanded;
+      syncResponsivePaneLayout();
+    }
+
     function toggleCollapseLeftPane() {
       if (window.innerWidth < 1024) return;
-      const leftEl = document.getElementById('leftPane');
       const btn = document.getElementById('collapseLeftBtn');
       isLeftCollapsed = !isLeftCollapsed;
       if (isLeftCollapsed) {
-        leftEl.style.width = '24%';
         btn.innerHTML = '<i class="fa-solid fa-angles-right text-xs"></i>';
       } else {
-        leftEl.style.width = leftPaneWidthPct + '%';
         btn.innerHTML = '<i class="fa-solid fa-angles-left text-xs"></i>';
       }
-      if (editorInstance) editorInstance.layout();
+      syncResponsivePaneLayout();
+    }
+
+    function changeEditorFontSize(delta) {
+      editorFontSize = Math.min(24, Math.max(11, editorFontSize + delta));
+      localStorage.setItem('st8_editor_font_size', editorFontSize);
+      const lbl = document.getElementById('editorFontSizeLabel');
+      if (lbl) lbl.textContent = editorFontSize;
+      if (editorInstance) {
+        editorInstance.updateOptions({ fontSize: editorFontSize });
+        editorInstance.layout();
+      }
     }
 
     function initSplitResizer() {
       const resizer = document.getElementById('splitResizer');
+      const consoleResizer = document.getElementById('consoleResizer');
       const container = document.getElementById('workspaceContainer');
+      const rightPane = document.getElementById('rightPane');
       const leftEl = document.getElementById('leftPane');
-      if (!resizer || !container || !leftEl) return;
-      if (window.innerWidth >= 1024) leftEl.style.width = leftPaneWidthPct + '%';
+      const consoleEl = document.getElementById('bottomConsole');
 
-      let isDragging = false;
-      resizer.addEventListener('mousedown', () => {
-        if (window.innerWidth < 1024) return;
-        isDragging = true;
-        resizer.classList.add('dragging');
-        document.body.style.cursor = 'col-resize';
-        document.body.style.userSelect = 'none';
-      });
+      syncResponsivePaneLayout();
 
-      window.addEventListener('mousemove', (e) => {
-        if (!isDragging) return;
-        const rect = container.getBoundingClientRect();
-        const newPct = ((e.clientX - rect.left) / rect.width) * 100;
-        if (newPct >= 20 && newPct <= 75) {
-          leftPaneWidthPct = newPct;
-          leftEl.style.width = newPct + '%';
+      // 1) Horizontal Resizer (Desktop Left/Right)
+      if (resizer && container && leftEl) {
+        let isDraggingH = false;
+
+        const startDragH = () => {
+          if (window.innerWidth < 1024) return;
+          isDraggingH = true;
+          isLeftCollapsed = false;
+          document.getElementById('collapseLeftBtn').innerHTML = '<i class="fa-solid fa-angles-left text-xs"></i>';
+          resizer.classList.add('dragging');
+          document.body.classList.add('is-resizing');
+          document.body.style.cursor = 'col-resize';
+          document.body.style.userSelect = 'none';
+        };
+
+        const moveDragH = (clientX) => {
+          if (!isDraggingH) return;
+          const rect = container.getBoundingClientRect();
+          const newPct = ((clientX - rect.left) / rect.width) * 100;
+          if (newPct >= 22 && newPct <= 72) {
+            leftPaneWidthPct = newPct;
+            leftEl.style.width = `${newPct}%`;
+            if (editorInstance) editorInstance.layout();
+          }
+        };
+
+        const stopDragH = () => {
+          if (!isDraggingH) return;
+          isDraggingH = false;
+          resizer.classList.remove('dragging');
+          document.body.classList.remove('is-resizing');
+          document.body.style.cursor = '';
+          document.body.style.userSelect = '';
+          localStorage.setItem('st8_split_left_pct', leftPaneWidthPct.toFixed(1));
           if (editorInstance) editorInstance.layout();
-        }
-      });
+        };
 
-      window.addEventListener('mouseup', () => {
-        if (!isDragging) return;
-        isDragging = false;
-        resizer.classList.remove('dragging');
-        document.body.style.cursor = '';
-        document.body.style.userSelect = '';
-        localStorage.setItem('st8_split_left_pct', leftPaneWidthPct.toFixed(1));
+        resizer.addEventListener('mousedown', startDragH);
+        window.addEventListener('mousemove', (e) => moveDragH(e.clientX));
+        window.addEventListener('mouseup', stopDragH);
+      }
+
+      // 2) Vertical Resizer (Editor / Console Height)
+      if (consoleResizer && rightPane && consoleEl) {
+        let isDraggingV = false;
+
+        const startDragV = () => {
+          isDraggingV = true;
+          consoleResizer.classList.add('dragging');
+          document.body.classList.add('is-resizing');
+          document.body.style.cursor = 'row-resize';
+          document.body.style.userSelect = 'none';
+        };
+
+        const moveDragV = (clientY) => {
+          if (!isDraggingV) return;
+          const rect = rightPane.getBoundingClientRect();
+          const newHeight = rect.bottom - clientY;
+          const minH = 120;
+          const maxH = Math.max(150, rect.height - 150);
+          if (newHeight >= minH && newHeight <= maxH) {
+            consoleHeightPx = Math.round(newHeight);
+            consoleEl.style.height = `${consoleHeightPx}px`;
+            if (editorInstance) editorInstance.layout();
+          }
+        };
+
+        const stopDragV = () => {
+          if (!isDraggingV) return;
+          isDraggingV = false;
+          consoleResizer.classList.remove('dragging');
+          document.body.classList.remove('is-resizing');
+          document.body.style.cursor = '';
+          document.body.style.userSelect = '';
+          localStorage.setItem('st8_console_height_px', String(consoleHeightPx));
+          if (editorInstance) editorInstance.layout();
+        };
+
+        consoleResizer.addEventListener('mousedown', startDragV);
+        window.addEventListener('mousemove', (e) => moveDragV(e.clientY));
+        window.addEventListener('mouseup', stopDragV);
+
+        consoleResizer.addEventListener('touchstart', startDragV, { passive: true });
+        window.addEventListener('touchmove', (e) => {
+          if (isDraggingV && e.touches[0]) moveDragV(e.touches[0].clientY);
+        }, { passive: true });
+        window.addEventListener('touchend', stopDragV);
+      }
+
+      // 3) Auto-sync on Window Resize & Browser Zoom
+      let resizeTimer = null;
+      window.addEventListener('resize', () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(syncResponsivePaneLayout, 40);
       });
     }
 
     function initMonacoEditor() {
       return new Promise((resolve) => {
+        const lbl = document.getElementById('editorFontSizeLabel');
+        if (lbl) lbl.textContent = editorFontSize;
+
         require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs' } });
         require(['vs/editor/editor.main'], function () {
           editorInstance = monaco.editor.create(document.getElementById('monacoContainer'), {
             value: DEFAULT_TEMPLATES.cpp,
             language: 'cpp',
             theme: 'vs-dark',
-            fontSize: 14,
+            fontSize: editorFontSize,
             fontFamily: "'JetBrains Mono', monospace",
             minimap: { enabled: false },
             automaticLayout: true,
@@ -494,6 +683,16 @@
             padding: { top: 14, bottom: 14 },
             roundedSelection: true
           });
+
+          // Observe wrapper size changes directly (works cleanly on zoom & split drag)
+          const wrapper = document.getElementById('monacoWrapper');
+          if (wrapper && typeof ResizeObserver !== 'undefined') {
+            const ro = new ResizeObserver(() => {
+              if (editorInstance) editorInstance.layout();
+            });
+            ro.observe(wrapper);
+          }
+
           resolve();
         });
       });
@@ -542,8 +741,8 @@
 
     function switchLeftTab(tab) {
       activeLeftTab = tab;
-      const activeCls = 'px-3.5 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow transition active:scale-95 cursor-pointer flex items-center gap-1.5 shrink-0';
-      const inactiveCls = 'px-3.5 py-1.5 rounded-xl text-xs font-semibold text-gray-300 hover:bg-white/5 transition active:scale-95 cursor-pointer flex items-center gap-1.5 shrink-0';
+      const activeCls = 'px-3 sm:px-3.5 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow transition active:scale-95 cursor-pointer flex items-center gap-1.5 shrink-0';
+      const inactiveCls = 'px-3 sm:px-3.5 py-1.5 rounded-xl text-xs font-semibold text-gray-300 hover:bg-white/5 transition active:scale-95 cursor-pointer flex items-center gap-1.5 shrink-0';
 
       document.getElementById('leftTabBtnStmt').className = tab === 'stmt' ? activeCls : inactiveCls;
       document.getElementById('leftTabBtnSubs').className = tab === 'subs' ? activeCls : inactiveCls;
@@ -671,7 +870,7 @@
       if (notifyToast) showToast('อัปเดตประวัติแล้ว', `โหลดรายการส่งทั้งหมด ${rawList.length} ครั้ง`);
     }
 
-    // --- DIRECT SUPPORT CHAT (1 PROBLEM / 1 STUDENT / 1 ROOM WITH ADMIN) ---
+    // --- DIRECT SUPPORT CHAT ---
     function scrollChatToBottom() {
       const box = document.getElementById('chatMessagesContainer');
       if (box) setTimeout(() => { box.scrollTop = box.scrollHeight; }, 40);
@@ -1704,11 +1903,11 @@ int main() {
               <button type="button" onclick="copySampleInput(${i})" class="text-[11px] text-cyan-300 hover:underline cursor-pointer transition"><i class="fa-solid fa-arrow-turn-down mr-1"></i> ใส่ลงช่องทดสอบ</button>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
-              <div>
+              <div class="min-w-0">
                 <div class="text-[10px] text-gray-400 font-bold mb-1">INPUT</div>
                 <pre class="bg-black/80 border border-white/10 rounded-xl p-2.5 text-xs text-white font-code overflow-x-auto">${escapeHtml(tc.input || '')}</pre>
               </div>
-              <div>
+              <div class="min-w-0">
                 <div class="text-[10px] text-emerald-400 font-bold mb-1">OUTPUT</div>
                 <pre class="bg-black/80 border border-white/10 rounded-xl p-2.5 text-xs text-emerald-200 font-code overflow-x-auto">${escapeHtml(tc.output || '')}</pre>
               </div>

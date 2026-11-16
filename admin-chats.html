@@ -34,7 +34,7 @@
     ::-webkit-scrollbar-thumb { background: rgba(56, 189, 248, 0.25); border-radius: 9999px; }
   </style>
 </head>
-<body class="h-screen w-screen flex flex-col overflow-hidden selection:bg-cyan-500 selection:text-black">
+<body class="min-h-screen flex flex-col selection:bg-cyan-500 selection:text-black">
 
   <!-- TOAST -->
   <div id="systemToast" class="fixed top-4 right-4 z-[90] transform translate-x-[120%] transition-all duration-300 tech-glass px-4 py-3 rounded-2xl border border-cyan-500/40 shadow-2xl flex items-center gap-3">
@@ -45,118 +45,120 @@
     </div>
   </div>
 
-  <!-- SHARED ADMIN HEADER -->
-  <div id="adminHeaderMount" class="shrink-0 w-full z-40"></div>
+  <!-- SHARED ADMIN HEADER (โครงสร้างเดียวกับหน้า Admin อื่นๆ) -->
+  <div id="adminHeaderMount"></div>
 
-  <!-- BODY WITH SHARED SIDEBAR -->
-  <div class="flex-1 flex min-h-0 w-full overflow-hidden">
-    <!-- SIDEBAR MOUNT (แสดงค้างบนจอ lg และเป็น Drawer บนจอมือถือ/แท็บเล็ต) -->
-    <div id="adminSidebarMount" class="shrink-0 flex"></div>
+  <!-- MAIN SHELL WITH SIDEBAR (โครงสร้างเดียวกับหน้า Admin อื่นๆ) -->
+  <div class="flex flex-col lg:flex-row flex-1">
+    <div id="adminSidebarMount"></div>
 
-    <!-- CHAT WORKSPACE -->
-    <div class="flex-1 flex min-w-0 min-h-0 h-full overflow-hidden">
+    <!-- MAIN CONTENT: CHAT WORKSPACE -->
+    <main class="flex-1 min-w-0 p-3 md:p-5 flex flex-col">
+      <div class="flex-1 tech-glass rounded-3xl border border-cyan-500/20 overflow-hidden flex min-h-[calc(100vh-110px)] max-h-[calc(100vh-110px)]">
 
-      <!-- LEFT LIST OF ROOMS -->
-      <aside id="roomsSidebar" class="w-full md:w-80 xl:w-96 shrink-0 bg-[#070c1b] border-r border-cyan-500/20 flex flex-col min-h-0 h-full">
-        <div class="p-3 bg-[#090f22] border-b border-cyan-500/15 space-y-2.5 shrink-0">
-          <div class="flex items-center justify-between">
-            <span class="text-xs font-bold text-cyan-300"><i class="fa-solid fa-headset mr-1.5 text-amber-400"></i>กล่องข้อความนักเรียน</span>
-            <button type="button" onclick="loadAllChatRooms(true)" class="text-[11px] bg-white/5 hover:bg-cyan-500/15 text-cyan-300 px-2.5 py-1 rounded-lg border border-cyan-500/25 cursor-pointer transition">
-              <i id="refreshRoomsIcon" class="fa-solid fa-rotate mr-1"></i>รีเฟรช
-            </button>
-          </div>
-
-          <div class="relative">
-            <i class="fa-solid fa-magnifying-glass text-gray-400 text-xs absolute left-3.5 top-1/2 -translate-y-1/2"></i>
-            <input type="text" id="roomSearchInput" oninput="renderChatRoomsList()" placeholder="ค้นหาชื่อนักเรียน, รหัสโจทย์..." class="w-full bg-black/65 border border-cyan-500/25 focus:border-cyan-400 focus:outline-none rounded-xl pl-9 pr-3 py-2 text-xs text-white">
-          </div>
-
-          <div class="flex items-center gap-1.5">
-            <button type="button" id="filterAllBtn" onclick="setRoomFilter('all')" class="flex-1 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow cursor-pointer transition">
-              ทั้งหมด (<span id="countAllRooms">0</span>)
-            </button>
-            <button type="button" id="filterUnreadBtn" onclick="setRoomFilter('unread')" class="flex-1 py-1.5 rounded-xl text-xs font-semibold text-gray-300 bg-white/5 hover:bg-white/10 cursor-pointer transition">
-              ยังไม่อ่าน (<span id="countUnreadRooms">0</span>)
-            </button>
-          </div>
-        </div>
-
-        <div id="chatRoomsListContainer" class="flex-1 overflow-y-auto divide-y divide-cyan-500/10">
-          <div class="text-center py-12 text-xs text-gray-400">
-            <i class="fa-solid fa-spinner fa-spin text-cyan-400 text-lg mb-2 block"></i>
-            กำลังโหลดรายการแชต...
-          </div>
-        </div>
-      </aside>
-
-      <!-- RIGHT CONVERSATION PANE -->
-      <main id="activeChatPanel" class="hidden md:flex flex-1 flex-col bg-[#050914] min-w-0 min-h-0 h-full">
-        <div id="noRoomSelectedState" class="flex-1 flex flex-col items-center justify-center p-6 text-center space-y-3">
-          <div class="w-16 h-16 rounded-2xl bg-cyan-500/10 border border-cyan-500/25 flex items-center justify-center text-cyan-400 text-2xl">
-            <i class="fa-regular fa-comments"></i>
-          </div>
-          <h2 class="text-base font-bold text-white">เลือกห้องสนทนาจากรายการด้านซ้าย</h2>
-          <p class="text-xs text-gray-400 max-w-sm leading-relaxed">
-            แต่ละห้องแยกตาม <b>1 นักเรียน : 1 โจทย์</b> สามารถเปิดดูซอร์สโค้ด Submission ที่นักเรียนแนบมา และตอบกลับได้แบบเรียลไทม์
-          </p>
-        </div>
-
-        <div id="conversationWrapper" class="hidden flex-1 flex flex-col min-h-0 h-full">
-          <!-- Room Header -->
-          <div class="h-16 px-4 bg-[#080e20] border-b border-cyan-500/20 flex items-center justify-between gap-3 shrink-0">
-            <div class="flex items-center gap-3 min-w-0">
-              <button type="button" onclick="closeMobileRoomView()" class="md:hidden w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 flex items-center justify-center shrink-0 cursor-pointer">
-                <i class="fa-solid fa-arrow-left text-xs"></i>
+        <!-- LEFT LIST OF ROOMS -->
+        <aside id="roomsSidebar" class="w-full md:w-80 xl:w-96 shrink-0 bg-[#070c1b]/90 border-r border-cyan-500/20 flex flex-col min-h-0">
+          <div class="p-3.5 bg-[#090f22] border-b border-cyan-500/15 space-y-2.5 shrink-0">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-cyan-300"><i class="fa-solid fa-headset mr-1.5 text-amber-400"></i>กล่องข้อความนักเรียน</span>
+              <button type="button" onclick="loadAllChatRooms(true)" class="text-[11px] bg-white/5 hover:bg-cyan-500/15 text-cyan-300 px-2.5 py-1 rounded-lg border border-cyan-500/25 cursor-pointer transition">
+                <i id="refreshRoomsIcon" class="fa-solid fa-rotate mr-1"></i>รีเฟรช
               </button>
-              <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-600/30 to-cyan-500/30 border border-cyan-400/40 flex items-center justify-center text-cyan-300 font-bold text-sm shrink-0" id="activeRoomAvatar">
-                U
-              </div>
-              <div class="min-w-0">
-                <div class="flex items-center gap-2">
-                  <h2 id="activeRoomStudentName" class="text-sm font-bold text-white truncate">ชื่อนักเรียน</h2>
-                  <span id="activeRoomStudentSub" class="text-[11px] text-gray-400 truncate hidden sm:inline"></span>
-                </div>
-                <div class="flex items-center gap-1.5 text-xs text-cyan-300 truncate">
-                  <span id="activeRoomProbCode" class="font-code font-bold bg-cyan-500/15 px-1.5 py-0.2 rounded border border-cyan-500/30 text-[10px]">P01</span>
-                  <span id="activeRoomProbTitle" class="truncate text-gray-300">ชื่อโจทย์</span>
-                </div>
-              </div>
             </div>
 
-            <div class="flex items-center gap-2 shrink-0">
-              <a id="activeRoomOpenProbLink" href="#" target="_blank" class="bg-white/5 hover:bg-cyan-500/15 text-cyan-300 border border-cyan-500/25 px-3 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-1.5">
-                <i class="fa-solid fa-up-right-from-square"></i> <span class="hidden sm:inline">เปิดหน้าโจทย์</span>
-              </a>
+            <div class="relative">
+              <i class="fa-solid fa-magnifying-glass text-gray-400 text-xs absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+              <input type="text" id="roomSearchInput" oninput="renderChatRoomsList()" placeholder="ค้นหาชื่อนักเรียน, รหัสโจทย์..." class="w-full bg-black/65 border border-cyan-500/25 focus:border-cyan-400 focus:outline-none rounded-xl pl-9 pr-3 py-2 text-xs text-white">
+            </div>
+
+            <div class="flex items-center gap-1.5">
+              <button type="button" id="filterAllBtn" onclick="setRoomFilter('all')" class="flex-1 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow cursor-pointer transition">
+                ทั้งหมด (<span id="countAllRooms">0</span>)
+              </button>
+              <button type="button" id="filterUnreadBtn" onclick="setRoomFilter('unread')" class="flex-1 py-1.5 rounded-xl text-xs font-semibold text-gray-300 bg-white/5 hover:bg-white/10 cursor-pointer transition">
+                ยังไม่อ่าน (<span id="countUnreadRooms">0</span>)
+              </button>
             </div>
           </div>
 
-          <!-- Messages Stream -->
-          <div id="adminChatMessagesBox" class="flex-1 overflow-y-auto p-5 space-y-4"></div>
+          <div id="chatRoomsListContainer" class="flex-1 overflow-y-auto divide-y divide-cyan-500/10">
+            <div class="text-center py-12 text-xs text-gray-400">
+              <i class="fa-solid fa-spinner fa-spin text-cyan-400 text-lg mb-2 block"></i>
+              กำลังโหลดรายการแชต...
+            </div>
+          </div>
+        </aside>
 
-          <!-- Quick Replies -->
-          <div class="px-4 py-2 bg-[#070c1b] border-t border-cyan-500/15 flex items-center gap-1.5 overflow-x-auto shrink-0">
-            <span class="text-[10px] text-gray-400 font-bold uppercase shrink-0 mr-1">ตอบด่วน:</span>
-            <button type="button" onclick="insertQuickReply('ลองตรวจสอบเงื่อนไขขอบเขต (Edge Cases) และขนาดของตัวแปร (เช่น long long) อีกครั้งครับ')" class="text-[11px] bg-white/5 hover:bg-cyan-500/20 text-gray-200 hover:text-cyan-200 border border-white/10 px-2.5 py-1 rounded-lg transition cursor-pointer shrink-0">
-              เช็ก Edge Cases / long long
-            </button>
-            <button type="button" onclick="insertQuickReply('โจทย์ข้อนี้ข้อมูลนำเข้ามีขนาดใหญ่ แนะนำให้ใช้ ios::sync_with_stdio(false); cin.tie(nullptr); และปรับอัลกอริทึมให้เร็วขึ้นครับ')" class="text-[11px] bg-white/5 hover:bg-cyan-500/20 text-gray-200 hover:text-cyan-200 border border-white/10 px-2.5 py-1 rounded-lg transition cursor-pointer shrink-0">
-              แนะนำเรื่อง Time Limit
-            </button>
-            <button type="button" onclick="insertQuickReply('ตรวจสอบรูปแบบการแสดงผล (Output Format) ช่องว่างและการขึ้นบรรทัดใหม่ให้ตรงกับตัวอย่างนะครับ')" class="text-[11px] bg-white/5 hover:bg-cyan-500/20 text-gray-200 hover:text-cyan-200 border border-white/10 px-2.5 py-1 rounded-lg transition cursor-pointer shrink-0">
-              เช็ก Output Format
-            </button>
+        <!-- RIGHT CONVERSATION PANE -->
+        <section id="activeChatPanel" class="hidden md:flex flex-1 flex-col bg-[#050914]/90 min-w-0 min-h-0">
+          <div id="noRoomSelectedState" class="flex-1 flex flex-col items-center justify-center p-6 text-center space-y-3">
+            <div class="w-16 h-16 rounded-2xl bg-cyan-500/10 border border-cyan-500/25 flex items-center justify-center text-cyan-400 text-2xl">
+              <i class="fa-regular fa-comments"></i>
+            </div>
+            <h2 class="text-base font-bold text-white">เลือกห้องสนทนาจากรายการด้านซ้าย</h2>
+            <p class="text-xs text-gray-400 max-w-sm leading-relaxed">
+              แต่ละห้องแยกตาม <b>1 นักเรียน : 1 โจทย์</b> สามารถเปิดดูซอร์สโค้ด Submission ที่นักเรียนแนบมา และตอบกลับได้แบบเรียลไทม์
+            </p>
           </div>
 
-          <!-- Reply Form -->
-          <form id="adminReplyForm" onsubmit="sendAdminReply(event)" class="p-3.5 bg-[#080e20] border-t border-cyan-500/20 flex items-end gap-2.5 shrink-0">
-            <textarea id="adminReplyInput" rows="1" onkeydown="handleReplyKeydown(event)" placeholder="พิมพ์คำตอบถึงนักเรียน... (Enter เพื่อส่ง, Shift+Enter ขึ้นบรรทัดใหม่)" class="flex-1 bg-black/65 border border-cyan-500/30 focus:border-cyan-400 focus:outline-none rounded-xl px-3.5 py-2.5 text-xs text-white resize-none max-h-32"></textarea>
-            <button type="submit" id="adminSendReplyBtn" class="bg-gradient-to-r from-amber-500 to-orange-500 hover:opacity-95 text-black px-5 py-2.5 rounded-xl text-xs font-bold shadow-lg shadow-amber-500/20 transition active:scale-95 cursor-pointer shrink-0 flex items-center gap-1.5">
-              <i class="fa-solid fa-paper-plane"></i> <span>ส่งคำตอบ</span>
-            </button>
-          </form>
-        </div>
-      </main>
-    </div>
+          <div id="conversationWrapper" class="hidden flex-1 flex flex-col min-h-0">
+            <!-- Room Header -->
+            <div class="h-16 px-4 bg-[#080e20] border-b border-cyan-500/20 flex items-center justify-between gap-3 shrink-0">
+              <div class="flex items-center gap-3 min-w-0">
+                <button type="button" onclick="closeMobileRoomView()" class="md:hidden w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 flex items-center justify-center shrink-0 cursor-pointer">
+                  <i class="fa-solid fa-arrow-left text-xs"></i>
+                </button>
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-600/30 to-cyan-500/30 border border-cyan-400/40 flex items-center justify-center text-cyan-300 font-bold text-sm shrink-0" id="activeRoomAvatar">
+                  U
+                </div>
+                <div class="min-w-0">
+                  <div class="flex items-center gap-2">
+                    <h2 id="activeRoomStudentName" class="text-sm font-bold text-white truncate">ชื่อนักเรียน</h2>
+                    <span id="activeRoomStudentSub" class="text-[11px] text-gray-400 truncate hidden sm:inline"></span>
+                  </div>
+                  <div class="flex items-center gap-1.5 text-xs text-cyan-300 truncate">
+                    <span id="activeRoomProbCode" class="font-code font-bold bg-cyan-500/15 px-1.5 py-0.2 rounded border border-cyan-500/30 text-[10px]">P01</span>
+                    <span id="activeRoomProbTitle" class="truncate text-gray-300">ชื่อโจทย์</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-2 shrink-0">
+                <a id="activeRoomOpenProbLink" href="#" target="_blank" class="bg-white/5 hover:bg-cyan-500/15 text-cyan-300 border border-cyan-500/25 px-3 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-1.5">
+                  <i class="fa-solid fa-up-right-from-square"></i> <span class="hidden sm:inline">เปิดหน้าโจทย์</span>
+                </a>
+              </div>
+            </div>
+
+            <!-- Messages Stream -->
+            <div id="adminChatMessagesBox" class="flex-1 overflow-y-auto p-5 space-y-4"></div>
+
+            <!-- Quick Replies -->
+            <div class="px-4 py-2 bg-[#070c1b] border-t border-cyan-500/15 flex items-center gap-1.5 overflow-x-auto shrink-0">
+              <span class="text-[10px] text-gray-400 font-bold uppercase shrink-0 mr-1">ตอบด่วน:</span>
+              <button type="button" onclick="insertQuickReply('ลองตรวจสอบเงื่อนไขขอบเขต (Edge Cases) และขนาดของตัวแปร (เช่น long long) อีกครั้งครับ')" class="text-[11px] bg-white/5 hover:bg-cyan-500/20 text-gray-200 hover:text-cyan-200 border border-white/10 px-2.5 py-1 rounded-lg transition cursor-pointer shrink-0">
+                เช็ก Edge Cases / long long
+              </button>
+              <button type="button" onclick="insertQuickReply('โจทย์ข้อนี้ข้อมูลนำเข้ามีขนาดใหญ่ แนะนำให้ใช้ ios::sync_with_stdio(false); cin.tie(nullptr); และปรับอัลกอริทึมให้เร็วขึ้นครับ')" class="text-[11px] bg-white/5 hover:bg-cyan-500/20 text-gray-200 hover:text-cyan-200 border border-white/10 px-2.5 py-1 rounded-lg transition cursor-pointer shrink-0">
+                แนะนำเรื่อง Time Limit
+              </button>
+              <button type="button" onclick="insertQuickReply('ตรวจสอบรูปแบบการแสดงผล (Output Format) ช่องว่างและการขึ้นบรรทัดใหม่ให้ตรงกับตัวอย่างนะครับ')" class="text-[11px] bg-white/5 hover:bg-cyan-500/20 text-gray-200 hover:text-cyan-200 border border-white/10 px-2.5 py-1 rounded-lg transition cursor-pointer shrink-0">
+                เช็ก Output Format
+              </button>
+            </div>
+
+            <!-- Reply Form -->
+            <form id="adminReplyForm" onsubmit="sendAdminReply(event)" class="p-3.5 bg-[#080e20] border-t border-cyan-500/20 flex items-end gap-2.5 shrink-0">
+              <textarea id="adminReplyInput" rows="1" onkeydown="handleReplyKeydown(event)" placeholder="พิมพ์คำตอบถึงนักเรียน... (Enter เพื่อส่ง, Shift+Enter ขึ้นบรรทัดใหม่)" class="flex-1 bg-black/65 border border-cyan-500/30 focus:border-cyan-400 focus:outline-none rounded-xl px-3.5 py-2.5 text-xs text-white resize-none max-h-32"></textarea>
+              <button type="submit" id="adminSendReplyBtn" class="bg-gradient-to-r from-amber-500 to-orange-500 hover:opacity-95 text-black px-5 py-2.5 rounded-xl text-xs font-bold shadow-lg shadow-amber-500/20 transition active:scale-95 cursor-pointer shrink-0 flex items-center gap-1.5">
+                <i class="fa-solid fa-paper-plane"></i> <span>ส่งคำตอบ</span>
+              </button>
+            </form>
+          </div>
+        </section>
+
+      </div>
+    </main>
   </div>
 
   <!-- SUBMISSION INSPECTOR MODAL -->
@@ -198,10 +200,8 @@
   </div>
 
   <script>
-    // 1. วาด Header + Sidebar ด้านข้างทันที
-    if (typeof renderAdminShell === 'function') {
-      renderAdminShell('chats');
-    }
+    // เรียก renderAdminShell จาก common.js และบังคับแสดง Sidebar ให้ชัวร์
+    renderAdminShell('chats');
 
     let currentAdminUser = null;
     let roomsList = [];
@@ -252,7 +252,6 @@
       renderChatRoomsList();
     }
 
-    // ใช้ select('*') และจับ error แยกส่วน เพื่อป้องกันคอลัมน์ไม่ตรงแล้วทำให้แชตไม่โหลด
     async function hydrateMetadata(messages) {
       const missingProbIds = [...new Set(messages.map(m => m.problem_id).filter(id => id != null && !problemsMap.has(String(id))))];
       const missingUserIds = [...new Set(messages.map(m => m.student_id).filter(id => id != null && !profilesMap.has(String(id))))];

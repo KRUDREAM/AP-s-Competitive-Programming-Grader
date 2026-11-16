@@ -110,7 +110,7 @@
             <span id="mySubsCountBadge" class="text-[10px] px-1.5 py-0.2 rounded-full bg-cyan-500/20 text-cyan-300">0</span>
           </button>
           <button type="button" id="leftTabBtnChat" onclick="switchLeftTab('chat')" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-gray-300 hover:bg-white/5 transition active:scale-95 cursor-pointer flex items-center gap-1.5 shrink-0">
-            <i class="fa-solid fa-comments text-amber-400"></i> แชต
+            <i class="fa-solid fa-headset text-amber-400"></i> ถามผู้ดูแล
             <span id="chatCountBadge" class="text-[10px] px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-300">0</span>
           </button>
         </div>
@@ -171,20 +171,53 @@
         </div>
       </div>
 
-      <!-- CHAT -->
+      <!-- DIRECT ADMIN SUPPORT CHAT (1 PROBLEM / 1 STUDENT / 1 ROOM) -->
       <div id="leftPaneChat" class="hidden flex-1 flex flex-col min-h-0 animate-fade-in">
-        <div class="px-4 py-2.5 bg-gradient-to-r from-amber-950/35 to-cyan-950/30 border-b border-cyan-500/15 flex items-center justify-between shrink-0">
-          <div class="flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-            <span class="text-xs font-bold text-white">ห้องสนทนาประจำโจทย์</span>
+        <div class="px-4 py-2.5 bg-gradient-to-r from-amber-950/40 to-cyan-950/35 border-b border-cyan-500/15 flex items-center justify-between gap-2 shrink-0">
+          <div class="flex items-center gap-2 min-w-0">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping shrink-0"></span>
+            <div class="min-w-0">
+              <div class="text-xs font-bold text-white truncate">ติดต่อผู้ดูแลระบบ (ห้องส่วนตัวประจำข้อ)</div>
+              <div class="text-[10px] text-gray-400 truncate">สอบถามข้อสงสัยหรือแนบโค้ดที่ส่งให้ Admin ช่วยตรวจสอบได้</div>
+            </div>
           </div>
+          <button type="button" onclick="loadProblemChatMessages(true)" class="text-[11px] bg-white/5 hover:bg-cyan-500/15 text-cyan-300 px-2.5 py-1 rounded-lg border border-cyan-500/20 cursor-pointer shrink-0" title="รีเฟรชข้อความ">
+            <i class="fa-solid fa-rotate"></i>
+          </button>
         </div>
+
         <div id="chatMessagesContainer" class="flex-1 overflow-y-auto p-4 space-y-3 bg-[#050914]/60">
           <p class="text-xs text-gray-400 text-center py-8">กำลังโหลดข้อความ...</p>
         </div>
-        <form id="chatSendForm" class="p-3 bg-[#080e20] border-t border-cyan-500/20 flex items-center gap-2 shrink-0">
-          <input type="text" id="chatMessageInput" autocomplete="off" placeholder="พิมพ์ข้อความถามเพื่อน..." class="flex-1 bg-black/65 border border-cyan-500/25 focus:border-cyan-400 focus:outline-none rounded-xl px-3.5 py-2 text-xs text-white">
-          <button type="submit" class="bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-95 text-white px-4 py-2 rounded-xl text-xs font-bold shadow transition active:scale-95 cursor-pointer shrink-0">
+
+        <!-- Submission Picker Bar (ซ่อน/เปิดเมื่อกดปุ่มแนบ Submission) -->
+        <div id="chatSubmissionPickerPanel" class="hidden px-3 py-2 bg-[#0a1228] border-t border-cyan-500/25 space-y-1.5 shrink-0 animate-fade-in">
+          <div class="flex items-center justify-between text-[11px]">
+            <span class="font-bold text-cyan-300"><i class="fa-solid fa-code-branch mr-1"></i> เลือก Submission ที่ต้องการแนบ:</span>
+            <button type="button" onclick="toggleSubmissionPicker(false)" class="text-gray-400 hover:text-white cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
+          </div>
+          <select id="chatSubmissionSelect" onchange="handleSelectChatSubmission()" class="w-full bg-black/75 border border-cyan-500/30 focus:border-cyan-400 focus:outline-none rounded-xl px-2.5 py-1.5 text-xs text-white font-code">
+            <option value="">-- ไม่แนบ Submission --</option>
+          </select>
+        </div>
+
+        <!-- Selected Attachment Chip -->
+        <div id="chatSelectedAttachmentBar" class="hidden px-3 py-1.5 bg-cyan-950/60 border-t border-cyan-500/25 flex items-center justify-between gap-2 text-xs shrink-0">
+          <div class="flex items-center gap-2 min-w-0 text-cyan-200">
+            <i class="fa-solid fa-paperclip text-cyan-400 shrink-0"></i>
+            <span id="chatAttachmentPreviewText" class="truncate font-code text-[11px]">แนบ Submission #1</span>
+          </div>
+          <button type="button" onclick="clearChatAttachment()" class="text-rose-300 hover:text-rose-200 text-xs px-1.5 cursor-pointer shrink-0" title="ยกเลิกการแนบ">
+            <i class="fa-solid fa-circle-xmark"></i>
+          </button>
+        </div>
+
+        <form id="chatSendForm" onsubmit="sendProblemChatMessage(event)" class="p-3 bg-[#080e20] border-t border-cyan-500/20 flex items-center gap-2 shrink-0">
+          <button type="button" onclick="toggleSubmissionPicker()" id="attachSubBtn" class="bg-white/5 hover:bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 w-9 h-9 rounded-xl flex items-center justify-center transition active:scale-95 cursor-pointer shrink-0" title="แนบ Submission ส่งให้ผู้ดูแล">
+            <i class="fa-solid fa-paperclip"></i>
+          </button>
+          <input type="text" id="chatMessageInput" autocomplete="off" placeholder="พิมพ์คำถามถึงผู้ดูแลระบบ..." class="flex-1 bg-black/65 border border-cyan-500/25 focus:border-cyan-400 focus:outline-none rounded-xl px-3.5 py-2 text-xs text-white">
+          <button type="submit" id="chatSendBtn" class="bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-95 text-white px-4 py-2 rounded-xl text-xs font-bold shadow transition active:scale-95 cursor-pointer shrink-0">
             <i class="fa-solid fa-paper-plane"></i>
           </button>
         </form>
@@ -279,7 +312,6 @@
       </div>
 
       <div class="flex-1 overflow-y-auto space-y-4 min-h-0 pr-1">
-        <!-- Banner แจ้งสถานะกำลังตรวจ -->
         <div id="modalJudgingBanner" class="hidden bg-cyan-500/10 border border-cyan-500/35 rounded-2xl p-4 flex items-center gap-3.5 animate-fade-in">
           <div class="w-10 h-10 rounded-xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center shrink-0">
             <i class="fa-solid fa-bolt text-cyan-300 text-lg animate-bounce"></i>
@@ -308,6 +340,9 @@
       </div>
 
       <div class="flex justify-end gap-2 pt-2 border-t border-cyan-500/20 shrink-0">
+        <button type="button" id="modalAttachChatBtn" class="bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/35 px-4 py-2 rounded-xl text-xs font-semibold cursor-pointer transition active:scale-95 flex items-center gap-1.5">
+          <i class="fa-solid fa-paperclip"></i> แนบถามผู้ดูแล
+        </button>
         <button type="button" id="modalCopyCodeBtn" class="bg-white/5 hover:bg-white/10 text-gray-200 px-4 py-2 rounded-xl text-xs font-semibold cursor-pointer transition active:scale-95">คัดลอกโค้ด</button>
         <button type="button" id="modalLoadEditorBtn" class="bg-gradient-to-r from-blue-600 to-cyan-500 text-white px-4 py-2 rounded-xl text-xs font-bold cursor-pointer transition active:scale-95 shadow">โหลดลง Editor</button>
       </div>
@@ -332,10 +367,17 @@
     let isAdminUser = false;
     let currentProblem = null;
     let mySubmissionsCache = [];
+    let mySubmissionsChronological = [];
     let hasUserSolvedThisProblem = false;
     let activeSelectedSubmission = null;
     let isSubmittingInFlight = false;
     let activePendingJob = null;
+
+    // Chat state (1 Problem / 1 Student / 1 Direct Room with Admin)
+    let chatMessagesCache = [];
+    let selectedChatSubmissionId = '';
+    let chatRealtimeChannel = null;
+    let activeLeftTab = 'stmt';
 
     let leftPaneWidthPct = parseFloat(localStorage.getItem('st8_split_left_pct')) || 48;
     let isLeftCollapsed = false;
@@ -382,16 +424,6 @@
         backBtn.href = 'problems.html';
         backBtnText.textContent = 'กลับสู่คลังโจทย์';
       }
-    }
-
-    function setSplitRatio(pct) {
-      if (window.innerWidth < 1024) return;
-      isLeftCollapsed = false;
-      leftPaneWidthPct = Math.min(72, Math.max(22, pct));
-      localStorage.setItem('st8_split_left_pct', leftPaneWidthPct);
-      const leftEl = document.getElementById('leftPane');
-      leftEl.style.width = leftPaneWidthPct + '%';
-      if (editorInstance) editorInstance.layout();
     }
 
     function toggleCollapseLeftPane() {
@@ -509,6 +541,7 @@
     }
 
     function switchLeftTab(tab) {
+      activeLeftTab = tab;
       const activeCls = 'px-3.5 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow transition active:scale-95 cursor-pointer flex items-center gap-1.5 shrink-0';
       const inactiveCls = 'px-3.5 py-1.5 rounded-xl text-xs font-semibold text-gray-300 hover:bg-white/5 transition active:scale-95 cursor-pointer flex items-center gap-1.5 shrink-0';
 
@@ -519,6 +552,11 @@
       document.getElementById('leftPaneStmt').classList.toggle('hidden', tab !== 'stmt');
       document.getElementById('leftPaneSubs').classList.toggle('hidden', tab !== 'subs');
       document.getElementById('leftPaneChat').classList.toggle('hidden', tab !== 'chat');
+
+      if (tab === 'chat') {
+        scrollChatToBottom();
+        markAdminRepliesAsRead();
+      }
     }
 
     function updateMaxScoreBadge(submissionsList) {
@@ -544,6 +582,22 @@
       }
     }
 
+    function syncChatSubmissionOptions() {
+      const sel = document.getElementById('chatSubmissionSelect');
+      if (!sel) return;
+      const maxScore = currentProblem?.max_score || 100;
+      const prevVal = sel.value;
+
+      sel.innerHTML = `<option value="">-- ไม่แนบ Submission --</option>` + mySubmissionsCache.map((s) => {
+        const subNum = mySubmissionsChronological.findIndex(x => String(x.id) === String(s.id)) + 1;
+        return `<option value="${s.id}">Submission #${subNum} (${s.status} • ${s.score ?? 0}/${maxScore} คะแนน • ${(s.language || 'cpp').toUpperCase()})</option>`;
+      }).join('');
+
+      if (prevVal && mySubmissionsCache.some(s => String(s.id) === String(prevVal))) {
+        sel.value = prevVal;
+      }
+    }
+
     async function loadMySubmissions(notifyToast = false) {
       if (!currentUser || !problemId) return;
       const { data, error } = await supabaseClient
@@ -556,9 +610,13 @@
       if (error) return;
 
       const rawList = data || [];
+      mySubmissionsChronological = rawList;
       mySubmissionsCache = rawList.slice().reverse();
       hasUserSolvedThisProblem = rawList.some(s => s.status === 'Accepted' || s.status === 'AC');
       document.getElementById('mySubsCountBadge').textContent = rawList.length;
+
+      syncChatSubmissionOptions();
+      if (chatMessagesCache.length > 0) renderChatMessages();
 
       const quickBtn = document.getElementById('lastVerdictQuickBtn');
       if (quickBtn) {
@@ -611,6 +669,286 @@
       }).join('');
 
       if (notifyToast) showToast('อัปเดตประวัติแล้ว', `โหลดรายการส่งทั้งหมด ${rawList.length} ครั้ง`);
+    }
+
+    // --- DIRECT SUPPORT CHAT (1 PROBLEM / 1 STUDENT / 1 ROOM WITH ADMIN) ---
+    function scrollChatToBottom() {
+      const box = document.getElementById('chatMessagesContainer');
+      if (box) setTimeout(() => { box.scrollTop = box.scrollHeight; }, 40);
+    }
+
+    function toggleSubmissionPicker(forceState) {
+      const panel = document.getElementById('chatSubmissionPickerPanel');
+      if (!panel) return;
+      const shouldShow = typeof forceState === 'boolean' ? forceState : panel.classList.contains('hidden');
+      if (shouldShow) {
+        if (mySubmissionsCache.length === 0) {
+          showToast('ยังไม่มีประวัติการส่ง', 'คุณต้องกดส่งตรวจอย่างน้อย 1 ครั้งก่อนจึงจะแนบ Submission ได้', true);
+          return;
+        }
+        syncChatSubmissionOptions();
+        panel.classList.remove('hidden');
+      } else {
+        panel.classList.add('hidden');
+      }
+    }
+
+    function attachSubmissionToChat(subId) {
+      selectedChatSubmissionId = String(subId || '');
+      const sel = document.getElementById('chatSubmissionSelect');
+      if (sel) sel.value = selectedChatSubmissionId;
+
+      const bar = document.getElementById('chatSelectedAttachmentBar');
+      const txt = document.getElementById('chatAttachmentPreviewText');
+      if (!selectedChatSubmissionId) {
+        bar.classList.add('hidden');
+        return;
+      }
+
+      const subIdx = mySubmissionsChronological.findIndex(s => String(s.id) === selectedChatSubmissionId);
+      const sub = subIdx >= 0 ? mySubmissionsChronological[subIdx] : null;
+      const maxScore = currentProblem?.max_score || 100;
+      if (sub) {
+        txt.textContent = `แนบ Submission #${subIdx + 1} (${sub.status} • ${sub.score ?? 0}/${maxScore})`;
+      } else {
+        txt.textContent = `แนบ Submission (${selectedChatSubmissionId.substring(0, 8)}...)`;
+      }
+      bar.classList.remove('hidden');
+      document.getElementById('chatSubmissionPickerPanel').classList.add('hidden');
+    }
+
+    function handleSelectChatSubmission() {
+      const val = document.getElementById('chatSubmissionSelect').value;
+      attachSubmissionToChat(val);
+    }
+
+    function clearChatAttachment() {
+      selectedChatSubmissionId = '';
+      const sel = document.getElementById('chatSubmissionSelect');
+      if (sel) sel.value = '';
+      document.getElementById('chatSelectedAttachmentBar').classList.add('hidden');
+    }
+
+    function updateChatBadgeCount() {
+      const badge = document.getElementById('chatCountBadge');
+      if (!badge) return;
+      const unreadAdminMsgs = chatMessagesCache.filter(m => m.sender_role === 'admin' && !m.is_read).length;
+      if (unreadAdminMsgs > 0) {
+        badge.textContent = `${unreadAdminMsgs} ใหม่`;
+        badge.className = 'text-[10px] px-1.5 py-0.2 rounded-full bg-rose-500 text-white font-bold animate-pulse';
+      } else {
+        badge.textContent = chatMessagesCache.length;
+        badge.className = 'text-[10px] px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-300';
+      }
+    }
+
+    async function markAdminRepliesAsRead() {
+      if (!currentUser || !problemId) return;
+      const hasUnread = chatMessagesCache.some(m => m.sender_role === 'admin' && !m.is_read);
+      if (!hasUnread) return;
+
+      chatMessagesCache.forEach(m => {
+        if (m.sender_role === 'admin') m.is_read = true;
+      });
+      updateChatBadgeCount();
+
+      await supabaseClient
+        .from('problem_chats')
+        .update({ is_read: true })
+        .eq('problem_id', problemId)
+        .eq('student_id', currentUser.id)
+        .eq('sender_role', 'admin')
+        .eq('is_read', false);
+    }
+
+    function renderChatMessages() {
+      const container = document.getElementById('chatMessagesContainer');
+      if (!container) return;
+      updateChatBadgeCount();
+
+      if (chatMessagesCache.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-10 px-4 space-y-2 border border-dashed border-cyan-500/20 rounded-2xl bg-black/30">
+            <i class="fa-solid fa-comments text-2xl text-cyan-400/70"></i>
+            <div class="text-xs font-bold text-gray-200">ยังไม่มีข้อความในห้องนี้</div>
+            <p class="text-[11px] text-gray-400 leading-relaxed">
+              ห้องแชตนี้เป็นห้องส่วนตัวสำหรับคุณและผู้ดูแลระบบในโจทย์ข้อนี้โดยเฉพาะ<br>
+              สามารถพิมพ์ถามหรือกดปุ่ม <i class="fa-solid fa-paperclip text-cyan-300"></i> เพื่อแนบ Submission ให้ตรวจสอบได้ทันที
+            </p>
+          </div>
+        `;
+        return;
+      }
+
+      const maxScore = currentProblem?.max_score || 100;
+
+      container.innerHTML = chatMessagesCache.map(msg => {
+        const isMine = msg.sender_role !== 'admin';
+        const timeStr = msg.created_at
+          ? new Date(msg.created_at).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })
+          : '';
+
+        let attachmentHtml = '';
+        if (msg.submission_id) {
+          const subIdx = mySubmissionsChronological.findIndex(s => String(s.id) === String(msg.submission_id));
+          const sub = subIdx >= 0 ? mySubmissionsChronological[subIdx] : null;
+          if (sub) {
+            const isAc = sub.status === 'Accepted' || sub.status === 'AC';
+            const badgeCls = isAc
+              ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+              : 'bg-rose-500/20 text-rose-300 border-rose-500/40';
+            attachmentHtml = `
+              <button type="button" onclick="openSubmissionModal('${sub.id}')" class="mt-2 w-full text-left bg-black/60 hover:bg-black/80 border border-cyan-500/35 rounded-xl p-2.5 transition flex items-center justify-between gap-2 cursor-pointer group">
+                <div class="min-w-0">
+                  <div class="text-[11px] font-bold font-code text-cyan-300 group-hover:underline">
+                    <i class="fa-solid fa-file-code mr-1"></i> Submission #${subIdx + 1} (${(sub.language || 'cpp').toUpperCase()})
+                  </div>
+                  <div class="text-[10px] text-gray-400">คะแนน ${sub.score ?? 0}/${maxScore} &bull; คลิกเพื่อดูโค้ด</div>
+                </div>
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border ${badgeCls} shrink-0">${sub.status}</span>
+              </button>
+            `;
+          } else {
+            attachmentHtml = `
+              <div class="mt-2 bg-black/50 border border-white/15 rounded-xl px-2.5 py-1.5 text-[11px] font-code text-cyan-300">
+                <i class="fa-solid fa-paperclip mr-1"></i> แนบ Submission (${String(msg.submission_id).substring(0, 8)}...)
+              </div>
+            `;
+          }
+        }
+
+        if (isMine) {
+          return `
+            <div class="flex flex-col items-end animate-fade-in">
+              <div class="max-w-[85%] bg-gradient-to-br from-blue-600/35 to-cyan-600/25 border border-cyan-500/35 rounded-2xl rounded-tr-sm px-3.5 py-2.5 shadow">
+                <div class="text-xs text-white whitespace-pre-wrap break-words leading-relaxed">${escapeHtml(msg.message)}</div>
+                ${attachmentHtml}
+              </div>
+              <span class="text-[10px] text-gray-500 mt-1 pr-1">คุณ &bull; ${timeStr}</span>
+            </div>
+          `;
+        } else {
+          return `
+            <div class="flex flex-col items-start animate-fade-in">
+              <div class="flex items-center gap-1.5 mb-1 pl-1">
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/35">
+                  <i class="fa-solid fa-shield-halved mr-1"></i> ผู้ดูแลระบบ (Admin)
+                </span>
+                <span class="text-[10px] text-gray-500">${timeStr}</span>
+              </div>
+              <div class="max-w-[85%] bg-[#0d1630] border border-amber-500/30 rounded-2xl rounded-tl-sm px-3.5 py-2.5 shadow">
+                <div class="text-xs text-gray-100 whitespace-pre-wrap break-words leading-relaxed">${escapeHtml(msg.message)}</div>
+                ${attachmentHtml}
+              </div>
+            </div>
+          `;
+        }
+      }).join('');
+
+      if (activeLeftTab === 'chat') scrollChatToBottom();
+    }
+
+    async function loadProblemChatMessages(notifyToast = false) {
+      if (!currentUser || !problemId) return;
+      const { data, error } = await supabaseClient
+        .from('problem_chats')
+        .select('*')
+        .eq('problem_id', problemId)
+        .eq('student_id', currentUser.id)
+        .order('created_at', { ascending: true });
+
+      if (error) {
+        if (notifyToast) showToast('โหลดแชตไม่สำเร็จ', error.message, true);
+        return;
+      }
+
+      chatMessagesCache = data || [];
+      renderChatMessages();
+      if (activeLeftTab === 'chat') await markAdminRepliesAsRead();
+      if (notifyToast) showToast('อัปเดตแชตแล้ว', 'โหลดข้อความล่าสุดเรียบร้อย');
+    }
+
+    function subscribeProblemChatRealtime() {
+      if (!currentUser || !problemId) return;
+      if (chatRealtimeChannel) {
+        supabaseClient.removeChannel(chatRealtimeChannel);
+      }
+
+      chatRealtimeChannel = supabaseClient
+        .channel(`st8_chat_${problemId}_${currentUser.id}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'problem_chats',
+            filter: `student_id=eq.${currentUser.id}`
+          },
+          async (payload) => {
+            const newMsg = payload.new;
+            if (!newMsg || String(newMsg.problem_id) !== String(problemId)) return;
+            if (chatMessagesCache.some(m => String(m.id) === String(newMsg.id))) return;
+
+            chatMessagesCache.push(newMsg);
+            renderChatMessages();
+
+            if (newMsg.sender_role === 'admin') {
+              if (activeLeftTab === 'chat') {
+                await markAdminRepliesAsRead();
+              } else {
+                showToast('ผู้ดูแลระบบตอบกลับแล้ว', newMsg.message.slice(0, 60));
+              }
+            }
+          }
+        )
+        .subscribe();
+    }
+
+    async function sendProblemChatMessage(event) {
+      if (event) event.preventDefault();
+      if (!currentUser || !problemId) return;
+
+      const inputEl = document.getElementById('chatMessageInput');
+      const sendBtn = document.getElementById('chatSendBtn');
+      const rawText = (inputEl.value || '').trim();
+
+      if (!rawText && !selectedChatSubmissionId) return;
+      const finalMsg = rawText || 'ส่งแนบ Submission เพื่อให้ผู้ดูแลระบบตรวจสอบครับ';
+
+      sendBtn.disabled = true;
+      try {
+        const payload = {
+          problem_id: problemId,
+          student_id: currentUser.id,
+          sender_id: currentUser.id,
+          sender_role: 'student',
+          message: finalMsg,
+          submission_id: selectedChatSubmissionId || null,
+          is_read: false
+        };
+
+        const { data: inserted, error } = await supabaseClient
+          .from('problem_chats')
+          .insert([payload])
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        if (inserted && !chatMessagesCache.some(m => String(m.id) === String(inserted.id))) {
+          chatMessagesCache.push(inserted);
+        }
+
+        inputEl.value = '';
+        clearChatAttachment();
+        renderChatMessages();
+        scrollChatToBottom();
+      } catch (err) {
+        showToast('ส่งข้อความไม่สำเร็จ', err.message, true);
+      } finally {
+        sendBtn.disabled = false;
+        inputEl.focus();
+      }
     }
 
     function renderSubmissionIntoModal(sub) {
@@ -696,6 +1034,21 @@
             </div>
           `;
         }).join('') || '<p class="text-xs text-gray-400 italic">ไม่มีรายละเอียดรายเคส</p>';
+      }
+
+      const attachBtn = document.getElementById('modalAttachChatBtn');
+      if (attachBtn) {
+        if (isJudging || !sub.id || String(sub.id).startsWith('pending_')) {
+          attachBtn.classList.add('hidden');
+        } else {
+          attachBtn.classList.remove('hidden');
+          attachBtn.onclick = () => {
+            closeSubmissionModal();
+            switchLeftTab('chat');
+            attachSubmissionToChat(sub.id);
+            document.getElementById('chatMessageInput').focus();
+          };
+        }
       }
 
       document.getElementById('modalCopyCodeBtn').onclick = () => {
@@ -866,7 +1219,6 @@
       }
     }
 
-    // แข่ง 2 APIs โดยไม่สั่ง Abort ตัวที่เหลือทิ้งก่อนเวลาอันควร + มี Retry 2 รอบเมื่อติด Rate Limit
     async function executeCppResilient(code, lang, stdin, optFlag = '-O0') {
       let lastErrMsg = 'Compiler Server ไม่ตอบสนอง';
       for (let attempt = 0; attempt < 3; attempt++) {
@@ -886,7 +1238,6 @@
       throw new Error(`เซิร์ฟเวอร์ตรวจโค้ดกำลังหนาแน่น (${lastErrMsg})`);
     }
 
-    // --- LIGHTWEIGHT IN-PROCESS BATCH HARNESS ---
     function escapeCppRawString(str) {
       const s = String(str || '');
       let delim = 'ST8D';
@@ -994,7 +1345,6 @@ int main() {
 `;
     }
 
-    // ตัวจัดการคิว Concurrency Limit สูงสุด 3 งานพร้อมกัน (กัน Rate Limit 429)
     async function runWithConcurrencyLimit(tasks, limit = 3) {
       const results = new Array(tasks.length);
       let nextIdx = 0;
@@ -1008,7 +1358,6 @@ int main() {
       return results;
     }
 
-    // แบ่งตรวจเป็นชุดย่อย (Chunk ละ 5 เคส) แล้วยิงแบบจำกัดคิวสูงสุด 3 Chunks พร้อมกัน
     async function runChunkedFastEval(fullCode, lang, testCases, timeLimitSec) {
       const CHUNK_SIZE = 5;
       const chunks = [];
@@ -1042,12 +1391,11 @@ int main() {
                 }
               }
             } catch {
-              // หาก Chunk ไหนเกิด Segfault/TLE หรือ Harness รันไม่ได้ ให้ตกไปตรวจรายเคสใน Chunk นั้น
+              // Fallback to per-case evaluation in this chunk
             }
           }
         }
 
-        // Fallback รายเคสสำหรับ Chunk นี้ (จำกัดคิว 3 เคสพร้อมกัน)
         const singleTasks = chunk.items.map((tc, offset) => async () => {
           const r = await executeCppResilient(fullCode, lang, tc.input || '', '-O1');
           if (r.status === 'CE') return { isCE: true, compilerError: r.compilerError };
@@ -1411,6 +1759,8 @@ int main() {
       renderProblemStatement(prob);
 
       await loadMySubmissions(false);
+      await loadProblemChatMessages(false);
+      subscribeProblemChatRealtime();
       await resumePendingSubmissionIfNeeded();
     }
 

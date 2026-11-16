@@ -5,6 +5,7 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const ADMIN_MENU_ITEMS = [
   { id: 'problems', label: 'จัดการโจทย์ทั้งหมด', icon: 'fa-book-open', href: 'admin.html' },
   { id: 'verify', label: 'ตรวจสอบโจทย์จากทางบ้าน', icon: 'fa-clipboard-check', href: 'admin-verify.html' },
+  { id: 'chats', label: 'แชตถาม-ตอบนักเรียน', icon: 'fa-headset', href: 'admin-chats.html' },
   { id: 'playground', label: 'ห้องทดลองรันโค้ด', icon: 'fa-flask-vial', href: 'admin-playground.html' },
   { id: 'contests', label: 'จัดการ Contest', icon: 'fa-trophy', href: 'admin-contests.html' },
   { id: 'scoreboard', label: 'Scoreboard กระดานคะแนน', icon: 'fa-ranking-star', href: 'admin-scoreboard.html' },
@@ -50,12 +51,18 @@ function renderAdminShell(activePageId) {
     const navHtml = ADMIN_MENU_ITEMS.map(item => {
       const isActive = item.id === activePageId;
       const cls = isActive
-        ? 'w-full text-left px-3.5 py-2.5 rounded-xl bg-cyan-500/20 border border-cyan-500/45 text-cyan-300 text-xs font-semibold flex items-center gap-2.5 transition-all duration-200 shadow-sm shadow-cyan-500/10'
-        : 'w-full text-left px-3.5 py-2.5 rounded-xl text-gray-300 hover:text-cyan-300 hover:bg-cyan-500/10 border border-transparent text-xs font-medium flex items-center gap-2.5 transition-all duration-200';
+        ? 'w-full text-left px-3.5 py-2.5 rounded-xl bg-cyan-500/20 border border-cyan-500/45 text-cyan-300 text-xs font-semibold flex items-center justify-between gap-2 transition-all duration-200 shadow-sm shadow-cyan-500/10'
+        : 'w-full text-left px-3.5 py-2.5 rounded-xl text-gray-300 hover:text-cyan-300 hover:bg-cyan-500/10 border border-transparent text-xs font-medium flex items-center justify-between gap-2 transition-all duration-200';
+      const badgeHtml = item.id === 'chats'
+        ? `<span id="adminNavUnreadChatBadge" class="hidden text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-500 text-white animate-pulse">0</span>`
+        : '';
       return `
         <a href="${item.href}" class="${cls}">
-          <i class="fa-solid ${item.icon} w-4 text-center ${isActive ? 'text-cyan-400' : 'text-gray-400'}"></i>
-          <span>${item.label}</span>
+          <span class="flex items-center gap-2.5 min-w-0">
+            <i class="fa-solid ${item.icon} w-4 text-center${isActive ? 'text-cyan-400' : 'text-gray-400'}"></i>
+            <span class="truncate">${item.label}</span>
+          </span>
+          ${badgeHtml}
         </a>
       `;
     }).join('');
@@ -77,6 +84,30 @@ function renderAdminShell(activePageId) {
         </nav>
       </aside>
     `;
+
+    syncAdminUnreadChatBadge();
+  }
+}
+
+async function syncAdminUnreadChatBadge() {
+  try {
+    const badge = document.getElementById('adminNavUnreadChatBadge');
+    if (!badge) return;
+    const { count, error } = await supabaseClient
+      .from('problem_chats')
+      .select('*', { count: 'exact', head: true })
+      .eq('sender_role', 'student')
+      .eq('is_read', false);
+
+    if (error) return;
+    if (count && count > 0) {
+      badge.textContent = count > 99 ? '99+' : count;
+      badge.classList.remove('hidden');
+    } else {
+      badge.classList.add('hidden');
+    }
+  } catch (err) {
+    // ข้ามหากยังไม่ได้สร้างตาราง
   }
 }
 

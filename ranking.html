@@ -93,6 +93,7 @@
 
       <div id="authNavArea" class="flex items-center gap-2.5">
         <a href="index.html" class="text-xs font-semibold text-gray-300 hover:text-cyan-400 px-3 py-2 transition">เข้าสู่ระบบ</a>
+        <a href="index.html" class="bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-lg shadow-cyan-500/20 transition">สมัครสมาชิก</a>
       </div>
     </div>
   </header>
@@ -233,6 +234,14 @@
       '#fb7185', '#2dd4bf', '#f97316', '#60a5fa', '#e879f9'
     ];
 
+    function escapeHtml(str) {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
     function showToast(title, desc, isError = false) {
       const toast = document.getElementById('systemToast');
       document.getElementById('toastTitle').textContent = title;
@@ -257,24 +266,17 @@
       el.classList.add('modal-closed', 'opacity-0', 'pointer-events-none');
     }
 
-    // --- USER PROFILE DROPDOWN ---
-    function toggleUserMenuDropdown(event) {
-      if (event) event.stopPropagation();
-      const menu = document.getElementById('userProfileDropdown');
-      const chevron = document.getElementById('userDropdownChevron');
-      if (!menu) return;
-      const isHidden = menu.classList.contains('hidden');
-      menu.classList.toggle('hidden', !isHidden);
-      if (chevron) chevron.classList.toggle('rotate-180', isHidden);
+    // --- USER PROFILE DROPDOWN (เหมือนหน้าอื่น ๆ) ---
+    function toggleDropdown() {
+      const dd = document.getElementById('userDropdown');
+      if (dd) dd.classList.toggle('hidden');
     }
 
     document.addEventListener('click', (e) => {
-      const wrapper = document.getElementById('userNavDropdownWrapper');
-      const menu = document.getElementById('userProfileDropdown');
-      const chevron = document.getElementById('userDropdownChevron');
-      if (wrapper && menu && !wrapper.contains(e.target)) {
-        menu.classList.add('hidden');
-        if (chevron) chevron.classList.remove('rotate-180');
+      const wrap = document.getElementById('userDropdownWrapper');
+      if (wrap && !wrap.contains(e.target)) {
+        const dd = document.getElementById('userDropdown');
+        if (dd) dd.classList.add('hidden');
       }
     });
 
@@ -285,8 +287,8 @@
     }
 
     function openMyProfileFromDropdown() {
-      const menu = document.getElementById('userProfileDropdown');
-      if (menu) menu.classList.add('hidden');
+      const dd = document.getElementById('userDropdown');
+      if (dd) dd.classList.add('hidden');
       if (currentUser && computedRows.some(r => String(r.userId) === String(currentUser.id))) {
         openStudentProfileModal(currentUser.id);
       } else {
@@ -294,67 +296,27 @@
       }
     }
 
-    function renderAuthDropdown(user, prof) {
-      const dispName = (prof && (prof.display_name || prof.username)) || user.email.split('@')[0];
-      const username = (prof && prof.username) || user.email.split('@')[0];
-      const avatarChar = dispName.charAt(0).toUpperCase();
-      const isAdmin = prof && prof.role === 'admin';
-      const xpVal = (prof && prof.xp) || 0;
+    function updateNavbarLoggedIn(username, isAdmin = false) {
+      const adminLink = isAdmin
+        ? `<a href="admin.html" class="block px-4 py-2.5 text-xs text-rose-300 font-bold hover:bg-rose-500/15 transition"><i class="fa-solid fa-user-shield mr-2 text-rose-400"></i> ระบบจัดการ Admin</a>`
+        : '';
 
       document.getElementById('authNavArea').innerHTML = `
-        <div id="userNavDropdownWrapper" class="relative">
-          <button type="button" onclick="toggleUserMenuDropdown(event)" class="flex items-center gap-2.5 bg-cyan-950/70 hover:bg-cyan-900/70 border border-cyan-500/35 px-3 py-1.5 rounded-2xl transition cursor-pointer shadow-md">
-            <div class="w-7 h-7 rounded-xl bg-gradient-to-tr from-blue-600 to-cyan-400 text-white font-bold text-xs flex items-center justify-center shadow">
-              ${avatarChar}
-            </div>
-            <div class="text-left hidden sm:block">
-              <div class="text-xs font-bold text-white leading-tight flex items-center gap-1.5">
-                <span>${dispName}</span>
-                ${isAdmin ? '<span class="text-[9px] px-1.5 py-0.2 rounded bg-rose-500/20 text-rose-300 border border-rose-500/35">ADMIN</span>' : ''}
-              </div>
-              <div class="text-[10px] text-amber-300 font-mono leading-tight">${xpVal} XP</div>
-            </div>
-            <i id="userDropdownChevron" class="fa-solid fa-chevron-down text-[10px] text-cyan-300 transition-transform duration-200 ml-0.5"></i>
+        <div class="relative" id="userDropdownWrapper">
+          <button type="button" onclick="toggleDropdown()" class="flex items-center gap-2 bg-cyan-950/60 border border-cyan-500/30 hover:border-cyan-400 px-3.5 py-2 rounded-xl text-xs text-cyan-300 font-bold transition cursor-pointer">
+            <span><i class="fa-solid fa-terminal mr-1"></i> ${escapeHtml(username)}</span>
+            <i class="fa-solid fa-chevron-down text-[9px]"></i>
           </button>
-
-          <!-- DROPDOWN PANEL -->
-          <div id="userProfileDropdown" class="hidden absolute right-0 mt-2.5 w-60 tech-modal rounded-2xl border border-cyan-500/30 shadow-2xl py-2 z-50 animate-modal-in">
-            <div class="px-4 py-2.5 border-b border-cyan-500/15">
-              <div class="text-xs font-bold text-white truncate">${dispName}</div>
-              <div class="text-[11px] text-gray-400 truncate">@${username}</div>
-              <div class="mt-1.5 inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-300 border border-amber-500/30 font-mono">
-                <i class="fa-solid fa-bolt"></i> ${xpVal} XP
-              </div>
-            </div>
-
-            <div class="py-1.5 text-xs">
-              <a href="profile.html" class="flex items-center gap-2.5 px-4 py-2 text-gray-200 hover:bg-cyan-500/15 hover:text-cyan-300 transition">
-                <i class="fa-solid fa-id-card text-cyan-400 w-4 text-center"></i>
-                <span>โปรไฟล์ของฉัน</span>
-              </a>
-              <button type="button" onclick="openMyProfileFromDropdown()" class="w-full text-left flex items-center gap-2.5 px-4 py-2 text-gray-200 hover:bg-cyan-500/15 hover:text-cyan-300 transition cursor-pointer">
-                <i class="fa-solid fa-chart-simple text-emerald-400 w-4 text-center"></i>
-                <span>สถิติคะแนนในตาราง</span>
-              </button>
-              <a href="problems.html" class="flex items-center gap-2.5 px-4 py-2 text-gray-200 hover:bg-cyan-500/15 hover:text-cyan-300 transition">
-                <i class="fa-solid fa-laptop-code text-blue-400 w-4 text-center"></i>
-                <span>คลังโจทย์ทั้งหมด</span>
-              </a>
-              ${isAdmin ? `
-                <div class="my-1 border-t border-cyan-500/15"></div>
-                <a href="admin.html" class="flex items-center gap-2.5 px-4 py-2 text-rose-300 hover:bg-rose-500/15 font-semibold transition">
-                  <i class="fa-solid fa-user-shield text-rose-400 w-4 text-center"></i>
-                  <span>ระบบจัดการ Admin</span>
-                </a>
-              ` : ''}
-            </div>
-
-            <div class="pt-1.5 border-t border-cyan-500/15 px-2">
-              <button type="button" onclick="handleLogout()" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-rose-300 hover:bg-rose-500/15 transition cursor-pointer">
-                <i class="fa-solid fa-right-from-bracket w-4 text-center"></i>
-                <span>ออกจากระบบ</span>
-              </button>
-            </div>
+          <div id="userDropdown" class="absolute right-0 mt-2 w-56 tech-modal rounded-2xl shadow-2xl py-2 hidden border border-cyan-500/30 z-50 text-left">
+            ${adminLink}
+            <a href="index.html" class="block px-4 py-2.5 text-xs text-gray-300 hover:bg-cyan-500/10 hover:text-cyan-300 transition"><i class="fa-solid fa-house mr-2 text-cyan-400"></i> หน้าหลัก</a>
+            <a href="contest.html" class="block px-4 py-2.5 text-xs text-gray-300 hover:bg-cyan-500/10 hover:text-cyan-300 transition"><i class="fa-solid fa-trophy mr-2 text-cyan-400"></i> Contest Arena</a>
+            <a href="problems.html" class="block px-4 py-2.5 text-xs text-gray-300 hover:bg-cyan-500/10 hover:text-cyan-300 transition"><i class="fa-solid fa-laptop-code mr-2 text-cyan-400"></i> คลังโจทย์</a>
+            <a href="ranking.html" class="block px-4 py-2.5 text-xs text-cyan-300 font-bold hover:bg-cyan-500/10 transition"><i class="fa-solid fa-ranking-star mr-2 text-cyan-400"></i> Scoreboard</a>
+            <a href="announcement.html" class="block px-4 py-2.5 text-xs text-gray-300 hover:bg-cyan-500/10 hover:text-cyan-300 transition"><i class="fa-solid fa-bullhorn mr-2 text-cyan-400"></i> ประกาศระบบ</a>
+            <button type="button" onclick="openMyProfileFromDropdown()" class="w-full text-left px-4 py-2.5 text-xs text-gray-300 hover:bg-cyan-500/10 hover:text-cyan-300 transition cursor-pointer"><i class="fa-solid fa-user-gear mr-2 text-cyan-400"></i> โปรไฟล์ & ตั้งค่า</button>
+            <div class="border-t border-cyan-500/20 my-1"></div>
+            <button type="button" onclick="handleLogout()" class="w-full text-left px-4 py-2.5 text-xs text-rose-400 hover:bg-rose-500/20 transition cursor-pointer"><i class="fa-solid fa-right-from-bracket mr-2"></i> ออกจากระบบ</button>
           </div>
         </div>
       `;
@@ -366,7 +328,10 @@
         currentUser = session.user;
         const { data: prof } = await supabaseClient.from('profiles').select('*').eq('id', currentUser.id).maybeSingle();
         currentUserProfile = prof;
-        renderAuthDropdown(currentUser, prof);
+
+        const displayName = (prof && (prof.display_name || prof.username)) || currentUser.email.split('@')[0];
+        const isAdmin = prof && prof.role === 'admin';
+        updateNavbarLoggedIn(displayName, isAdmin);
       }
       await loadGlobalRanking();
     }
